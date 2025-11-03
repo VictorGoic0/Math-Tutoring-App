@@ -1,5 +1,11 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
@@ -20,6 +26,42 @@ const app = initializeApp(firebaseConfig);
 export const firebaseAuth = getAuth(app);
 export const firebaseFireStore = getFirestore(app);
 export const firebaseStorage = getStorage(app);
+
+// Auth helper functions
+export const signInUser = async (email, password) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+    return { user: userCredential.user, error: null };
+  } catch (error) {
+    return { user: null, error: error.message };
+  }
+};
+
+export const signUpUser = async (email, password, displayName) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+    // Optionally update user profile with displayName
+    if (displayName) {
+      await userCredential.user.updateProfile({ displayName });
+    }
+    return { user: userCredential.user, error: null };
+  } catch (error) {
+    return { user: null, error: error.message };
+  }
+};
+
+export const signOutUser = async () => {
+  try {
+    await firebaseSignOut(firebaseAuth);
+    return { error: null };
+  } catch (error) {
+    return { error: error.message };
+  }
+};
+
+export const onAuthStateChange = (callback) => {
+  return onAuthStateChanged(firebaseAuth, callback);
+};
 
 export default app;
 

@@ -67,16 +67,19 @@ README.md
 
 **Tasks:**
 1. [x] Set up Firebase configuration files (frontend and backend)
-2. [x] Initialize Firebase Auth in frontend
+2. [x] Initialize Firebase Auth in frontend (with named exports: firebaseAuth, firebaseFireStore, firebaseStorage)
 3. [x] Initialize Firebase Admin SDK in backend
-4. [ ] **Set up Firebase Project** (see Firebase Setup Steps below)
-5. [ ] Create authentication context/hook for frontend
-6. [ ] Create Login component with email/password
-7. [ ] Create Sign Up component
-8. [ ] Add protected route wrapper
-9. [ ] Add authentication middleware to Express backend
-10. [ ] Test login/logout flow
-11. [ ] Verify user info is accessible in frontend and backend
+4. [x] Add Firebase auth helper functions to firebase.js (signIn, signUp, signOut, onAuthStateChange)
+5. [x] Create AuthContext with AuthProvider (manages currentUser, loading state)
+6. [x] Create useAuth hook (easy access to AuthContext)
+7. [x] Wrap App with AuthProvider in main.jsx
+8. [ ] **Set up Firebase Project** (see Firebase Setup Steps below)
+9. [ ] Create Login component with email/password (uses useAuth hook + firebase.js functions)
+10. [ ] Create Sign Up component (uses useAuth hook + firebase.js functions)
+11. [ ] Add protected route wrapper component (uses useAuth hook)
+12. [ ] Add authentication middleware to Express backend
+13. [ ] Test login/logout flow
+14. [ ] Verify user info is accessible in frontend and backend
 
 **Firebase Setup Steps (Do this now):**
 1. **Create Firebase Project:**
@@ -172,17 +175,36 @@ README.md
 
 **Files Created/Modified:**
 ```
-frontend/src/utils/firebase.js (Auth, Firestore, Storage)
+frontend/src/utils/firebase.js (Auth, Firestore, Storage + helper functions)
+  - Exports: firebaseAuth, firebaseFireStore, firebaseStorage
+  - Helper functions: signInUser, signUpUser, signOutUser, onAuthStateChange
+
 frontend/src/contexts/AuthContext.jsx
+  - Creates AuthContext
+  - Exports AuthProvider component (wraps app, provides auth state)
+  - Manages currentUser, loading state via onAuthStateChange
+
 frontend/src/hooks/useAuth.js
-frontend/src/components/Login.jsx
-frontend/src/components/SignUp.jsx
-frontend/src/components/ProtectedRoute.jsx
+  - Custom hook for easy access to AuthContext
+  - Returns { currentUser, loading } from context
+
+frontend/src/main.jsx (wrap <App /> with <AuthProvider>)
+frontend/src/components/Login.jsx (uses useAuth() + signInUser from firebase.js)
+frontend/src/components/SignUp.jsx (uses useAuth() + signUpUser from firebase.js)
+frontend/src/components/ProtectedRoute.jsx (uses useAuth() to check auth)
 
 api/utils/firebaseAdmin.js (Admin SDK with Firestore)
 api/middleware/auth.js
 api/server.js (add auth middleware)
 ```
+
+**Implementation Pattern:**
+- All Firebase SDK functions centralized in `firebase.js`
+- `AuthContext` manages auth state (currentUser, loading) via `onAuthStateChange`
+- `AuthProvider` wraps entire app in `main.jsx`
+- `useAuth()` hook provides easy access to auth state in components
+- Components call firebase.js functions (signInUser, signUpUser) directly
+- Components use useAuth() to access current user state
 
 **Why Firebase Storage?**
 - Needed to persist uploaded images for conversation history
