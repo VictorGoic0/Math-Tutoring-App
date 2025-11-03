@@ -24,15 +24,17 @@ These PRs must be completed first. They form the essential foundation of the app
 5. [ ] Configure Firebase project and Firestore database (install: `firebase` for frontend, `firebase-admin` for backend)
 6. [ ] Set up Vercel AI SDK dependencies (install: `ai` package for both frontend and backend, `openai` for backend)
 7. [ ] Configure basic CORS and API routes (install: `cors` for backend)
-8. [ ] Create basic README with setup instructions
-9. [ ] Test that frontend and backend can communicate
+8. [ ] Create `vercel.json` for Express deployment to Vercel
+9. [ ] Create basic README with setup instructions
+10. [ ] Test that frontend and backend can communicate
 
 **Acceptance Criteria:**
-- Frontend runs on localhost:3000
-- Backend runs on localhost:5000 (or similar)
+- Frontend runs on localhost:5173 (Vite default)
+- Backend runs on localhost:3000 (Express dev server)
 - Frontend can make API call to backend
 - Firebase connection established
 - All environment variables documented
+- `vercel.json` configured for Express deployment
 
 **Files Created:**
 ```
@@ -50,6 +52,7 @@ backend/
   ├── services/
   └── package.json
 
+vercel.json
 .env.example
 README.md
 ```
@@ -521,18 +524,20 @@ docs/ARCHITECTURE.md (optional)
 
 **Tasks:**
 - [ ] Configure Vercel project for frontend
-- [ ] Configure Vercel serverless functions for backend
-- [ ] Set up environment variables in Vercel
+- [ ] Deploy Express backend to Vercel (Vercel auto-wraps Express as serverless functions)
+- [ ] Configure `vercel.json` with proper build settings
+- [ ] Set up environment variables in Vercel dashboard
 - [ ] Test frontend deployment
-- [ ] Test backend API routes in production
+- [ ] Test backend API routes in production (Express routes work as serverless endpoints)
 - [ ] Verify Firebase connection in production
 - [ ] Test end-to-end flow in production
 - [ ] Fix any production-specific bugs
 
 **Acceptance Criteria:**
 - Frontend deployed and accessible via public URL
-- Backend API routes work in production
-- Environment variables configured correctly
+- Express backend deployed to Vercel (auto-converted to serverless)
+- Backend API routes work in production with no cold start issues
+- Environment variables configured correctly in Vercel
 - Firebase works in production environment
 - Image upload works in production
 - Chat functionality works end-to-end
@@ -540,9 +545,7 @@ docs/ARCHITECTURE.md (optional)
 
 **Files Created/Modified:**
 ```
-vercel.json
-frontend/vercel.json (if needed)
-backend/vercel.json (if needed)
+vercel.json (root-level configuration)
 ```
 
 ---

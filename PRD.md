@@ -258,11 +258,13 @@ Tutor: "Yes! What does that give us?"
 - No WebSockets needed (Firestore handles real-time)
 
 **Deployment:**
-- Frontend: Vercel
-- Backend: Vercel (serverless functions)
+- Frontend: Vercel (static site deployment)
+- Backend: Vercel (Express app auto-wrapped as serverless functions)
 - Database: Firebase (managed)
 
 **Why This Stack:**
+- Express provides professional, standard backend architecture ideal for hiring manager demos
+- Vercel auto-wraps Express as serverless, giving clean structure + serverless benefits (no cold starts, auto-scaling)
 - Vercel AI SDK saves 4-6 hours on chat UI implementation
 - Firestore provides real-time updates + persistence with minimal setup
 - Stay in JavaScript ecosystem for faster development
@@ -291,6 +293,9 @@ Tutor: "Yes! What does that give us?"
             │ - Convos    │
             │ - Messages  │
             └─────────────┘
+
+Deployment: Both frontend and Express backend deployed to Vercel
+(Vercel automatically wraps Express routes as serverless functions)
 ```
 
 ---
@@ -504,7 +509,7 @@ Must successfully guide students through at least 5 of these:
 - [ ] Document 5+ example problem walkthroughs
 - [ ] Write prompt engineering notes
 - [ ] Record 5-minute demo video
-- [ ] Deploy to Vercel (frontend + backend)
+- [ ] Deploy to Vercel (frontend + Express backend auto-wrapped as serverless)
 - [ ] Final QA pass
 
 **Deliverable:** Deployed app with full documentation
@@ -528,7 +533,8 @@ Must successfully guide students through at least 5 of these:
 ### 1. Deployed Application
 - Production URL (Vercel)
 - Stable, accessible to external users
-- Frontend and backend deployed
+- Frontend deployed as static site
+- Express backend deployed to Vercel (auto-wrapped as serverless functions)
 
 ### 2. GitHub Repository
 **Required Structure:**

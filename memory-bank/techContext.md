@@ -20,7 +20,7 @@
 
 ### Infrastructure
 - **Frontend Deployment:** Vercel
-- **Backend Deployment:** Vercel (serverless functions)
+- **Backend Deployment:** Vercel (Express app auto-wrapped as serverless functions)
 - **Database:** Firebase (managed)
 - **Real-time:** Firestore real-time listeners (no WebSockets needed)
 
@@ -111,18 +111,20 @@ npm run dev
    - Responsive design testing
 
 3. **Deployment:**
-   - Frontend: Vercel deployment
-   - Backend: Vercel serverless functions
+   - Frontend: Vercel deployment (standard static site)
+   - Backend: Express app deployed to Vercel (auto-wrapped as serverless functions via vercel.json)
    - Environment variables configured in Vercel dashboard
+   - Vercel automatically converts Express routes to serverless functions
 
 ## Key Technical Decisions
 
-1. **Vercel AI SDK:** Saves 4-6 hours on chat UI implementation
-2. **Firestore:** Provides real-time updates + persistence with minimal setup
-3. **JavaScript Ecosystem:** Stay in JS for faster development
-4. **OpenAI Vision:** Handles image parsing (no separate OCR needed)
-5. **Canvas API:** Native HTML5 for whiteboard (no external libraries)
-6. **Web Speech API:** Browser native for MVP speed (can upgrade later)
+1. **Express + Vercel:** Express provides professional, standard backend architecture for hiring manager demo. Vercel auto-wraps Express as serverless functions, giving best of both worlds: clean structure + serverless benefits (no cold starts during demos, auto-scaling)
+2. **Vercel AI SDK:** Saves 4-6 hours on chat UI implementation
+3. **Firestore:** Provides real-time updates + persistence with minimal setup
+4. **JavaScript Ecosystem:** Stay in JS for faster development
+5. **OpenAI Vision:** Handles image parsing (no separate OCR needed)
+6. **Canvas API:** Native HTML5 for whiteboard (no external libraries)
+7. **Web Speech API:** Browser native for MVP speed (can upgrade later)
 
 ## Known Technical Challenges
 

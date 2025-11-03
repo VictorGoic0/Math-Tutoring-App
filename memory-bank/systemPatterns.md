@@ -12,6 +12,9 @@ Backend (Express.js)
 OpenAI GPT-4 Vision
   ↓
 Firebase Firestore (Real-time persistence)
+
+Deployment: Both frontend and Express backend deployed to Vercel
+(Vercel auto-wraps Express routes as serverless functions)
 ```
 
 ## Component Architecture
