@@ -1,0 +1,81 @@
+graph TB
+    Student[Student]
+    
+    UI[App Component]
+    Chat[Chat UI]
+    Canvas[Whiteboard Canvas]
+    Voice[Voice Controls]
+    
+    MessageInput[Message Input]
+    ImageUpload[Image Upload]
+    MathDisplay[Math Display]
+    DrawingTools[Drawing Tools]
+    
+    useChat[useChat Hook]
+    useCanvas[useCanvas Hook]
+    
+    API[Express Server]
+    ChatAPI[Chat API]
+    UploadAPI[Upload API]
+    
+    Prompt[Socratic Prompt]
+    Vision[Vision Parser]
+    Context[Context Manager]
+    
+    OpenAI[OpenAI GPT-4 Vision]
+    Firebase[Firebase Firestore]
+    
+    Conversations[(Conversations)]
+    Messages[(Messages)]
+    
+    Student --> MessageInput
+    Student --> ImageUpload
+    Student --> DrawingTools
+    
+    UI --> Chat
+    UI --> Canvas
+    UI --> Voice
+    
+    Chat --> MessageInput
+    Chat --> MathDisplay
+    Chat --> useChat
+    
+    Canvas --> DrawingTools
+    Canvas --> useCanvas
+    
+    MessageInput --> ImageUpload
+    
+    useChat --> ChatAPI
+    ImageUpload --> UploadAPI
+    useCanvas --> API
+    
+    ChatAPI --> Prompt
+    ChatAPI --> Context
+    UploadAPI --> Vision
+    
+    Prompt --> OpenAI
+    Context --> OpenAI
+    Vision --> OpenAI
+    
+    ChatAPI --> Firebase
+    UploadAPI --> Firebase
+    
+    Firebase --> Conversations
+    Firebase --> Messages
+    
+    Firebase -.-> useChat
+    Firebase -.-> useCanvas
+    
+    OpenAI --> ChatAPI
+    ChatAPI --> Chat
+    Chat --> Canvas
+    
+    classDef frontend fill:#e1f5ff,stroke:#01579b
+    classDef backend fill:#fff3e0,stroke:#e65100
+    classDef external fill:#f3e5f5,stroke:#4a148c
+    classDef database fill:#e8f5e9,stroke:#1b5e20
+    
+    class UI,Chat,Canvas,Voice,MessageInput,ImageUpload,MathDisplay,DrawingTools,useChat,useCanvas frontend
+    class API,ChatAPI,UploadAPI,Prompt,Vision,Context backend
+    class OpenAI,Firebase external
+    class Conversations,Messages database
