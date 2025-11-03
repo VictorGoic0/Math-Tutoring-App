@@ -7,13 +7,13 @@
 - **Math Rendering:** KaTeX for chat UI
 - **Canvas:** HTML5 Canvas API for whiteboard
 - **Voice:** Web Speech API (TTS/STT) - P2
-- **AI Integration:** Vercel AI SDK (`useChat` hook)
+- **AI Integration:** Vercel AI SDK (`useChat` hook for chat UI state management and streaming - configured to call our Express `/api/chat` endpoint, never OpenAI directly)
 - **Styling:** CSS (approach TBD - could be styled-components, Tailwind, or plain CSS)
 
 ### Backend
 - **Runtime:** Node.js
 - **Framework:** Express.js
-- **AI Integration:** Vercel AI SDK for OpenAI integration
+- **AI Integration:** Vercel AI SDK for OpenAI integration (API key server-side only)
 - **AI Model:** OpenAI GPT-4 with Vision (via Vercel AI SDK)
 - **Database:** Firebase Firestore
 - **File Storage:** TBD (base64 encoding or temporary storage for images)

@@ -142,7 +142,7 @@ Express Server
 
 ### Frontend State
 - React hooks for component state
-- `useChat` hook from Vercel AI SDK for chat
+- `useChat` hook from Vercel AI SDK for chat UI (configured to call `/api/chat`, never OpenAI directly)
 - Custom hooks: `useCanvas`, `useDrawingLock`, `useConversation`
 - Firestore listeners for real-time updates
 

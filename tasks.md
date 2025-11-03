@@ -17,16 +17,16 @@ These PRs must be completed first. They form the essential foundation of the app
 **Day:** 1
 
 **Tasks:**
-1. [ ] Initialize React + Vite project (install: `vite`, `react`, `react-dom`, `@vitejs/plugin-react`)
-2. [ ] Set up project structure (components/, hooks/, utils/)
-3. [ ] Initialize Express backend (install: `express`)
-4. [ ] Set up environment variables (.env files) (install: `dotenv` for backend)
-5. [ ] Configure Firebase project and Firestore database (install: `firebase` for frontend, `firebase-admin` for backend)
-6. [ ] Set up Vercel AI SDK dependencies (install: `ai` package for both frontend and backend, `openai` for backend)
-7. [ ] Configure basic CORS and API routes (install: `cors` for backend)
-8. [ ] Create `vercel.json` for Express deployment to Vercel
-9. [ ] Create basic README with setup instructions
-10. [ ] Test that frontend and backend can communicate
+1. [x] Initialize React + Vite project (install: `vite`, `react`, `react-dom`, `@vitejs/plugin-react`)
+2. [x] Set up project structure (components/, hooks/, utils/)
+3. [x] Initialize Express backend (install: `express`)
+4. [x] Set up environment variables (.env files) (install: `dotenv` for backend)
+5. [x] Configure Firebase project and Firestore database (install: `firebase` for frontend, `firebase-admin` for backend)
+6. [x] Set up Vercel AI SDK dependencies (install: `ai` package for both frontend and backend, `openai` for backend)
+7. [x] Configure basic CORS and API routes (install: `cors` for backend)
+8. [x] Create `vercel.json` for Express deployment to Vercel
+9. [x] Create basic README with setup instructions
+10. [x] Test that frontend and backend can communicate
 
 **Acceptance Criteria:**
 - Frontend runs on localhost:5173 (Vite default)
@@ -42,18 +42,21 @@ frontend/
   ├── src/
   │   ├── App.jsx
   │   ├── main.jsx
-  │   └── components/
+  │   ├── components/
+  │   ├── hooks/
+  │   └── utils/
+  ├── index.html
   ├── package.json
   └── vite.config.js
 
-backend/
+api/
   ├── server.js
+  ├── index.js
   ├── routes/
   ├── services/
   └── package.json
 
 vercel.json
-.env.example
 README.md
 ```
 
@@ -65,14 +68,16 @@ README.md
 **Day:** 1
 
 **Tasks:**
-- [ ] Install Vercel AI SDK (`ai` package)
-- [ ] Create Chat component with message history display
-- [ ] Implement text input field
-- [ ] Integrate `useChat()` hook from Vercel AI SDK
-- [ ] Create `/api/chat` endpoint in Express
-- [ ] Connect to OpenAI GPT-4 via Vercel AI SDK
-- [ ] Display user and assistant messages in chat
-- [ ] Test with hardcoded math problem
+1. [x] Install Vercel AI SDK (`ai` package) - frontend uses `useChat` hook for UI state/streaming (calls our backend), backend uses for OpenAI integration
+2. [x] Create Chat component with message history display
+3. [x] Implement text input field
+4. [ ] Integrate `useChat()` hook from Vercel AI SDK (points to `/api/chat` endpoint, NOT OpenAI directly)
+5. [ ] Create `/api/chat` endpoint in Express that handles OpenAI communication
+6. [ ] Backend connects to OpenAI GPT-4 via Vercel AI SDK (API key stays server-side only)
+7. [ ] Display user and assistant messages in chat
+8. [ ] Test with hardcoded math problem
+
+**Important:** All OpenAI API calls MUST go through Express backend. Frontend `useChat` hook calls our `/api/chat` endpoint, never OpenAI directly.
 
 **Acceptance Criteria:**
 - Chat UI renders messages correctly
@@ -86,8 +91,19 @@ README.md
 frontend/src/components/Chat.jsx
 frontend/src/components/MessageList.jsx
 frontend/src/components/MessageInput.jsx
-backend/routes/chat.js
+api/routes/chat.js (or api/server.js with chat route)
 ```
+
+**Architecture:**
+- Frontend `useChat()` hook from `ai` package handles UI state & streaming (configured with `api: '/api/chat'` to call our backend)
+- Frontend `ai` package does NOT call OpenAI directly - only manages chat UI and streams from our backend
+- Express `/api/chat` route uses Vercel AI SDK server-side to call OpenAI
+- OpenAI API key stays in backend environment variables, never exposed to frontend
+
+**Why `ai` package in frontend?**
+- Provides `useChat` hook for managing chat UI state (messages, loading, errors)
+- Handles streaming responses from our backend endpoint
+- Provides utilities for chat UI, but all AI calls go through our Express backend
 
 ---
 

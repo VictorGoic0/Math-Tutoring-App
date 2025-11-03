@@ -15,7 +15,9 @@ This application combines:
 - **Frontend:** React 18+ with Vite
 - **Backend:** Express.js (deployed to Vercel as serverless functions)
 - **Database:** Firebase Firestore
-- **AI:** OpenAI GPT-4 Vision via Vercel AI SDK
+- **AI:** OpenAI GPT-4 Vision via Vercel AI SDK (all calls through Express backend)
+
+**Security:** OpenAI API key is stored server-side only. Frontend never directly communicates with OpenAI - all requests go through our Express API.
 
 ## 📋 Prerequisites
 
