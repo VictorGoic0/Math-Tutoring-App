@@ -43,7 +43,7 @@ npm install
 
 **Backend:**
 ```bash
-cd ../backend
+cd ../api
 npm install
 ```
 
@@ -60,7 +60,7 @@ VITE_FIREBASE_APP_ID=your_app_id
 VITE_API_URL=http://localhost:3000
 ```
 
-**Backend (.env in backend/):**
+**Backend (.env in api/):**
 ```env
 OPENAI_API_KEY=your_openai_api_key
 FIREBASE_PROJECT_ID=your_project_id
@@ -85,13 +85,13 @@ See `.env.example` files for reference.
 1. Go to [OpenAI Platform](https://platform.openai.com/)
 2. Navigate to API Keys
 3. Create a new secret key
-4. Add to backend `.env` as `OPENAI_API_KEY`
+4. Add to api `.env` as `OPENAI_API_KEY`
 
 ### 6. Run Locally
 
 **Terminal 1 - Backend:**
 ```bash
-cd backend
+cd api
 npm run dev
 ```
 Backend runs on `http://localhost:3000`
@@ -120,13 +120,12 @@ Math-Tutoring-App/
 │   │   └── main.jsx        # Entry point
 │   ├── package.json
 │   └── vite.config.js
-├── backend/
+├── api/
 │   ├── routes/            # Express routes
 │   ├── services/          # Business logic
 │   ├── server.js          # Express server
+│   ├── index.js           # Vercel serverless wrapper
 │   └── package.json
-├── api/
-│   └── index.js           # Vercel serverless wrapper
 ├── vercel.json            # Vercel configuration
 ├── .env.example           # Environment variables template
 └── README.md
@@ -194,8 +193,8 @@ Open browser console at `http://localhost:5173` and check for connection status.
 
 ### Adding New API Routes
 
-1. Create route file in `backend/routes/`
-2. Import and use in `backend/server.js`
+1. Create route file in `api/routes/`
+2. Import and use in `api/server.js`
 3. Route automatically available at `/api/[route-name]`
 
 ### Frontend-Backend Communication
@@ -210,8 +209,8 @@ All API calls use the full URL from this environment variable.
 
 ### Backend not connecting
 - Check backend is running on port 3000
-- Verify `FRONTEND_URL` in backend `.env` matches frontend URL
-- Check CORS settings in `backend/server.js`
+- Verify `FRONTEND_URL` in api `.env` matches frontend URL
+- Check CORS settings in `api/server.js`
 
 ### Firebase connection fails
 - Verify all Firebase env variables are set correctly
