@@ -17,19 +17,19 @@ These PRs must be completed first. They form the essential foundation of the app
 **Day:** 1
 
 **Tasks:**
-- [ ] Initialize React + Vite project
-- [ ] Set up project structure (components/, hooks/, utils/)
-- [ ] Initialize Express backend
-- [ ] Set up environment variables (.env files)
-- [ ] Configure Firebase project and Firestore database
-- [ ] Set up Vercel AI SDK dependencies
-- [ ] Configure basic CORS and API routes
-- [ ] Create basic README with setup instructions
-- [ ] Test that frontend and backend can communicate
+1. [ ] Initialize React + Vite project (install: `vite`, `react`, `react-dom`, `@vitejs/plugin-react`)
+2. [ ] Set up project structure (components/, hooks/, utils/)
+3. [ ] Initialize Express backend (install: `express`)
+4. [ ] Set up environment variables (.env files) (install: `dotenv` for backend)
+5. [ ] Configure Firebase project and Firestore database (install: `firebase` for frontend, `firebase-admin` for backend)
+6. [ ] Set up Vercel AI SDK dependencies (install: `ai` package for both frontend and backend, `openai` for backend)
+7. [ ] Configure basic CORS and API routes (install: `cors` for backend)
+8. [ ] Create basic README with setup instructions
+9. [ ] Test that frontend and backend can communicate
 
 **Acceptance Criteria:**
-- Frontend runs on localhost:5173 (or similar)
-- Backend runs on localhost:3000 (or similar)
+- Frontend runs on localhost:3000
+- Backend runs on localhost:5000 (or similar)
 - Frontend can make API call to backend
 - Firebase connection established
 - All environment variables documented
