@@ -73,13 +73,16 @@ README.md
 5. [x] Create AuthContext with AuthProvider (manages currentUser, loading state)
 6. [x] Create useAuth hook (easy access to AuthContext)
 7. [x] Wrap App with AuthProvider in main.jsx
-8. [ ] **Set up Firebase Project** (see Firebase Setup Steps below)
-9. [ ] Create Login component with email/password (uses useAuth hook + firebase.js functions)
-10. [ ] Create Sign Up component (uses useAuth hook + firebase.js functions)
-11. [ ] Add protected route wrapper component (uses useAuth hook)
-12. [ ] Add authentication middleware to Express backend
-13. [ ] Test login/logout flow
-14. [ ] Verify user info is accessible in frontend and backend
+8. [x] **Set up Firebase Project** (completed manually - see Firebase Setup Steps below)
+9. [x] Set up routing with react-router-dom
+10. [x] Create Login component with email/password (uses useAuth hook + firebase.js functions)
+11. [x] Create Sign Up component (uses useAuth hook + firebase.js functions)
+12. [x] Add protected route wrapper component (uses useAuth hook)
+13. [x] Add authentication middleware to Express backend
+14. [x] Update Chat component to send auth token
+15. [x] Create authentication testing guide (TEST_AUTH.md)
+16. [x] **Manual Testing Required:** Test login/signup/logout flow (see TEST_AUTH.md)
+17. [x] **Manual Testing Required:** Verify backend can verify Firebase tokens
 
 **Firebase Setup Steps (Do this now):**
 1. **Create Firebase Project:**
@@ -127,36 +130,6 @@ README.md
      - `private_key` → `FIREBASE_PRIVATE_KEY` (keep quotes, preserve `\n`)
      - `client_email` → `FIREBASE_CLIENT_EMAIL`
    - Add to `api/.env`
-
-7. **Set up Firestore Security Rules (Basic):**
-   - Go to "Firestore Database" > "Rules" tab
-   - Update rules to allow authenticated users:
-   ```javascript
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /{document=**} {
-         allow read, write: if request.auth != null;
-       }
-     }
-   }
-   ```
-   - Click "Publish"
-
-8. **Set up Storage Security Rules (Basic):**
-   - Go to "Storage" > "Rules" tab
-   - Update rules:
-   ```javascript
-   rules_version = '2';
-   service firebase.storage {
-     match /b/{bucket}/o {
-       match /{allPaths=**} {
-         allow read, write: if request.auth != null;
-       }
-     }
-   }
-   ```
-   - Click "Publish"
 
 **Acceptance Criteria:**
 - Firebase project created and configured

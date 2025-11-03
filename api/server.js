@@ -7,6 +7,7 @@ dotenv.config();
 
 // Initialize Firebase Admin after env vars are loaded
 import './utils/firebaseAdmin.js';
+import { verifyAuthToken, optionalAuth } from './middleware/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,14 +24,22 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
+// Health check endpoint (no auth required)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
 });
 
-// Basic API route
+// Public test route (no auth required)
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend API is working!' });
+});
+
+// Protected route example (requires authentication)
+app.get('/api/user/profile', verifyAuthToken, (req, res) => {
+  res.json({ 
+    message: 'Protected route accessed successfully',
+    user: req.user 
+  });
 });
 
 // Start server (only in local development)
