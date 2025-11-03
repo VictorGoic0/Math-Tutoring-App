@@ -8,12 +8,17 @@
 - **Canvas:** HTML5 Canvas API for whiteboard
 - **Voice:** Web Speech API (TTS/STT) - P2
 - **AI Integration:** Vercel AI SDK (`useChat` hook for chat UI state management and streaming - configured to call our Express `/api/chat` endpoint, never OpenAI directly)
+  - **CORRECT IMPORT:** `import { useChat } from '@ai-sdk/react'` (NOT `'ai/react'`)
+  - This is the verified correct import path for the `ai` v5+ package
+  - The `@ai-sdk/react` export provides React-specific hooks including `useChat`
 - **Styling:** CSS (approach TBD - could be styled-components, Tailwind, or plain CSS)
 
 ### Backend
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **AI Integration:** Vercel AI SDK for OpenAI integration (API key server-side only)
+  - **Backend imports:** `import { streamText } from 'ai'` and `import { createOpenAI } from '@ai-sdk/openai'`
+  - Uses `streamText` for streaming responses and `createOpenAI` for OpenAI provider initialization
 - **AI Model:** OpenAI GPT-4 with Vision (via Vercel AI SDK)
 - **Database:** Firebase Firestore
 - **File Storage:** TBD (base64 encoding or temporary storage for images)
@@ -72,22 +77,23 @@ npm run dev
 
 ## Dependencies
 
-### Frontend (Planned)
-- `react`, `react-dom`
-- `vite`, `@vitejs/plugin-react`
-- `ai` (Vercel AI SDK)
-- `firebase`
-- `katex`, `react-katex` (for math rendering)
-- Additional TBD
+### Frontend (Installed)
+- `react`, `react-dom` (v19.2.0)
+- `vite`, `@vitejs/plugin-react` (v7.1.12, v5.1.0)
+- `ai` (v5.0.86) - Vercel AI SDK
+  - Provides `@ai-sdk/react` export with `useChat` hook
+- `firebase` (v11.1.0)
+- `katex`, `react-katex` (v0.16.11, v3.0.1) - for math rendering
+- `react-router-dom` (v7.9.5) - for routing
 
-### Backend (Planned)
-- `express`
-- `ai` (Vercel AI SDK)
-- `openai`
-- `firebase-admin`
-- `cors`
-- `dotenv`
-- Additional TBD
+### Backend (Installed)
+- `express` (v4.21.2)
+- `ai` (v5.0.86) - Vercel AI SDK (provides `streamText` function)
+- `@ai-sdk/openai` (v1.0.0) - OpenAI provider for Vercel AI SDK
+- `openai` (v6.7.0) - OpenAI SDK (legacy, kept for compatibility)
+- `firebase-admin` (v13.5.0)
+- `cors` (v2.8.5)
+- `dotenv` (v16.4.7)
 
 ## Technical Constraints
 

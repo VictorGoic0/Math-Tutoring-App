@@ -8,6 +8,7 @@ dotenv.config();
 // Initialize Firebase Admin after env vars are loaded
 import './utils/firebaseAdmin.js';
 import { verifyAuthToken, optionalAuth } from './middleware/auth.js';
+import chatRouter from './routes/chat.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +42,9 @@ app.get('/api/user/profile', verifyAuthToken, (req, res) => {
     user: req.user 
   });
 });
+
+// Chat routes (protected - requires authentication)
+app.use('/api', verifyAuthToken, chatRouter);
 
 // Start server (only in local development)
 if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {

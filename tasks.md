@@ -197,13 +197,23 @@ api/server.js (add auth middleware)
 1. [x] Install Vercel AI SDK (`ai` package) - frontend uses `useChat` hook for UI state/streaming (calls our backend), backend uses for OpenAI integration
 2. [x] Create Chat component with message history display
 3. [x] Implement text input field
-4. [ ] Integrate `useChat()` hook from Vercel AI SDK (points to `/api/chat` endpoint, NOT OpenAI directly)
-5. [ ] Create `/api/chat` endpoint in Express that handles OpenAI communication
+4. [x] Integrate `useChat()` hook from Vercel AI SDK (points to `/api/chat` endpoint, NOT OpenAI directly)
+   - **VERIFIED CORRECT IMPORT:** `import { useChat } from '@ai-sdk/react'`
+   - This is the correct import for `ai` package v5+ (NOT `'ai/react'`)
+   - The `ai` package exports `@ai-sdk/react` with React hooks
+5. [x] Create `/api/chat` endpoint in Express that handles OpenAI communication
+   - Uses `import { streamText } from 'ai'` and `import { createOpenAI } from '@ai-sdk/openai'`
+   - Backend package requires both `ai` and `@ai-sdk/openai` packages
 6. [ ] Backend connects to OpenAI GPT-4 via Vercel AI SDK (API key stays server-side only)
-7. [ ] Display user and assistant messages in chat
+7. [x] Display user and assistant messages in chat
 8. [ ] Test with hardcoded math problem
 
 **Important:** All OpenAI API calls MUST go through Express backend. Frontend `useChat` hook calls our `/api/chat` endpoint, never OpenAI directly.
+
+**Import Verification Note:**
+- Frontend: `import { useChat } from '@ai-sdk/react'` ✓ CORRECT (researched and verified)
+- Backend: `import { streamText } from 'ai'` ✓ CORRECT
+- Backend: `import { createOpenAI } from '@ai-sdk/openai'` ✓ CORRECT (requires `@ai-sdk/openai` package)
 
 **Acceptance Criteria:**
 - Chat UI renders messages correctly
