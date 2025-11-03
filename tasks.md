@@ -155,11 +155,12 @@ frontend/src/utils/firebase.js (Auth, Firestore, Storage + helper functions)
 frontend/src/contexts/AuthContext.jsx
   - Creates AuthContext
   - Exports AuthProvider component (wraps app, provides auth state)
-  - Manages currentUser, loading state via onAuthStateChange
+  - Manages currentUser, authToken, loading state via onAuthStateChange
+  - Automatically refreshes auth token when user state changes
 
 frontend/src/hooks/useAuth.js
   - Custom hook for easy access to AuthContext
-  - Returns { currentUser, loading } from context
+  - Returns { currentUser, authToken, loading } from context
 
 frontend/src/main.jsx (wrap <App /> with <AuthProvider>)
 frontend/src/components/Login.jsx (uses useAuth() + signInUser from firebase.js)
@@ -173,11 +174,12 @@ api/server.js (add auth middleware)
 
 **Implementation Pattern:**
 - All Firebase SDK functions centralized in `firebase.js`
-- `AuthContext` manages auth state (currentUser, loading) via `onAuthStateChange`
+- `AuthContext` manages auth state (currentUser, authToken, loading) via `onAuthStateChange`
 - `AuthProvider` wraps entire app in `main.jsx`
-- `useAuth()` hook provides easy access to auth state in components
+- `useAuth()` hook provides easy access to auth state: `{ currentUser, authToken, loading }`
 - Components call firebase.js functions (signInUser, signUpUser) directly
-- Components use useAuth() to access current user state
+- Auth token automatically fetched and refreshed in AuthContext
+- No need to manually get token in individual components
 
 **Why Firebase Storage?**
 - Needed to persist uploaded images for conversation history
@@ -582,33 +584,162 @@ docs/EXAMPLES.md
 
 ---
 
-### PR #16: UI Polish & Responsiveness
+### PR #16: UI Polish & Design System
 **Priority:** P0  
 **Day:** 4
 
 **Tasks:**
-- [ ] Improve chat UI styling (spacing, colors, typography)
-- [ ] Polish whiteboard UI (borders, shadows, backgrounds)
-- [ ] Add loading states (spinner during AI response)
-- [ ] Add empty states (no conversation, no messages)
-- [ ] Implement responsive layout for different screen sizes
-- [ ] Add error states (API errors, upload failures)
-- [ ] Improve visual hierarchy
-- [ ] Test on different screen sizes
+1. [ ] Set up SASS in Vite project (install `sass`)
+2. [ ] Create design system foundation
+   - [ ] Create `styles/_variables.scss` (colors, spacing, typography, breakpoints)
+   - [ ] Create `styles/_mixins.scss` (reusable style patterns)
+   - [ ] Create `styles/_reset.scss` (CSS reset/normalize)
+   - [ ] Create `styles/global.scss` (global styles, imports)
+3. [ ] Remove all inline styles and create component-level SCSS files
+   - [ ] `components/Chat.module.scss`
+   - [ ] `components/Login.module.scss`
+   - [ ] `components/SignUp.module.scss`
+   - [ ] `components/MessageList.module.scss`
+   - [ ] `components/MessageInput.module.scss`
+   - [ ] `components/ProtectedRoute.module.scss`
+   - [ ] `App.module.scss`
+4. [ ] Improve chat UI styling (spacing, colors, typography)
+5. [ ] Polish whiteboard UI (borders, shadows, backgrounds)
+6. [ ] Add consistent loading states (spinner during AI response)
+7. [ ] Add empty states (no conversation, no messages)
+8. [ ] Implement responsive layout for different screen sizes
+9. [ ] Add consistent error states (API errors, upload failures)
+10. [ ] Improve visual hierarchy and accessibility
+11. [ ] Test on different screen sizes (desktop, tablet, mobile)
+
+**Design System Structure:**
+```
+frontend/src/styles/
+├── _variables.scss          # Design tokens (colors, spacing, typography)
+├── _mixins.scss             # Reusable SASS mixins
+├── _reset.scss              # CSS reset
+├── global.scss              # Global styles (imports all base styles)
+└── components/
+    ├── Chat.module.scss
+    ├── Login.module.scss
+    ├── SignUp.module.scss
+    ├── MessageList.module.scss
+    ├── MessageInput.module.scss
+    ├── ProtectedRoute.module.scss
+    └── App.module.scss
+```
+
+**Design System Variables (Example):**
+```scss
+// Colors
+$primary: #007bff;
+$secondary: #6c757d;
+$success: #28a745;
+$danger: #dc3545;
+$warning: #ffc107;
+$info: #17a2b8;
+
+$text-primary: #212529;
+$text-secondary: #6c757d;
+$bg-primary: #ffffff;
+$bg-secondary: #f8f9fa;
+$border-color: #dee2e6;
+
+// Spacing (8px base)
+$spacing-xs: 0.25rem;   // 4px
+$spacing-sm: 0.5rem;    // 8px
+$spacing-md: 1rem;      // 16px
+$spacing-lg: 1.5rem;    // 24px
+$spacing-xl: 2rem;      // 32px
+$spacing-xxl: 3rem;     // 48px
+
+// Typography
+$font-family-base: system-ui, -apple-system, sans-serif;
+$font-size-sm: 0.875rem;
+$font-size-base: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+// Breakpoints
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+$breakpoint-wide: 1440px;
+
+// Border radius
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+
+// Shadows
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 2px 10px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+// Transitions
+$transition-fast: 150ms ease-in-out;
+$transition-base: 300ms ease-in-out;
+$transition-slow: 500ms ease-in-out;
+```
 
 **Acceptance Criteria:**
+- SASS properly configured in Vite
+- Design system with comprehensive variables established
+- All inline styles removed and replaced with CSS Modules
+- Consistent spacing, colors, and typography throughout app
 - UI looks professional and polished
-- All loading states display correctly
+- All loading states display correctly with consistent styling
 - Empty states guide user on what to do
 - Error messages are helpful and user-friendly
 - Layout works on desktop (1920x1080 and 1366x768)
+- Responsive on tablet (768px) and mobile (480px)
 - Visual hierarchy is clear (user knows where to look)
+- Accessibility considerations (contrast, focus states)
 
 **Files Created/Modified:**
 ```
-frontend/src/styles/ (various style files)
-frontend/src/components/ (update component styles)
+frontend/package.json (add sass dependency)
+frontend/vite.config.js (configure SASS if needed)
+
+frontend/src/styles/
+├── _variables.scss
+├── _mixins.scss
+├── _reset.scss
+├── global.scss
+└── components/
+    ├── Chat.module.scss
+    ├── Login.module.scss
+    ├── SignUp.module.scss
+    ├── MessageList.module.scss
+    ├── MessageInput.module.scss
+    ├── ProtectedRoute.module.scss
+    └── App.module.scss
+
+frontend/src/main.jsx (import global.scss)
+
+frontend/src/components/ (update all components to use CSS Modules)
+├── Chat.jsx
+├── Login.jsx
+├── SignUp.jsx
+├── MessageList.jsx
+├── MessageInput.jsx
+├── ProtectedRoute.jsx
+
+frontend/src/App.jsx
 ```
+
+**Why This Approach:**
+- **SASS Variables** - Centralized design tokens, easy to theme
+- **CSS Modules** - Scoped styles, no class name conflicts
+- **Component-level files** - Co-located with components, easy to maintain
+- **Design System** - Consistent spacing, colors, typography across app
+- **Scalable** - Easy to add new components with consistent styling
+- **Professional** - Industry-standard approach for React apps
 
 ---
 

@@ -2,23 +2,10 @@ import { useChat } from '@ai-sdk/react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useAuth } from '../hooks/useAuth';
-import { useState, useEffect } from 'react';
 
 function Chat() {
   const apiUrl = import.meta.env.VITE_API_URL;
-  const { currentUser } = useAuth();
-  const [authToken, setAuthToken] = useState(null);
-
-  // Get auth token for API calls
-  useEffect(() => {
-    const getToken = async () => {
-      if (currentUser) {
-        const token = await currentUser.getIdToken();
-        setAuthToken(token);
-      }
-    };
-    getToken();
-  }, [currentUser]);
+  const { authToken } = useAuth();
 
   const {
     messages,
