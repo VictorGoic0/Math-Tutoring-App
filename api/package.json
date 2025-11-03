@@ -8,5 +8,11 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "ai": "^5.0.86",
+    "cors": "^2.8.5",
+    "firebase-admin": "^13.5.0",
+    "openai": "^6.7.0"
+  }
 }
