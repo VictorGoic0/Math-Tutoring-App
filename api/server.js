@@ -2,8 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-// Load environment variables
+// Load environment variables first
 dotenv.config();
+
+// Initialize Firebase Admin after env vars are loaded
+import './utils/firebaseAdmin.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

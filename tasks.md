@@ -13,7 +13,6 @@ These PRs must be completed first. They form the essential foundation of the app
 
 ### PR #1: Project Setup & Basic Infrastructure
 **Priority:** P0  
-**Estimated Time:** 2-3 hours  
 **Day:** 1
 
 **Tasks:**
@@ -62,9 +61,139 @@ README.md
 
 ---
 
-### PR #2: Basic Chat UI with Vercel AI SDK
+### PR #2: Firebase Authentication & Configuration
 **Priority:** P0  
-**Estimated Time:** 3-4 hours  
+**Day:** 1
+
+**Tasks:**
+1. [x] Set up Firebase configuration files (frontend and backend)
+2. [x] Initialize Firebase Auth in frontend
+3. [x] Initialize Firebase Admin SDK in backend
+4. [ ] **Set up Firebase Project** (see Firebase Setup Steps below)
+5. [ ] Create authentication context/hook for frontend
+6. [ ] Create Login component with email/password
+7. [ ] Create Sign Up component
+8. [ ] Add protected route wrapper
+9. [ ] Add authentication middleware to Express backend
+10. [ ] Test login/logout flow
+11. [ ] Verify user info is accessible in frontend and backend
+
+**Firebase Setup Steps (Do this now):**
+1. **Create Firebase Project:**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Click "Add project" or "Create a project"
+   - Enter project name (e.g., "math-tutoring-app")
+   - Disable Google Analytics (optional for MVP)
+   - Click "Create project"
+
+2. **Enable Authentication:**
+   - In Firebase Console, go to "Build" > "Authentication"
+   - Click "Get started"
+   - Go to "Sign-in method" tab
+   - Enable "Email/Password" provider
+   - Click "Save"
+
+3. **Enable Firestore Database:**
+   - Go to "Build" > "Firestore Database"
+   - Click "Create database"
+   - Select "Start in test mode" (we'll add security rules later)
+   - Choose a location (pick closest to users)
+   - Click "Enable"
+
+4. **Enable Firebase Storage:**
+   - Go to "Build" > "Storage"
+   - Click "Get started"
+   - Start in test mode (we'll add security rules later)
+   - Use same location as Firestore
+   - Click "Done"
+
+5. **Get Frontend Configuration:**
+   - Go to Project Settings (gear icon) > "General" tab
+   - Scroll to "Your apps" section
+   - Click Web icon (`</>`) to add a web app
+   - Register app (nickname: "math-tutor-frontend")
+   - Copy the `firebaseConfig` object
+   - Add to `frontend/.env` as `VITE_FIREBASE_*` variables
+
+6. **Create Service Account (Backend):**
+   - Go to Project Settings > "Service accounts" tab
+   - Click "Generate new private key"
+   - Download JSON file
+   - Extract values:
+     - `project_id` → `FIREBASE_PROJECT_ID`
+     - `private_key` → `FIREBASE_PRIVATE_KEY` (keep quotes, preserve `\n`)
+     - `client_email` → `FIREBASE_CLIENT_EMAIL`
+   - Add to `api/.env`
+
+7. **Set up Firestore Security Rules (Basic):**
+   - Go to "Firestore Database" > "Rules" tab
+   - Update rules to allow authenticated users:
+   ```javascript
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /{document=**} {
+         allow read, write: if request.auth != null;
+       }
+     }
+   }
+   ```
+   - Click "Publish"
+
+8. **Set up Storage Security Rules (Basic):**
+   - Go to "Storage" > "Rules" tab
+   - Update rules:
+   ```javascript
+   rules_version = '2';
+   service firebase.storage {
+     match /b/{bucket}/o {
+       match /{allPaths=**} {
+         allow read, write: if request.auth != null;
+       }
+     }
+   }
+   ```
+   - Click "Publish"
+
+**Acceptance Criteria:**
+- Firebase project created and configured
+- Authentication enabled (Email/Password)
+- Firestore Database enabled with security rules
+- Firebase Storage enabled with security rules (for image uploads)
+- Frontend Firebase config initialized (Auth, Firestore, Storage)
+- Backend Firebase Admin SDK initialized
+- Users can sign up with email/password
+- Users can log in with email/password
+- Users can log out
+- Protected routes require authentication
+- Backend can verify Firebase auth tokens
+- User information available in frontend context
+- Authentication state persists across page refreshes
+
+**Files Created/Modified:**
+```
+frontend/src/utils/firebase.js (Auth, Firestore, Storage)
+frontend/src/contexts/AuthContext.jsx
+frontend/src/hooks/useAuth.js
+frontend/src/components/Login.jsx
+frontend/src/components/SignUp.jsx
+frontend/src/components/ProtectedRoute.jsx
+
+api/utils/firebaseAdmin.js (Admin SDK with Firestore)
+api/middleware/auth.js
+api/server.js (add auth middleware)
+```
+
+**Why Firebase Storage?**
+- Needed to persist uploaded images for conversation history
+- Images are parsed by OpenAI Vision API, then stored with URLs
+- Allows re-displaying images in chat history
+- Storage URLs stored in Firestore conversation documents
+
+---
+
+### PR #3: Basic Chat UI with Vercel AI SDK
+**Priority:** P0  
 **Day:** 1
 
 **Tasks:**
@@ -107,9 +236,8 @@ api/routes/chat.js (or api/server.js with chat route)
 
 ---
 
-### PR #3: Socratic Prompting System
+### PR #4: Socratic Prompting System
 **Priority:** P0  
-**Estimated Time:** 2-3 hours  
 **Day:** 1
 
 **Tasks:**
@@ -137,9 +265,8 @@ docs/PROMPT_ENGINEERING.md
 
 ---
 
-### PR #4: Firestore Integration for Conversation Persistence
+### PR #5: Firestore Integration for Conversation Persistence
 **Priority:** P0  
-**Estimated Time:** 2-3 hours  
 **Day:** 2
 
 **Tasks:**
@@ -167,9 +294,8 @@ frontend/src/hooks/useConversation.js
 
 ---
 
-### PR #5: Image Upload UI
+### PR #6: Image Upload UI
 **Priority:** P0  
-**Estimated Time:** 2 hours  
 **Day:** 2
 
 **Tasks:**
@@ -197,9 +323,8 @@ frontend/src/components/ImagePreview.jsx
 
 ---
 
-### PR #6: Image Parsing with OpenAI Vision
+### PR #7: Image Parsing with OpenAI Vision
 **Priority:** P0  
-**Estimated Time:** 3-4 hours  
 **Day:** 2
 
 **Tasks:**
@@ -229,9 +354,8 @@ frontend/src/hooks/useImageUpload.js
 
 ---
 
-### PR #7: Math Rendering with KaTeX
+### PR #8: Math Rendering with KaTeX
 **Priority:** P0  
-**Estimated Time:** 2 hours  
 **Day:** 2-3
 
 **Tasks:**
@@ -258,9 +382,8 @@ frontend/src/utils/latexParser.js
 
 ---
 
-### PR #8: Canvas Component Foundation
+### PR #9: Canvas Component Foundation
 **Priority:** P0  
-**Estimated Time:** 3-4 hours  
 **Day:** 3
 
 **Tasks:**
@@ -288,9 +411,8 @@ frontend/src/App.jsx (update layout)
 
 ---
 
-### PR #9: Step Visualization Rendering on Canvas
+### PR #10: Step Visualization Rendering on Canvas
 **Priority:** P0  
-**Estimated Time:** 4-5 hours  
 **Day:** 3
 
 **Tasks:**
@@ -319,9 +441,8 @@ frontend/src/components/Whiteboard.jsx (update)
 
 ---
 
-### PR #10: Drawing Lock/Unlock Mechanism
+### PR #11: Drawing Lock/Unlock Mechanism
 **Priority:** P0  
-**Estimated Time:** 2-3 hours  
 **Day:** 3
 
 **Tasks:**
@@ -350,9 +471,8 @@ frontend/src/components/LockIndicator.jsx
 
 ---
 
-### PR #11: Basic Drawing Tools (Pen & Eraser)
+### PR #12: Basic Drawing Tools (Pen & Eraser)
 **Priority:** P0  
-**Estimated Time:** 3-4 hours  
 **Day:** 3
 
 **Tasks:**
@@ -382,9 +502,8 @@ frontend/src/utils/drawingEngine.js
 
 ---
 
-### PR #12: Collaborative Drawing State Management
+### PR #13: Collaborative Drawing State Management
 **Priority:** P0  
-**Estimated Time:** 3-4 hours  
 **Day:** 3-4
 
 **Tasks:**
@@ -410,9 +529,8 @@ backend/services/canvasService.js
 
 ---
 
-### PR #13: Color Picker & Clear Button
+### PR #14: Color Picker & Clear Button
 **Priority:** P0  
-**Estimated Time:** 2 hours  
 **Day:** 4
 
 **Tasks:**
@@ -439,9 +557,8 @@ frontend/src/components/DrawingTools.jsx (update)
 
 ---
 
-### PR #14: Problem Type Testing & Bug Fixes
+### PR #15: Problem Type Testing & Bug Fixes
 **Priority:** P0  
-**Estimated Time:** 4-5 hours  
 **Day:** 4
 
 **Tasks:**
@@ -470,9 +587,8 @@ docs/EXAMPLES.md
 
 ---
 
-### PR #15: UI Polish & Responsiveness
+### PR #16: UI Polish & Responsiveness
 **Priority:** P0  
-**Estimated Time:** 3-4 hours  
 **Day:** 4
 
 **Tasks:**
@@ -501,9 +617,8 @@ frontend/src/components/ (update component styles)
 
 ---
 
-### PR #16: Documentation & Setup Instructions
+### PR #17: Documentation & Setup Instructions
 **Priority:** P0  
-**Estimated Time:** 2-3 hours  
 **Day:** 5
 
 **Tasks:**
@@ -533,9 +648,8 @@ docs/ARCHITECTURE.md (optional)
 
 ---
 
-### PR #17: Deployment to Vercel
+### PR #18: Deployment to Vercel
 **Priority:** P0  
-**Estimated Time:** 2-3 hours  
 **Day:** 5
 
 **Tasks:**
@@ -566,9 +680,8 @@ vercel.json (root-level configuration)
 
 ---
 
-### PR #18: Demo Video & Final QA
+### PR #19: Demo Video & Final QA
 **Priority:** P0  
-**Estimated Time:** 2-3 hours  
 **Day:** 5
 
 **Tasks:**
@@ -607,7 +720,6 @@ These PRs enhance the core experience but require P0 foundation to be complete f
 
 ### PR #19: Interactive Whiteboard Enhancement
 **Priority:** P1  
-**Estimated Time:** 3-4 hours  
 **Day:** 3-4 (after PR #13)
 
 **Tasks:**
@@ -638,7 +750,6 @@ frontend/src/hooks/useDrawingHistory.js
 
 ### PR #20: Advanced Image Parsing (Handwritten)
 **Priority:** P1  
-**Estimated Time:** 2-3 hours  
 **Day:** 2-3 (after PR #6)
 
 **Tasks:**
@@ -671,7 +782,6 @@ This PR should only be started after all P0 features are complete and polished.
 
 ### PR #21: Voice Interface (TTS + STT)
 **Priority:** P2  
-**Estimated Time:** 4-5 hours  
 **Day:** 4-5 (only after whiteboard + step viz are polished)
 
 **Tasks:**
