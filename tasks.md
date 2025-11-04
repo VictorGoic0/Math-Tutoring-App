@@ -226,11 +226,14 @@ api/server.js (add auth middleware)
 **Acceptance Criteria:**
 - ✅ Chat UI renders messages correctly
 - ✅ User can type and send messages
-- ✅ AI responds to messages (ready for testing)
+- ✅ AI responds to messages (TESTED & WORKING)
 - ✅ Conversation history displays properly
 - ✅ Messages stream in real-time (Vercel AI SDK streaming)
+- ✅ Authentication works end-to-end
+- ✅ Error handling prevents server crashes
+- ✅ OpenAI GPT-4 Turbo integration working
 
-**Status:** ✅ **COMPLETE** - All tasks implemented, ready for manual testing
+**Status:** ✅ **FULLY COMPLETE & TESTED** - Chat working end-to-end with OpenAI streaming
 
 **Technical Issues Resolved:**
 1. **Firebase Admin SDK Property Names:**
@@ -254,19 +257,50 @@ api/server.js (add auth middleware)
    - `FIREBASE_CLIENT_EMAIL` - NO quotes
    - `OPENAI_API_KEY` - NO quotes
 
+5. **Firebase Admin SDK Exports:**
+   - Fixed: Export `auth` and `db` as named exports in object format
+   - Changed from: `module.exports = admin; module.exports.auth = ...` (overwrites)
+   - Changed to: `module.exports = { admin, auth, db }` (proper object export)
+   - Allows middleware to properly destructure: `const { auth } = require('./firebaseAdmin')`
+
+6. **AI SDK Version Compatibility:**
+   - Problem: AI SDK v5 has limited model support and incompatible API
+   - Solution: Downgraded to AI SDK v3 for broader model compatibility
+   - Backend: `ai@3.4.33`, `@ai-sdk/openai@0.0.66`, `openai@4.67.3`
+   - Frontend: `ai@3.4.33` (removed `@ai-sdk/react` - not needed in v3)
+   - Changed frontend import: `import { useChat } from 'ai/react'` (v3 path)
+   - Changed backend method: `result.pipeDataStreamToResponse(res)` (v3 API)
+   - Now supports `gpt-4-turbo` and other OpenAI models
+
+7. **Comprehensive Error Handling:**
+   - Added try-catch blocks to all route handlers
+   - Added global error handler middleware
+   - Added 404 handler for unknown routes
+   - Added process-level error handlers (uncaughtException, unhandledRejection)
+   - Added specific OpenAI error handling (API key, rate limits, quota)
+   - Production-safe error messages (hides sensitive details)
+
 **Files Created/Modified:**
 ```
-frontend/src/components/Chat.jsx (uses @ai-sdk/react with useChat hook)
+frontend/src/components/Chat.jsx (uses ai/react with useChat hook)
 frontend/src/components/MessageList.jsx
 frontend/src/components/MessageInput.jsx
-api/routes/chat.js (POST /api/chat endpoint with OpenAI streaming)
-api/server.js (converted to CommonJS, dotenv config at top)
-api/index.js (converted to CommonJS for Vercel)
-api/utils/firebaseAdmin.js (fixed property names, converted to CommonJS)
-api/middleware/auth.js (converted to CommonJS)
-api/package.json (removed "type": "module")
+frontend/package.json (ai@3.4.33, removed @ai-sdk/react)
+
+api/routes/chat.js (POST /api/chat with streaming, error handling)
+api/server.js (CommonJS, error handlers, CORS, global middleware)
+api/index.js (CommonJS for Vercel)
+api/utils/firebaseAdmin.js (fixed exports, property names, CommonJS)
+api/middleware/auth.js (CommonJS)
+api/package.json (ai@3.4.33, @ai-sdk/openai@0.0.66, openai@4.67.3)
+
 .cursor/rules/vercel-ai-sdk-imports.mdc (import documentation)
 ```
+
+**Final Package Versions:**
+- Backend: `ai@3.4.33`, `@ai-sdk/openai@0.0.66`, `openai@4.67.3`
+- Frontend: `ai@3.4.33`
+- Model: `gpt-4-turbo` via `openai('gpt-4-turbo')`
 
 **Architecture:**
 - Frontend `useChat()` hook from `ai` package handles UI state & streaming (configured with `api: '/api/chat'` to call our backend)
@@ -286,13 +320,19 @@ api/package.json (removed "type": "module")
 **Day:** 1
 
 **Tasks:**
-- [ ] Create Socratic system prompt (follow PRD template)
-- [ ] Implement prompt in `/api/chat` endpoint
-- [ ] Add conversation context management
-- [ ] Test with hardcoded math problem: "2x + 5 = 13"
-- [ ] Verify AI never gives direct answers
-- [ ] Test hint triggering after 2+ stuck turns
-- [ ] Document prompt engineering notes
+1. [x] Create Socratic system prompt (follow PRD template)
+   - Created `api/services/promptService.js` with complete Socratic prompt
+   - Includes all core rules, teaching approach, question types, hint structure
+   - Based on PRD Appendix C specifications
+2. [x] Implement prompt in `/api/chat` endpoint
+   - Integrated `buildMessagesWithSystemPrompt()` function in chat route
+   - System prompt now prepended to all conversations
+   - AI will follow Socratic method for all responses
+3. [ ] Add conversation context management
+4. [ ] Test with hardcoded math problem: "2x + 5 = 13"
+5. [ ] Verify AI never gives direct answers
+6. [ ] Test hint triggering after 2+ stuck turns
+7. [ ] Document prompt engineering notes
 
 **Acceptance Criteria:**
 - AI guides through questions, never gives direct answers

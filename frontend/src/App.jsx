@@ -1,14 +1,13 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Chat from './components/Chat';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import ProtectedRoute from './components/ProtectedRoute';
+import Header from './components/Header';
 import { useAuth } from './hooks/useAuth';
-import { signOutUser } from './utils/firebase';
 
 function App() {
-  const { currentUser, loading } = useAuth();
-  const navigate = useNavigate();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -47,39 +46,8 @@ function App() {
       flexDirection: 'column',
       fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
-      {/* Header with logout button if authenticated */}
-      {currentUser && (
-        <div style={{
-          padding: '1rem',
-          backgroundColor: '#f8f9fa',
-          borderBottom: '1px solid #dee2e6',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div>
-            <span style={{ fontWeight: '500' }}>Welcome, {currentUser.email}</span>
-          </div>
-          <button
-            onClick={async () => {
-              await signOutUser();
-              navigate('/login');
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      )}
+      <Header />
 
-      {/* Routes */}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />

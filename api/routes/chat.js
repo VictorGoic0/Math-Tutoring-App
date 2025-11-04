@@ -1,6 +1,7 @@
 const express = require('express');
 const { streamText } = require('ai');
 const { createOpenAI } = require('@ai-sdk/openai');
+const { buildMessagesWithSystemPrompt } = require('../services/promptService');
 
 const router = express.Router();
 
@@ -46,13 +47,18 @@ router.post('/chat', async (req, res) => {
       });
     }
 
-    // Stream the response from OpenAI using Vercel AI SDK
-    const result = await streamText({
-      model: openai('gpt-4-turbo'),
-      messages: messages.map(msg => ({
+    // Build messages with Socratic system prompt
+    const messagesWithPrompt = buildMessagesWithSystemPrompt(
+      messages.map(msg => ({
         role: msg.role,
         content: msg.content
-      })),
+      }))
+    );
+
+    // Stream the response from OpenAI using Vercel AI SDK with Socratic prompting
+    const result = await streamText({
+      model: openai('gpt-4-turbo'),
+      messages: messagesWithPrompt,
       temperature: 0.7,
     });
 

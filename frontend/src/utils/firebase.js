@@ -4,7 +4,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateProfile
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -40,9 +41,11 @@ export const signInUser = async (email, password) => {
 export const signUpUser = async (email, password, displayName) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
-    // Optionally update user profile with displayName
+    // Update user profile with displayName
     if (displayName) {
-      await userCredential.user.updateProfile({ displayName });
+      await updateProfile(userCredential.user, { displayName });
+      // Reload the user to get updated profile information
+      await userCredential.user.reload();
     }
     return { user: userCredential.user, error: null };
   } catch (error) {
