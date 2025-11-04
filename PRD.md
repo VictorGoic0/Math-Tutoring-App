@@ -252,10 +252,12 @@ Tutor: "Yes! What does that give us?"
 - Vercel AI SDK for OpenAI integration
 - OpenAI GPT-4 with Vision (via Vercel AI SDK)
 
-**Database & Real-time:**
+**Database & Persistence:**
 - Firebase Firestore for conversation persistence
-- Firestore real-time listeners for chat updates
-- No WebSockets needed (Firestore handles real-time)
+- **Optimistic UI**: Messages appear instantly, saves happen in background
+- **Frontend Direct Writes**: All persistence from frontend to Firestore
+- **Backend Read-Only**: Backend only loads conversation history
+- No real-time listeners (local state is source of truth during session)
 
 **Deployment:**
 - Frontend: Vercel (static site deployment)
@@ -265,8 +267,8 @@ Tutor: "Yes! What does that give us?"
 **Why This Stack:**
 - Express provides professional, standard backend architecture ideal for hiring manager demos
 - Vercel auto-wraps Express as serverless, giving clean structure + serverless benefits (no cold starts, auto-scaling)
-- Vercel AI SDK saves 4-6 hours on chat UI implementation
-- Firestore provides real-time updates + persistence with minimal setup
+- Vercel AI SDK saves 4-6 hours on chat UI implementation (built-in optimistic updates)
+- Firestore enables direct frontend writes with security rules (instant UX, simple architecture)
 - Stay in JavaScript ecosystem for faster development
 - OpenAI Vision handles image parsing (no separate OCR needed)
 
@@ -276,26 +278,34 @@ Tutor: "Yes! What does that give us?"
 
 ```
 ┌─────────────┐         ┌──────────────┐         ┌─────────────┐
-│   React     │ ←────→  │   Express    │ ←────→  │   OpenAI    │
+│   React     │ ←────→  │   Express    │ ────→   │   OpenAI    │
 │   Frontend  │  HTTP   │   Backend    │   API   │   GPT-4V    │
 │             │         │              │         │             │
 │  - Chat UI  │         │  - AI Logic  │         └─────────────┘
 │  - Canvas   │         │  - Routes    │
-│  - Voice    │         │              │
+│  - Voice    │         │  - Read Only │
 └─────────────┘         └──────────────┘
-      ↓                        ↓
-      └────────────┬───────────┘
-                   ↓
-            ┌─────────────┐
-            │  Firebase   │
-            │  Firestore  │
-            │             │
-            │ - Convos    │
-            │ - Messages  │
-            └─────────────┘
+     │                        │
+     │ Direct Writes          │ Read History
+     │ (Optimistic)           │
+     └────────────┬───────────┘
+                  ↓
+           ┌─────────────┐
+           │  Firebase   │
+           │  Firestore  │
+           │             │
+           │ - Convos    │
+           │ - Messages  │
+           └─────────────┘
 
 Deployment: Both frontend and Express backend deployed to Vercel
 (Vercel automatically wraps Express routes as serverless functions)
+
+Data Flow:
+1. User message → Instant UI update (optimistic)
+2. Frontend → Firestore (background save)
+3. Frontend → Backend → OpenAI (AI request)
+4. AI response → Streams to UI → Saves to Firestore after complete
 ```
 
 ---

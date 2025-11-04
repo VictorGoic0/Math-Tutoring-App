@@ -20,7 +20,6 @@ const cors = require('cors');
 require('./utils/firebaseAdmin.js');
 const { verifyAuthToken, optionalAuth } = require('./middleware/auth.js');
 const chatRouter = require('./routes/chat.js');
-const conversationRouter = require('./routes/conversation.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -72,9 +71,6 @@ app.get('/api/user/profile', verifyAuthToken, (req, res) => {
 
 // Chat routes (protected - requires authentication)
 app.use('/api', verifyAuthToken, chatRouter);
-
-// Conversation routes (protected - requires authentication)
-app.use('/api', verifyAuthToken, conversationRouter);
 
 // Global error handler - catches any unhandled errors
 app.use((err, req, res, next) => {

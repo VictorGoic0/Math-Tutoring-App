@@ -2,7 +2,7 @@ const express = require('express');
 const { streamText } = require('ai');
 const { createOpenAI } = require('@ai-sdk/openai');
 const { buildMessagesWithSystemPrompt, analyzeConversationContext } = require('../services/promptService');
-const { loadConversationHistory } = require('../services/conversationManager');
+const { getMessages, getUserConversations } = require('../services/firestoreService');
 
 const router = express.Router();
 
@@ -123,7 +123,7 @@ router.post('/chat', async (req, res) => {
 /**
  * GET /api/chat/history
  * Load conversation history for the authenticated user
- * Returns messages in format compatible with useChat hook
+ * Returns: { conversationId, messages }
  */
 router.get('/chat/history', async (req, res) => {
   try {
@@ -137,10 +137,32 @@ router.get('/chat/history', async (req, res) => {
 
     const limit = parseInt(req.query.limit) || 100;
     
-    // Load conversation history
-    const messages = await loadConversationHistory(req.user.uid, limit);
+    // Get user's conversation (single conversation per user)
+    const conversations = await getUserConversations(req.user.uid, 1);
+    
+    if (conversations.length === 0) {
+      // No conversation yet
+      return res.status(200).json({
+        conversationId: null,
+        messages: []
+      });
+    }
+    
+    const conversation = conversations[0];
+    
+    // Get messages from conversation
+    const messagesData = await getMessages(conversation.id, limit);
+    
+    // Transform to useChat format
+    const messages = messagesData.map(msg => ({
+      id: msg.id,
+      role: msg.role,
+      content: msg.content,
+      createdAt: new Date(msg.timestamp)
+    }));
     
     res.status(200).json({
+      conversationId: conversation.id,
       messages
     });
   } catch (error) {

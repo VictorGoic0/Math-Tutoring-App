@@ -16,17 +16,19 @@ Ready to begin PR #6: Image Upload UI
 
 ## Recent Changes
 
-### Just Completed (PR #5) - Firestore Integration
+### Just Completed (PR #5) - Firestore Integration with Optimistic UI
 - ✅ Created Firestore collections: `/conversations/{id}` → `/messages/{id}`
 - ✅ Implemented single-conversation-per-user pattern (get-or-create)
-- ✅ Built full REST API for conversations and messages
-- ✅ Created `GET /api/chat/history` endpoint
-- ✅ Frontend services layer: `api.js` + `chatService.js`
-- ✅ Simple persistence model: local state during session, DB on reload
-- ✅ Delete conversation button for testing
+- ✅ **Frontend Direct Writes**: Simplified - all writes from frontend to Firestore
+- ✅ **Optimistic UI**: Messages appear instantly, no blocking
+- ✅ **Background Saves**: Non-blocking persistence, silent error handling
+- ✅ Backend read-only: `GET /api/chat/history` returns conversationId + messages
+- ✅ Frontend services: `chatService.js` with Firestore write functions
+- ✅ Security rules: `firestore.rules` for authenticated client writes
+- ✅ Removed backend write complexity (deleted conversationManager, conversation routes)
 - ✅ No real-time listeners (avoids race conditions)
 - ✅ In-memory sorting (no composite index needed)
-- ✅ Fixed Firestore index issue
+- ✅ **TESTED & WORKING** - Instant UX with reliable persistence
 
 ### Recently Completed (PR #4) - Socratic Prompting
 - ✅ Complete Socratic system prompt with adaptive scaffolding
@@ -70,12 +72,15 @@ Ready to begin PR #6: Image Upload UI
    - No conversation selection UI needed
    - Easy to extend to multiple conversations later
 
-2. **Simple Persistence Model (PR #5)**
-   - useChat manages local state during session
-   - Firestore stores history
-   - Load on page refresh
+2. **Optimistic UI with Frontend Direct Writes (PR #5)**
+   - **Instant UX**: Messages appear immediately (optimistic updates)
+   - **Background Saves**: Non-blocking writes to Firestore
+   - **Frontend Writes**: All persistence from frontend to Firestore
+   - **Backend Read-Only**: Only loads history via GET endpoint
+   - useChat manages local state as source of truth during session
+   - Load history on page refresh
    - No real-time listeners (avoids race conditions)
-   - No streaming persistence (simpler, more reliable)
+   - Trade-off: Instant UX > Guaranteed Persistence (MVP acceptable)
 
 3. **Stateless Context Manager (PR #4)**
    - Analyzes messages array each request
@@ -132,26 +137,27 @@ hooks/
 ### Backend (`api/`)
 ```
 routes/
-  ├── chat.js               (POST /api/chat, GET /api/chat/history)
-  └── conversation.js       (full CRUD for conversations)
+  └── chat.js               (POST /api/chat, GET /api/chat/history)
 
 services/
   ├── promptService.js      (Socratic prompts)
   ├── contextManager.js     (adaptive scaffolding)
-  ├── conversationManager.js (single conversation logic)
-  └── firestoreService.js   (Firestore CRUD)
+  └── firestoreService.js   (Firestore CRUD - read-only)
 
 middleware/
   └── auth.js               (verifyAuthToken)
 ```
 
-### Data Flow
+### Data Flow (Optimistic UI)
 ```
-1. Page load → GET /api/chat/history → load messages
-2. User types → useChat local state updates
-3. Submit → POST /api/chat → streams AI response
-4. AI responds → useChat updates in real-time
-5. Page refresh → repeat step 1
+1. Page load → GET /api/chat/history → load messages + conversationId
+2. User types → useChat local state only
+3. Submit (optimistic):
+   a. useChat adds message to UI instantly
+   b. POST /api/chat (AI request sent immediately, non-blocking)
+   c. Frontend saves to Firestore in background (non-blocking)
+4. AI responds → streams to UI in real-time → saves to Firestore after complete
+5. Page refresh → repeat step 1 (loads all successfully saved messages)
 ```
 
 ## Testing Strategy

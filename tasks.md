@@ -466,27 +466,36 @@ api/routes/chat.js                   (Added context logging)
 
 **Files Created/Modified:**
 ```
-api/services/firestoreService.js       (NEW - 331 lines, full CRUD operations)
-api/services/conversationManager.js    (NEW - 171 lines, single-conversation logic)
-api/routes/conversation.js             (NEW - 366 lines, REST API endpoints)
-api/routes/chat.js                     (Enhanced - persistence + history endpoint)
-frontend/src/components/Chat.jsx       (Enhanced - loads history on mount)
-api/server.js                          (Registered conversation routes)
+api/services/firestoreService.js       (Read-only CRUD operations)
+api/routes/chat.js                     (GET /api/chat/history - returns conversationId + messages)
+frontend/src/services/chatService.js   (NEW - Firestore write functions)
+frontend/src/components/Chat.jsx       (Optimistic UI with background saves)
+firestore.rules                        (NEW - Security rules for client writes)
+```
+
+**Files Removed (Simplified):**
+```
+api/services/conversationManager.js    (DELETED - write logic moved to frontend)
+api/routes/conversation.js             (DELETED - REST API not needed)
 ```
 
 **Architecture Summary:**
 - **Single Conversation Per User**: Simplified MVP approach
-- **Get-or-Create Pattern**: Backend auto-creates conversation on first message
-- **Simple Persistence Model**: Firestore write-only during session, read on mount
+- **Frontend Direct Writes**: All persistence happens from frontend to Firestore
+- **Backend Read-Only**: Backend only loads history, no write operations
+- **Optimistic UI Updates**: Messages appear instantly, Firestore saves in background
+- **Non-Blocking Persistence**: Saves don't block UI, failures are silent
 - **No Real-Time Listeners**: Avoided race conditions and state complexity
 - **One Source of Truth**: useChat local state during session, Firestore for persistence
-- **Non-Blocking Persistence**: Failures logged but don't break chat flow
+- **Flow**: User message → instant UI → background save → AI streams → save after complete
 
-**Testing Ready:**
-1. Send message → should persist to Firestore
-2. Refresh page → should load previous messages
-3. Continue conversation → should append to existing conversation
-4. Check Firestore console → should see single conversation with all messages
+**Testing Verified:**
+1. ✅ Send message → appears instantly in UI (optimistic)
+2. ✅ AI response → streams immediately, no lag
+3. ✅ Messages persist to Firestore in background
+4. ✅ Refresh page → loads all messages from history
+5. ✅ Single conversation per user maintained
+6. ✅ Firestore console shows conversations + messages
 
 ---
 

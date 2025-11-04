@@ -49,14 +49,15 @@
 ### ✅ PR #5: Firestore Integration for Conversation Persistence (COMPLETE)
 - Firestore collections: `/conversations/{id}` and `/conversations/{id}/messages/{id}`
 - Single conversation per user (get-or-create pattern)
-- Full REST API: conversation CRUD + message operations
-- `GET /api/chat/history` - loads conversation on page refresh
-- Frontend services layer: `api.js` (base client) + `chatService.js`
-- Simple persistence model: useChat local state during session, Firestore on reload
-- Delete conversation button for testing
+- **Frontend Direct Writes**: All persistence from frontend to Firestore (simplified)
+- **Optimistic UI**: Messages appear instantly, saves happen in background
+- Backend read-only: `GET /api/chat/history` returns conversationId + messages
+- Frontend services: `chatService.js` with `createConversation()` and `saveMessage()`
+- Security rules: `firestore.rules` for authenticated client writes
+- Non-blocking saves: Failures are silent, don't interrupt UX
 - No real-time listeners (avoids race conditions)
 - In-memory sorting (no composite index needed)
-- **TESTED & WORKING** - History persists across refreshes
+- **TESTED & WORKING** - Instant UX, reliable persistence
 
 ## What's Left to Build
 

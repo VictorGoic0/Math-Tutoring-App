@@ -3,13 +3,42 @@ import { useChat } from 'ai/react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useAuth } from '../hooks/useAuth';
-import { loadConversationHistory, deleteCurrentConversation } from '../services/chatService';
+import { loadConversationHistory, createConversation, saveMessage } from '../services/chatService';
 import { API_URL } from '../services/api';
 
+/**
+ * Chat Component
+ * 
+ * PERSISTENCE MODEL (Optimistic UI):
+ * 
+ * 1. ON MOUNT:
+ *    - Load conversation history from Firestore via backend
+ *    - Initialize useChat with existing messages
+ * 
+ * 2. USER SENDS MESSAGE:
+ *    - useChat instantly adds to UI (optimistic)
+ *    - AI request sent immediately (no blocking)
+ *    - Firestore save happens in background (non-blocking)
+ * 
+ * 3. AI RESPONDS:
+ *    - useChat streams response to UI in real-time
+ *    - After stream completes, save to Firestore
+ * 
+ * 4. ERROR HANDLING:
+ *    - If Firestore save fails, message still displays
+ *    - Silent failure (no user disruption)
+ *    - Messages persist in useChat state during session
+ * 
+ * 5. ON REFRESH:
+ *    - All successfully saved messages load from Firestore
+ *    - Any unsaved messages are lost (rare edge case)
+ * 
+ * This design prioritizes instant UX over guaranteed persistence.
+ */
 function Chat() {
-  const { authToken } = useAuth();
+  const { authToken, currentUser } = useAuth();
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [conversationId, setConversationId] = useState(null);
 
   const {
     messages,
@@ -23,7 +52,18 @@ function Chat() {
     api: `${API_URL}/api/chat`,
     headers: authToken ? {
       'Authorization': `Bearer ${authToken}`
-    } : {}
+    } : {},
+    // Save AI response after streaming completes
+    onFinish: async (message) => {
+      if (!conversationId || !currentUser) return;
+      
+      try {
+        await saveMessage(conversationId, message);
+      } catch (error) {
+        console.error('⚠️ Failed to save AI message (non-fatal):', error);
+        // Silent fail - message is already displayed in UI
+      }
+    }
   });
 
   // Load conversation history on mount
@@ -35,12 +75,15 @@ function Chat() {
       }
 
       try {
-        const messages = await loadConversationHistory(authToken);
+        const { conversationId: loadedConvId, messages: loadedMessages } = await loadConversationHistory(authToken);
+        
+        // Set conversation ID
+        setConversationId(loadedConvId);
         
         // Initialize useChat with existing messages
-        if (messages.length > 0) {
-          setMessages(messages);
-          console.log(`📥 Loaded ${messages.length} messages from history`);
+        if (loadedMessages.length > 0) {
+          setMessages(loadedMessages);
+          console.log(`📥 Loaded ${loadedMessages.length} messages from history`);
         }
         
         setIsLoadingHistory(false);
@@ -54,25 +97,54 @@ function Chat() {
     fetchHistory();
   }, [authToken, setMessages]);
 
-  // Handle delete conversation
-  const handleDeleteConversation = async () => {
-    if (!window.confirm('Are you sure you want to delete this conversation? This cannot be undone.')) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await deleteCurrentConversation(authToken);
-      // Clear messages in UI
-      setMessages([]);
-      console.log('🗑️ Conversation deleted');
-    } catch (error) {
-      console.error('Error deleting conversation:', error);
-      alert('Failed to delete conversation. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
+  /**
+   * Optimistic submit handler
+   * 
+   * Flow:
+   * 1. useChat immediately adds message to UI (optimistic update)
+   * 2. Message sent to /api/chat for AI response
+   * 3. Firestore save happens in background (non-blocking)
+   * 
+   * This ensures instant UI feedback while persisting in the background.
+   * If Firestore save fails, message is still in UI and AI still responds.
+   */
+  const handleCustomSubmit = (e) => {
+    if (!input.trim() || !currentUser) return;
+    
+    const userMessageContent = input; // Capture before useChat clears it
+    
+    // 1. INSTANT: Let useChat handle optimistic UI update + AI request
+    handleSubmit(e);
+    
+    // 2. BACKGROUND: Save to Firestore (non-blocking)
+    saveUserMessageToFirestore(userMessageContent);
   };
+
+  /**
+   * Background save for user messages
+   * Runs async without blocking UI
+   */
+  async function saveUserMessageToFirestore(content) {
+    try {
+      // Create conversation on first message if needed
+      let convId = conversationId;
+      if (!convId) {
+        convId = await createConversation(currentUser.uid, content);
+        setConversationId(convId);
+      }
+      
+      // Save user message to Firestore
+      await saveMessage(convId, {
+        role: 'user',
+        content
+      });
+      
+    } catch (error) {
+      console.error('⚠️ Background save failed (non-fatal):', error);
+      // Silent fail - message is already in UI and AI is responding
+      // Will be persisted on next successful message or user can refresh
+    }
+  }
 
   // Show loading state while fetching history
   if (isLoadingHistory) {
@@ -114,40 +186,14 @@ function Chat() {
       margin: '0 auto',
       padding: '1rem'
     }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '1rem'
-      }}>
-        <h2 style={{ margin: 0 }}>AI Math Tutor</h2>
-        
-        {messages.length > 0 && (
-          <button
-            onClick={handleDeleteConversation}
-            disabled={isDeleting}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: isDeleting ? '#ccc' : '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: isDeleting ? 'not-allowed' : 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500'
-            }}
-          >
-            {isDeleting ? 'Deleting...' : '🗑️ Delete Conversation'}
-          </button>
-        )}
-      </div>
+      <h2 style={{ marginBottom: '1rem' }}>AI Math Tutor</h2>
       
       <MessageList messages={messages} />
       
       <MessageInput
         input={input}
         handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
+        handleSubmit={handleCustomSubmit}
         isLoading={isLoading}
       />
       
