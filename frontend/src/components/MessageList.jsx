@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import MathDisplay from './MathDisplay';
 
 function MessageList({ messages }) {
   const messagesEndRef = useRef(null);
@@ -71,11 +72,9 @@ function MessageList({ messages }) {
             </div>
           )}
           
-          {/* Display text content */}
+          {/* Display text content with math rendering */}
           {message.content && (
-            <div style={{ whiteSpace: 'pre-wrap' }}>
-              {message.content}
-            </div>
+            <MathDisplay content={message.content} />
           )}
         </div>
       ))}

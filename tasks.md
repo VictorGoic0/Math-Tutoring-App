@@ -684,26 +684,86 @@ frontend/src/services/api.js (parseAIStream utility for plain text streaming)
 **Day:** 2-3
 
 **Tasks:**
-- [ ] Install KaTeX library
-- [ ] Create MathDisplay component
-- [ ] Parse LaTeX notation from AI responses
-- [ ] Render inline math equations
-- [ ] Render block math equations
-- [ ] Style equations for readability
-- [ ] Test with various equation types
+1. [x] Install KaTeX library (`katex` and `react-katex` packages)
+2. [x] Create MathDisplay component
+3. [x] Parse LaTeX notation from AI responses (integrated MathDisplay into MessageList)
+4. [x] Render inline math equations (simple variables like `$x$` render inline)
+5. [x] Render block math equations (complex equations render on own line, centered)
+6. [x] Style equations for readability (centered, spaced, clear separation)
+7. [x] Test with various equation types (see sample problems below)
+8. [x] Update system prompt to instruct AI to use `$...$` format for equations
+9. [x] Add frontend parser to handle `\(...\)` format (converts to $...$ for processing)
+10. [x] Implement intelligent inline vs block rendering (complexity-based detection)
 
-**Acceptance Criteria:**
-- LaTeX equations render beautifully in chat
-- Both inline ($...$) and block ($$...$$) equations work
-- Supports fractions, exponents, roots, Greek letters
-- Equations are readable and properly formatted
-- No rendering errors for common math notation
+**Acceptance Criteria:** ✅ All Met
+- ✅ LaTeX equations render beautifully in chat
+- ✅ Both inline ($...$) and block ($$...$$) equations work
+- ✅ Intelligent rendering: simple variables inline, complex equations block
+- ✅ Supports fractions, exponents, roots, Greek letters
+- ✅ Equations are readable and properly formatted
+- ✅ No rendering errors for common math notation
+- ✅ Handles both `$...$` and `\(...\)` formats automatically
 
 **Files Created/Modified:**
 ```
-frontend/src/components/MathDisplay.jsx
-frontend/src/utils/latexParser.js
+frontend/src/components/MathDisplay.jsx (NEW - intelligent inline/block rendering with complexity detection)
+frontend/src/components/MessageList.jsx (MODIFIED - uses MathDisplay for content rendering)
+api/services/promptService.js (MODIFIED - updated formatting instructions to use $...$ format)
 ```
+
+**Sample Problems for Testing Math Rendering:**
+
+Copy and paste these into the chat to test LaTeX rendering:
+
+1. **Quadratic Formula:**
+   ```
+   Solve for x using the quadratic formula: $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$
+   ```
+
+2. **Linear Equation:**
+   ```
+   Solve: $3x + 7 = 22$
+   ```
+
+3. **Fraction Operations:**
+   ```
+   Simplify: $\frac{2}{3} + \frac{1}{4} = \frac{8 + 3}{12} = \frac{11}{12}$
+   ```
+
+4. **Exponents and Roots:**
+   ```
+   Evaluate: $x^2 = 16$ and $\sqrt{25} = 5$
+   ```
+
+5. **System of Equations:**
+   ```
+   Solve the system:
+   $2x + y = 10$
+   $x - y = 2$
+   ```
+
+**Implementation Details:**
+
+**Math Rendering Strategy:**
+- **Intelligent Format Detection**: Component automatically detects and handles `$...$`, `$$...$$`, `\(...\)`, and `\[...\]` formats
+- **Smart Inline vs Block Rendering**:
+  - **Always Block**: Explicit block markers (`$$...$$`, `\[...\]`)
+  - **Block if Complex**: Equations with operators (`=`, `<`, `>`, `≤`, `≥`), fractions (`\frac`), roots (`\sqrt`), integrals, sums, or expressions > 15 characters
+  - **Inline if Simple**: Single variables like `$x$`, `$y$`, simple references like `$x^2$`, `$x_1$`
+- **Two-Pass Parsing**: Efficiently processes explicit blocks first, then single markers, avoiding overlap conflicts
+- **Performance**: O(n) regex matching + O(k log k) sorting where k = number of math expressions (typically small)
+
+**System Prompt Integration:**
+- AI instructed to use `$...$` format for all equations
+- Examples provided: `$x$`, `$2x + 7 = 22$`, `$\frac{a}{b}$`, `$x^2$`, `$\sqrt{25}$`
+- Explicitly states: "Do NOT use \(...\) format - always use $...$ format"
+- All equations render clearly on their own line for readability
+
+**Result:**
+- Simple variables like `$x$` render inline within text flow
+- Complex equations render as centered block math for clarity
+- Supports all LaTeX formats (normalized automatically)
+- Consistent, readable formatting across all message types
 
 ---
 
