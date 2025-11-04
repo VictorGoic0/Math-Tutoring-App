@@ -34,7 +34,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint (no auth required)
-app.get('/api/health', (req, res) => {
+// Note: Vercel strips /api prefix, so routes are at root level
+app.get('/health', (req, res) => {
   try {
     res.json({ status: 'ok', message: 'Backend is running' });
   } catch (error) {
@@ -44,7 +45,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Public test route (no auth required)
-app.get('/api/test', (req, res) => {
+app.get('/test', (req, res) => {
   try {
     res.json({ message: 'Backend API is working!' });
   } catch (error) {
@@ -54,7 +55,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // Protected route example (requires authentication)
-app.get('/api/user/profile', verifyAuthToken, (req, res) => {
+app.get('/user/profile', verifyAuthToken, (req, res) => {
   try {
     res.json({ 
       message: 'Protected route accessed successfully',
@@ -67,7 +68,8 @@ app.get('/api/user/profile', verifyAuthToken, (req, res) => {
 });
 
 // Chat routes (protected - requires authentication)
-app.use('/api', verifyAuthToken, chatRouter);
+// Note: Vercel strips /api prefix, so mount at root
+app.use('/', verifyAuthToken, chatRouter);
 
 // Global error handler - catches any unhandled errors
 app.use((err, req, res, next) => {
