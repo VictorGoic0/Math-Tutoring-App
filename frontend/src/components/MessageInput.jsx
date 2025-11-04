@@ -2,7 +2,7 @@ import { useRef } from 'react';
 
 function MessageInput({ 
   input, 
-  handleInputChange, 
+  onInputChange, 
   handleSubmit, 
   isLoading,
   onImageSelect,
@@ -21,7 +21,7 @@ function MessageInput({
     e.target.value = '';
   };
 
-  const canSend = (input.trim() || imagePreviewUrl) && !isLoading && !isUploadingImage;
+  const canSend = true; // Simplified - business logic removed
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -102,7 +102,7 @@ function MessageInput({
         <input
           type="text"
           value={input}
-          onChange={handleInputChange}
+          onChange={onInputChange}
           placeholder="Ask a math question or upload an image..."
           disabled={isLoading || isUploadingImage}
           style={{

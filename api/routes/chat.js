@@ -14,7 +14,7 @@ const openai = createOpenAI({
 // POST /api/chat - Handle chat messages with streaming
 router.post('/chat', async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { messages, imageUrl } = req.body;
 
     // Validate messages
     if (!messages || !Array.isArray(messages)) {
@@ -39,6 +39,11 @@ router.post('/chat', async (req, res) => {
       });
     }
 
+    // Log if image is included in request
+    if (imageUrl) {
+      console.log(`📷 Image included in chat request: ${imageUrl.substring(0, 80)}...`);
+    }
+
     // Validate OpenAI API key
     if (!process.env.OPENAI_API_KEY) {
       console.error('OPENAI_API_KEY is not configured');
@@ -61,16 +66,46 @@ router.post('/chat', async (req, res) => {
     // });
 
     // Build messages with Socratic system prompt and adaptive scaffolding
-    const messagesWithPrompt = buildMessagesWithSystemPrompt(
-      messages.map(msg => ({
+    // If imageUrl is present, add it to the last user message
+    const processedMessages = messages.map((msg, index) => {
+      // Check if this is the last user message and we have an imageUrl
+      const isLastUserMessage = index === messages.length - 1 && msg.role === 'user';
+      const shouldAddImage = isLastUserMessage && imageUrl;
+
+      if (shouldAddImage) {
+        // Format message content for vision (multi-part content)
+        return {
+          role: msg.role,
+          content: [
+            {
+              type: 'text',
+              text: msg.content || 'Please help me solve this math problem from the image.'
+            },
+            {
+              type: 'image',
+              image: imageUrl
+            }
+          ]
+        };
+      }
+
+      // Regular text-only message
+      return {
         role: msg.role,
         content: msg.content
-      }))
-    );
+      };
+    });
+
+    const messagesWithPrompt = buildMessagesWithSystemPrompt(processedMessages);
+
+    // Use vision model if image is present, otherwise use regular model
+    const modelToUse = imageUrl ? openai('gpt-4-vision-preview') : openai('gpt-4-turbo');
+    
+    console.log(`🤖 Using model: ${imageUrl ? 'gpt-4-vision-preview (with image)' : 'gpt-4-turbo (text-only)'}`);
 
     // Stream the response from OpenAI using Vercel AI SDK with Socratic prompting
     const result = await streamText({
-      model: openai('gpt-4-turbo'),
+      model: modelToUse,
       messages: messagesWithPrompt,
       temperature: 0.7,
     });

@@ -580,33 +580,57 @@ firestore.rules                          (Documented both Firestore + Storage se
 
 ---
 
-### PR #7: Image Parsing with OpenAI Vision
+### PR #7: OpenAI Vision Integration for Image Parsing
 **Priority:** P0  
 **Day:** 2
 
+**Scope:** Automatic problem extraction when images are sent - no separate confirmation step
+
 **Tasks:**
-- [ ] Create `/api/upload` endpoint
-- [ ] Implement image upload to temporary storage or base64 encoding
-- [ ] Integrate OpenAI Vision API via Vercel AI SDK
-- [ ] Extract problem text from uploaded images
-- [ ] Return parsed problem text to frontend
-- [ ] Display parsed problem in chat for confirmation
-- [ ] Test with printed math problems
-- [ ] Handle parsing errors gracefully
+
+**Refactor: Remove `useChat` Hook (Simplification)**
+1. [x] Remove `ai` package from frontend dependencies
+2. [x] Create `parseAIStream` utility in `frontend/src/services/api.js` for parsing SSE streams
+3. [x] Replace `useChat` with manual state management in `Chat.jsx`:
+   - [x] Replace `messages` from `useChat` with `useState`
+   - [x] Replace `input` from `useChat` with `useState`
+   - [x] Replace `isLoading` from `useChat` with `useState`
+   - [x] Replace `handleSubmit` with custom submit handler
+   - [x] Remove `handleInputChange`, use direct `setInput`
+4. [x] Implement manual streaming with `fetch` + `parseAIStream`
+5. [ ] Test chat functionality (send message, receive streaming response, persistence)
+6. [ ] Update `.cursor/rules/vercel-ai-sdk-imports.mdc` to reflect removal
+7. [ ] Update memory bank to document the refactor
+
+**Vision Integration**
+8. [x] Modify POST `/api/chat` to accept `imageUrl` in message body
+9. [x] Integrate OpenAI Vision API (gpt-4-vision-preview) in chat route
+10. [x] When imageUrl present, include image in OpenAI request with vision model
+11. [x] Update Socratic prompt to acknowledge and work with extracted problem
+12. [ ] Test with printed math problem screenshots
+13. [ ] Handle Vision API errors gracefully (fallback to text-only response)
 
 **Acceptance Criteria:**
-- Images upload successfully to backend
-- Vision API extracts problem text accurately (>90% for printed)
-- Parsed text returns to frontend
-- User sees extracted problem text in chat
-- Error messages display if parsing fails
-- Works with PNG, JPG, HEIC formats
+- User sends image → AI automatically sees and parses it
+- Vision model extracts problem text from images (>90% for printed)
+- AI acknowledges the problem: "I see you've uploaded [problem]. Let's work through it!"
+- AI starts tutoring immediately (no separate confirmation needed)
+- Text + image can be sent together
+- Error messages if Vision API fails
+- Works with PNG, JPG formats
 
-**Files Created/Modified:**
+**Technical Approach:**
+- Leverage existing image upload from PR #6 (imageUrl already saved)
+- Modify `/api/chat` to check for `imageUrl` in request
+- Use `gpt-4-vision-preview` model when image present
+- Pass image URL directly to OpenAI (no re-upload needed)
+- Vision and Socratic prompting work together seamlessly
+
+**Files Modified:**
 ```
-backend/routes/upload.js
-backend/services/visionService.js
-frontend/src/hooks/useImageUpload.js
+api/routes/chat.js           (Add vision model support, check for imageUrl)
+api/services/promptService.js (Update system prompt for image awareness)
+frontend/src/components/Chat.jsx (Send imageUrl in chat request body)
 ```
 
 ---

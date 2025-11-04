@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.0",
-    "ai": "^3.4.33",
     "firebase": "^11.1.0",
     "katex": "^0.16.11",
     "react": "^19.2.0",

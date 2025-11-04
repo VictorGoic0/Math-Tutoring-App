@@ -3,7 +3,6 @@
 **Version:** 1.0  
 **Date:** November 3, 2025  
 **Timeline:** 3-5 days  
-**Project Owner:** John Chen (john.chen@superbuilders.school)  
 **Inspiration:** [OpenAI x Khan Academy Demo](https://www.youtube.com/watch?v=IvXZCocyU_M)
 
 ---
@@ -714,9 +713,6 @@ While not required for MVP, these metrics would measure long-term success:
 ---
 
 ## Contact & Support
-
-**Project Owner:** John Chen  
-**Email:** john.chen@superbuilders.school  
 
 **Resources:**
 - Inspiration: [OpenAI x Khan Academy Demo](https://www.youtube.com/watch?v=IvXZCocyU_M)

@@ -2,7 +2,6 @@
 
 **Version:** 1.0  
 **Timeline:** 3-5 days  
-**Project Owner:** John Chen (john.chen@superbuilders.school)  
 **Inspiration:** [OpenAI x Khan Academy Demo](https://www.youtube.com/watch?v=IvXZCocyU_M)
 
 ## Core Mission
