@@ -3,7 +3,12 @@
  * Handles all Firestore operations for conversation and message persistence
  */
 
-const { db } = require('../utils/firebaseAdmin');
+const { getDb } = require('../utils/firebaseAdmin');
+
+// Get db instance lazily
+function db() {
+  return getDb();
+}
 
 /**
  * FIRESTORE COLLECTION STRUCTURE
@@ -85,7 +90,7 @@ async function createConversation(userId, firstMessage = '') {
     };
     
     // Create document and get reference
-    const docRef = await db.collection(COLLECTIONS.CONVERSATIONS).add(conversationData);
+    const docRef = await db().collection(COLLECTIONS.CONVERSATIONS).add(conversationData);
     
     return {
       id: docRef.id,
@@ -106,7 +111,7 @@ async function createConversation(userId, firstMessage = '') {
  */
 async function getConversation(conversationId, userId) {
   try {
-    const doc = await db.collection(COLLECTIONS.CONVERSATIONS).doc(conversationId).get();
+    const doc = await db().collection(COLLECTIONS.CONVERSATIONS).doc(conversationId).get();
     
     if (!doc.exists) {
       return null;
@@ -135,7 +140,7 @@ async function getConversation(conversationId, userId) {
  */
 async function getUserConversations(userId, limit = 50) {
   try {
-    const snapshot = await db.collection(COLLECTIONS.CONVERSATIONS)
+    const snapshot = await db().collection(COLLECTIONS.CONVERSATIONS)
       .where('userId', '==', userId)
       .limit(limit)
       .get();
@@ -164,7 +169,7 @@ async function getUserConversations(userId, limit = 50) {
  */
 async function updateConversation(conversationId, updates) {
   try {
-    await db.collection(COLLECTIONS.CONVERSATIONS)
+    await db().collection(COLLECTIONS.CONVERSATIONS)
       .doc(conversationId)
       .update({
         ...updates,
@@ -192,18 +197,18 @@ async function deleteConversation(conversationId, userId) {
     }
     
     // Delete all messages in the conversation
-    const messagesSnapshot = await db.collection(COLLECTIONS.CONVERSATIONS)
+    const messagesSnapshot = await db().collection(COLLECTIONS.CONVERSATIONS)
       .doc(conversationId)
       .collection(COLLECTIONS.MESSAGES)
       .get();
     
-    const batch = db.batch();
+    const batch = db().batch();
     messagesSnapshot.docs.forEach(doc => {
       batch.delete(doc.ref);
     });
     
     // Delete the conversation document
-    batch.delete(db.collection(COLLECTIONS.CONVERSATIONS).doc(conversationId));
+    batch.delete(db().collection(COLLECTIONS.CONVERSATIONS).doc(conversationId));
     
     await batch.commit();
   } catch (error) {
@@ -235,7 +240,7 @@ async function addMessage(conversationId, messageData) {
     };
     
     // Add message to subcollection
-    const docRef = await db.collection(COLLECTIONS.CONVERSATIONS)
+    const docRef = await db().collection(COLLECTIONS.CONVERSATIONS)
       .doc(conversationId)
       .collection(COLLECTIONS.MESSAGES)
       .add(message);
@@ -243,7 +248,7 @@ async function addMessage(conversationId, messageData) {
     // Update conversation metadata
     await updateConversation(conversationId, {
       lastMessage: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
-      messageCount: db.FieldValue.increment(1)
+      messageCount: db().FieldValue.increment(1)
     });
     
     return {
@@ -265,7 +270,7 @@ async function addMessage(conversationId, messageData) {
  */
 async function getMessages(conversationId, limit = 100) {
   try {
-    const snapshot = await db.collection(COLLECTIONS.CONVERSATIONS)
+    const snapshot = await db().collection(COLLECTIONS.CONVERSATIONS)
       .doc(conversationId)
       .collection(COLLECTIONS.MESSAGES)
       .orderBy('timestamp', 'asc')
@@ -293,7 +298,7 @@ async function getMessages(conversationId, limit = 100) {
  */
 async function getRecentMessages(conversationId, limit = 50) {
   try {
-    const snapshot = await db.collection(COLLECTIONS.CONVERSATIONS)
+    const snapshot = await db().collection(COLLECTIONS.CONVERSATIONS)
       .doc(conversationId)
       .collection(COLLECTIONS.MESSAGES)
       .orderBy('timestamp', 'desc')

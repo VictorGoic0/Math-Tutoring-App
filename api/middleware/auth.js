@@ -1,4 +1,4 @@
-const { auth } = require('../utils/firebaseAdmin.js');
+const { getAuth } = require('../utils/firebaseAdmin.js');
 
 /**
  * Middleware to verify Firebase authentication token
@@ -20,6 +20,7 @@ const verifyAuthToken = async (req, res, next) => {
     const token = authHeader.split('Bearer ')[1];
 
     // Verify the token with Firebase Admin
+    const auth = getAuth();
     const decodedToken = await auth.verifyIdToken(token);
 
     // Attach user info to request object

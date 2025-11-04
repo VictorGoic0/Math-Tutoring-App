@@ -1207,7 +1207,12 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
    - Import same Git repo
    - Set Root Directory to `/api`
    - Set Framework Preset to `Other` (Node.js)
-   - Configure serverless function settings
+   - Configure Build Settings:
+     - Build Command: Leave empty (or `npm install` if needed)
+     - Output Directory: Leave empty (no static build)
+     - Install Command: `npm install`
+     - Entry Point: `index.js` (Vercel will use this as serverless function)
+   - Note: Vercel will automatically wrap `api/index.js` as a serverless function
 4. [ ] Set up backend environment variables in Vercel dashboard
    - Add server-only variables (no `VITE_` prefix): `OPENAI_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_PRIVATE_KEY`, `FIREBASE_CLIENT_EMAIL`
    - These stay server-side only, never exposed to browser

@@ -17,7 +17,7 @@ process.on('unhandledRejection', (reason, promise) => {
 // Now import everything else AFTER env vars are loaded
 const express = require('express');
 const cors = require('cors');
-require('./utils/firebaseAdmin.js');
+// Firebase Admin will be initialized lazily on first use
 const { verifyAuthToken, optionalAuth } = require('./middleware/auth.js');
 const chatRouter = require('./routes/chat.js');
 
