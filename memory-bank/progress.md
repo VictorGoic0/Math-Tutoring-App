@@ -96,6 +96,49 @@
 
 **TESTED & WORKING** - Streaming, vision, and persistence all functional
 
+### ✅ PR #8: Math Rendering with KaTeX (COMPLETE)
+- Intelligent inline vs. block math rendering
+- System prompt updated to use `$...$` format
+- Markdown parsing (bold, italic, code) after math processing
+- Custom lightweight regex-based parser
+
+### ✅ PR #17: Documentation & Setup Instructions (COMPLETE)
+- README.md updated with comprehensive overview
+- SETUP.md created with detailed step-by-step instructions
+- ARCHITECTURE.md created referencing architecture.mermaid
+
+### ✅ PR #18: Deployment to Vercel (COMPLETE)
+**Deployment Architecture:**
+- Separate Vercel projects for frontend and backend (monorepo setup)
+- Frontend: Root Directory `/frontend`, Framework `Vite`
+- Backend: Root Directory `/api`, Framework `Other` (Node.js)
+- Express wrapped as serverless functions via `api/index.js`
+
+**Key Fixes:**
+- Removed `/api` prefix from Express routes (Vercel strips when Root Directory is `/api`)
+- Enabled CORS for production (separate projects = different origins)
+- Added `frontend/vercel.json` for SPA routing (React Router)
+- Added `api/vercel.json` for explicit serverless function configuration
+- Removed `/api` prefix from frontend API calls
+
+**Firebase Admin Removal:**
+- Removed Firebase Admin SDK entirely from backend
+- Removed auth middleware and token verification
+- Frontend queries Firestore directly (no backend proxy needed)
+- Removed `/chat/history` endpoint (frontend loads directly from Firestore)
+- Removed all authToken usage from frontend
+- Backend is now a pure OpenAI API proxy
+
+**Rationale for Firebase Removal:**
+- Vercel serverless cold start timing issues with environment variables
+- Frontend already has Firebase SDK working reliably
+- Firestore Security Rules provide access control at database level
+- Simpler architecture: fewer moving parts, fewer failure points
+- Better performance: direct client-to-Firestore calls are faster
+- Standard Firebase pattern: trust security rules + Firebase Auth
+
+**TESTED & WORKING** - Production deployment functional end-to-end
+
 ## What's Left to Build
 
 ### Foundation (Day 1)
@@ -132,8 +175,8 @@
 
 ## Current Status
 
-**Phase:** Day 2 - Core Features Complete  
-**Completion:** ~37% (7 of 19 PRs complete and tested)
+**Phase:** Day 5 - Deployment Complete  
+**Completion:** ~53% (10 of 19 PRs complete and tested)
 
 ### Completed PRs
 - ✅ PR #1: Project Setup & Basic Infrastructure
@@ -143,12 +186,15 @@
 - ✅ PR #5: Firestore Integration for Conversation Persistence
 - ✅ PR #6: Image Upload UI with Firebase Storage
 - ✅ PR #7: OpenAI Vision Integration & useChat Removal
+- ✅ PR #8: Math Rendering with KaTeX
+- ✅ PR #17: Documentation & Setup Instructions
+- ✅ PR #18: Deployment to Vercel
 
 ### In Progress
-- None - ready to start PR #8
+- None - ready for next features
 
 ### Next Up
-- PR #8: Math Rendering with KaTeX
+- PR #9-12: Whiteboard features (if time permits)
 
 ## Known Issues
 
@@ -156,20 +202,26 @@ None currently - all PRs through Day 2 working!
 
 ### Current Status (Latest)
 
-### PR #18: Deployment to Vercel (In Progress)
+**Phase:** Day 5 - Deployment Complete  
+**Completion:** ~53% (10 of 19 PRs complete)
+
+**PR #18: Deployment to Vercel (COMPLETE)**
 - ✅ Frontend deployed as separate Vercel project
 - ✅ Backend deployed as separate Vercel project
 - ✅ Fixed Vercel serverless routing (removed `/api` prefix from Express routes)
 - ✅ Fixed CORS for separate projects (different origins)
-- ✅ Fixed Firebase Admin lazy initialization for serverless cold starts
+- ✅ Removed Firebase Admin entirely (replaced with frontend direct Firestore queries)
 - ✅ Added SPA routing configuration for React Router
 - ✅ Updated frontend API calls to remove `/api` prefix
+- ✅ Removed all authToken usage from frontend
+- ✅ Refactored frontend to load conversation history directly from Firestore
 
 **Key Learnings:**
 - When Root Directory is `/api`, Vercel strips `/api` prefix from routes
 - Separate Vercel projects require CORS enabled in production
-- Firebase Admin must initialize lazily in serverless functions (env vars not available at module load)
-- Frontend/backend API paths differ between local and production (local has `/api`, production doesn't)
+- Firebase Admin SDK incompatible with Vercel serverless cold starts
+- Frontend direct Firestore queries are simpler and more reliable than backend proxy
+- Firestore Security Rules provide sufficient access control (no server-side token verification needed)
 
 ## Resolved Issues
 - ✅ OpenAI API Connection verified and working
@@ -213,9 +265,9 @@ None currently - all PRs through Day 2 working!
 
 **Day 1:** ✅ Complete (PR #1, #2, #3, #4, #5)  
 **Day 2:** ✅ Complete (PR #6, #7 - Image upload + Vision integration working!)  
-**Day 3:** Not started  
-**Day 4:** Not started  
-**Day 5:** Not started
+**Day 3:** ✅ Partial (PR #8 - Math rendering complete)  
+**Day 4:** ✅ Partial (PR #17 - Documentation complete)  
+**Day 5:** ✅ Complete (PR #18 - Deployment complete!)
 
-**Overall:** Ahead of schedule - Core tutoring system with vision working end-to-end!
+**Overall:** Core MVP complete and deployed! Math rendering, vision, and deployment all working in production.
 

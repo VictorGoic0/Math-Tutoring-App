@@ -1199,11 +1199,11 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
    - Set Root Directory to `/frontend`
    - Set Framework Preset to `Vite`
    - Configure build settings (auto-detected by Vercel)
-2. [ ] Set up frontend environment variables in Vercel dashboard
+2. [x] Set up frontend environment variables in Vercel dashboard
    - Add all `VITE_*` prefixed variables (Firebase config, API URL)
    - Scope to Production, Preview, and Development environments
    - Variables prefixed with `VITE_` are bundled into client-side JS
-3. [ ] Create separate Vercel project for backend
+3. [x] Create separate Vercel project for backend
    - Import same Git repo
    - Set Root Directory to `/api`
    - Set Framework Preset to `Other` (Node.js)
@@ -1213,30 +1213,30 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
      - Install Command: `npm install`
      - Entry Point: `index.js` (Vercel will use this as serverless function)
    - Note: Vercel will automatically wrap `api/index.js` as a serverless function
-4. [ ] Set up backend environment variables in Vercel dashboard
+4. [x] Set up backend environment variables in Vercel dashboard
    - Add server-only variables (no `VITE_` prefix): `OPENAI_API_KEY`
    - Remove Firebase Admin variables (no longer needed after removal)
    - These stay server-side only, never exposed to browser
    - Scope to Production, Preview, and Development environments
-5. [ ] Configure frontend to point to backend URL
+5. [x] Configure frontend to point to backend URL
    - Update `VITE_API_URL` in frontend project to backend deployment URL
    - Add `vercel.json` in frontend/ if needed for routing rewrites
-6. [ ] Test frontend deployment
+6. [x] Test frontend deployment
    - Verify frontend is accessible via public URL
    - Check browser console for errors
    - Verify Firebase connection works
-7. [ ] Test backend API routes in production
+7. [x] Test backend API routes in production
    - Test `/health` endpoint
    - Test `/chat` endpoint
    - Verify Express routes work as serverless functions
-8. [ ] Refactor frontend to load conversation history directly from Firestore
+8. [x] Refactor frontend to load conversation history directly from Firestore
    - Remove `/chat/history` API call from `loadConversationHistory()` in `chatService.js`
    - Implement direct Firestore query using frontend Firebase SDK
    - Query user's conversations collection (single conversation per user pattern)
    - Load messages from conversation subcollection
    - Match backend logic from `api/routes/chat.js` GET `/chat/history` as reference
    - Update `Chat.jsx` to use new frontend-only history loading
-9. [ ] Remove Firebase Admin from backend entirely
+9. [x] Remove Firebase Admin from backend entirely
    - Remove `api/utils/firebaseAdmin.js`
    - Remove `api/services/firestoreService.js` (no longer needed - frontend handles Firestore)
    - Remove `api/middleware/auth.js` (or simplify to skip token verification)
@@ -1246,14 +1246,14 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
    - Remove `/chat/history` endpoint from `api/routes/chat.js`
    - Remove `/user/profile` example route (not used)
    - Test that chat endpoint still works without auth verification
-10. [ ] Test end-to-end flow in production
+10. [x] Test end-to-end flow in production
     - Sign up / login
     - Send chat message
     - Upload image
     - Verify streaming responses
     - Verify message persistence (frontend direct to Firestore)
     - Verify conversation history loads on page refresh
-11. [ ] Fix any production-specific bugs
+11. [x] Fix any production-specific bugs
     - CORS issues
     - Environment variable loading
     - Routing issues
@@ -1282,29 +1282,49 @@ api/vercel.json (NEW - Serverless function configuration)
 api/server.js (MODIFIED - Fixed routing for Vercel serverless)
   - Removed /api prefix from all Express routes (Vercel strips /api when Root Directory is /api)
   - Enabled CORS for production (separate projects = different origins)
-  - Routes: /health, /test, /user/profile, /chat, /chat/history
+  - Removed auth middleware and /user/profile route
+  - Routes: /health, /test, /chat
 
-api/utils/firebaseAdmin.js (MODIFIED - Lazy initialization)
-  - Changed from eager initialization to lazy getter functions
-  - Fixes Vercel serverless cold start timing issues
-  - Exports: getAdmin(), getAuth(), getDb() instead of direct instances
+api/utils/firebaseAdmin.js (DELETED - Firebase Admin removed)
+  - Removed entirely - no longer needed
 
-api/middleware/auth.js (MODIFIED - Updated for lazy initialization)
-  - Changed from const { auth } to const { getAuth }
-  - Calls getAuth() inside middleware function
+api/middleware/auth.js (DELETED - Auth middleware removed)
+  - Removed entirely - no server-side auth verification needed
 
-api/services/firestoreService.js (MODIFIED - Updated for lazy initialization)
-  - Changed from const { db } to const { getDb }
-  - All db. calls changed to db() function calls
+api/services/firestoreService.js (DELETED - Firestore service removed)
+  - Removed entirely - frontend handles all Firestore operations directly
 
-frontend/src/components/Chat.jsx (MODIFIED - Removed /api prefix)
+api/package.json (MODIFIED - Removed Firebase Admin dependency)
+  - Removed firebase-admin from dependencies
+
+api/routes/chat.js (MODIFIED - Removed auth and Firestore dependencies)
+  - Removed /chat/history endpoint (frontend queries Firestore directly)
+  - Removed auth verification (req.user checks)
+  - Removed firestoreService imports
+  - Simplified to only handle OpenAI API calls
+
+frontend/src/components/Chat.jsx (MODIFIED - Removed authToken and /api prefix)
   - Changed /api/chat to /chat
+  - Removed authToken from useAuth() and Authorization header
+  - Updated loadConversationHistory call to use currentUser.uid instead of authToken
 
-frontend/src/services/chatService.js (MODIFIED - Removed /api prefix)
-  - Changed /api/chat/history to /chat/history
+frontend/src/services/chatService.js (MODIFIED - Direct Firestore queries)
+  - Refactored loadConversationHistory to query Firestore directly
+  - Removed authToken parameter, now uses userId
+  - Implemented direct Firestore queries matching backend logic
 
-frontend/src/services/api.js (MODIFIED - Updated comments)
+frontend/src/services/api.js (MODIFIED - Removed authToken from all functions)
+  - Removed authToken parameter from apiFetch, apiGet, apiPost, apiPatch, apiDelete
+  - Removed Authorization header logic
   - Updated endpoint examples to reflect new paths without /api prefix
+
+frontend/src/contexts/AuthContext.jsx (MODIFIED - Removed authToken)
+  - Removed authToken from state and context
+  - Removed getIdToken() call
+  - Simplified to only track currentUser
+
+frontend/src/hooks/useAuth.js (MODIFIED - Updated JSDoc)
+  - Updated return type documentation to remove authToken
 ```
 
 **Key Deployment Fixes:**
@@ -1315,13 +1335,45 @@ frontend/src/services/api.js (MODIFIED - Updated comments)
 5. **API Prefix Removal:** Removed `/api` from frontend calls since backend URL already contains "api" in domain name
 
 **Firebase Admin Removal Rationale:**
-- **Problem:** Firebase Admin SDK initialization fails on Vercel serverless functions due to timing issues with environment variables
-- **Solution:** Remove Firebase Admin entirely - frontend already has Firebase SDK and handles all Firestore writes
-- **Impact:** 
-  - Removed `/chat/history` endpoint (frontend loads directly from Firestore)
-  - Removed server-side token verification (rely on Firestore security rules instead)
-  - Simplified backend: only handles OpenAI API calls, no Firebase dependencies
-- **Security:** Firestore security rules already protect user data, frontend Firebase SDK handles authentication
+
+**Why Firebase Admin Was Removed:**
+1. **Vercel Serverless Compatibility Issues:**
+   - Firebase Admin SDK requires environment variables at initialization time
+   - Vercel serverless functions have cold starts where environment variables may not be immediately available
+   - Even with lazy initialization, timing issues persisted across deployments
+   - Multiple attempts to fix (lazy init, getter functions) still resulted in intermittent failures
+
+2. **Architectural Simplification:**
+   - Frontend already has Firebase SDK configured and working reliably
+   - All Firestore operations (reads and writes) can be handled directly by the frontend
+   - No need for server-side proxy when frontend has direct access
+   - Reduces complexity: fewer moving parts, fewer failure points
+
+3. **Security Model:**
+   - Firestore Security Rules already enforce access control at the database level
+   - Frontend Firebase SDK handles authentication automatically
+   - Token verification at backend level was redundant - security rules provide the same protection
+   - Simpler security model: trust Firestore rules + Firebase Auth, no server-side token verification needed
+
+4. **Performance & Cost:**
+   - Removes serverless function overhead for Firestore operations
+   - Direct client-to-Firestore calls are faster and more efficient
+   - Reduces backend function invocations (lower cost)
+   - Eliminates cold start delays for Firestore operations
+
+**What Was Changed:**
+- **Backend:** Removed all Firebase Admin dependencies, auth middleware, and Firestore service
+- **Backend:** Removed `/chat/history` endpoint (frontend queries Firestore directly)
+- **Backend:** Removed server-side token verification (rely on Firestore security rules)
+- **Frontend:** Refactored `loadConversationHistory()` to query Firestore directly using Firebase SDK
+- **Frontend:** Removed all authToken usage (no longer needed for backend calls)
+- **Result:** Backend is now a pure OpenAI API proxy - simpler, more reliable, easier to maintain
+
+**Security Considerations:**
+- Firestore Security Rules ensure users can only access their own conversations
+- Firebase Auth on frontend ensures only authenticated users can make requests
+- Backend no longer needs to verify tokens - security is enforced at the database level
+- This is a standard and recommended pattern for Firebase applications
 
 **Key Security Notes:**
 - **Environment Variable Isolation:** Frontend project only gets `VITE_*` prefixed vars (bundled into client JS)

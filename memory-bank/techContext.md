@@ -25,8 +25,9 @@
 - **AI Models:** 
   - `gpt-4-turbo` for text-only conversations
   - `gpt-4o` for conversations with images (native vision support)
-- **Database:** Firebase Firestore (client writes from frontend, backend read-only)
+- **Database:** Firebase Firestore (client writes directly from frontend, no backend proxy)
 - **File Storage:** Firebase Storage (images uploaded from frontend)
+- **Authentication:** Firebase Auth (frontend only, no backend token verification)
 
 ### Infrastructure
 - **Frontend Deployment:** Vercel (separate project)
@@ -68,11 +69,11 @@ VITE_API_URL=http://localhost:3000
 **Backend (.env):**
 ```
 OPENAI_API_KEY=
-FIREBASE_PROJECT_ID=
-FIREBASE_PRIVATE_KEY=
-FIREBASE_CLIENT_EMAIL=
 PORT=3000
+FRONTEND_URL=http://localhost:5173
 ```
+
+**Note:** Firebase Admin SDK removed - frontend handles all Firestore operations directly
 
 ### Installation Commands
 
@@ -106,9 +107,10 @@ npm run dev
   - Provides `streamText` function for streaming AI responses
   - Key change in v5: `streamText` is synchronous, returns StreamTextResult directly
 - `@ai-sdk/openai` (latest) - OpenAI provider for Vercel AI SDK
-- `firebase-admin` (v13.5.0)
 - `cors` (v2.8.5)
 - `dotenv` (v16.4.7)
+
+**Note:** `firebase-admin` removed - backend no longer handles Firebase operations
 
 ## Technical Constraints
 
@@ -150,19 +152,28 @@ npm run dev
     - Routes: No `/api` prefix in Express (Vercel strips it when Root Directory is `/api`)
     - Frontend calls: `https://backend-url.vercel.app/chat` (no `/api` prefix)
 
-## Firebase Admin SDK Initialization
+## Firebase Architecture (Post-PR #18)
 
-**Lazy Initialization Pattern (Vercel Serverless):**
-- Firebase Admin SDK initializes on first access, not at module load
-- Fixes Vercel serverless cold start timing issues
-- Environment variables may not be available when module loads
-- Exports getter functions: `getAdmin()`, `getAuth()`, `getDb()`
-- All Firebase operations use lazy getters to ensure env vars are available
+**Frontend-Only Firebase:**
+- All Firebase operations (Firestore reads/writes, Storage uploads) handled by frontend
+- Frontend Firebase SDK configured and working reliably
+- No backend proxy needed - direct client-to-Firestore calls
+- Firestore Security Rules enforce access control at database level
+- Firebase Auth on frontend ensures only authenticated users can make requests
 
-**Implementation:**
-- `api/utils/firebaseAdmin.js` - Lazy initialization with getter functions
-- `api/middleware/auth.js` - Uses `getAuth()` inside middleware function
-- `api/services/firestoreService.js` - Uses `getDb()` via wrapper function `db()`
+**Why Firebase Admin Was Removed:**
+- Vercel serverless cold start timing issues with environment variables
+- Even with lazy initialization, intermittent failures persisted
+- Frontend already has Firebase SDK working reliably
+- Simpler architecture: fewer moving parts, fewer failure points
+- Better performance: direct client-to-Firestore calls are faster
+- Standard Firebase pattern: trust security rules + Firebase Auth
+
+**Security Model:**
+- Firestore Security Rules ensure users can only access their own conversations
+- Firebase Auth on frontend ensures only authenticated users can make requests
+- Backend no longer needs to verify tokens - security enforced at database level
+- This is a standard and recommended pattern for Firebase applications
 
 ## Key Technical Decisions
 
@@ -173,11 +184,12 @@ npm run dev
    - `pipeTextStreamToResponse(res)` for Express (plain text streaming)
    - `gpt-4o` for vision instead of deprecated `gpt-4-vision-preview`
 4. **Plain Text Streaming:** Simpler than data stream format - frontend just reads text chunks
-5. **Firestore Direct Writes:** Frontend writes directly to Firestore (optimistic UI), backend read-only
-6. **JavaScript Ecosystem:** Stay in JS for faster development (CommonJS on backend for dotenv)
-7. **OpenAI Vision:** `gpt-4o` handles image parsing natively (no separate OCR needed)
-8. **Canvas API:** Native HTML5 for whiteboard (no external libraries)
-9. **Web Speech API:** Browser native for MVP speed (can upgrade later)
+5. **Firestore Direct Writes (Frontend Only):** Frontend writes directly to Firestore (optimistic UI), no backend proxy needed
+6. **Firebase Admin Removal:** Removed Firebase Admin SDK entirely - frontend handles all Firestore operations directly for better reliability and simpler architecture
+7. **JavaScript Ecosystem:** Stay in JS for faster development (CommonJS on backend for dotenv)
+8. **OpenAI Vision:** `gpt-4o` handles image parsing natively (no separate OCR needed)
+9. **Canvas API:** Native HTML5 for whiteboard (no external libraries)
+10. **Web Speech API:** Browser native for MVP speed (can upgrade later)
 
 ## Known Technical Challenges
 

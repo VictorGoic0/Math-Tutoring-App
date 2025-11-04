@@ -104,7 +104,8 @@ function Chat() {
     setError(null);
     setIsLoading(true);
     
-    persistUserMessage(userMessageContent, imageUrl);
+    // Await the conversation ID so we can pass it to AI message persistence
+    const convId = await persistUserMessage(userMessageContent, imageUrl);
     
     const aiMessageId = `assistant-${Date.now()}`;
     const aiMessage = {
@@ -145,7 +146,7 @@ function Chat() {
         },
         async (fullText) => {
           setIsLoading(false);
-          persistAIMessage(fullText);
+          persistAIMessage(fullText, convId);
         },
         (error) => {
           setIsLoading(false);
@@ -178,16 +179,20 @@ function Chat() {
       });
       
       // console.log('✅ User message persisted');
+      
+      // Return the conversationId so AI message can use it
+      return convId;
     } catch (error) {
       // console.error('⚠️ Failed to persist user message (non-fatal):', error);
+      return conversationId; // Return existing conversationId on error
     }
   }
 
-  async function persistAIMessage(content) {
-    if (!conversationId) return;
+  async function persistAIMessage(content, convId) {
+    if (!convId) return;
     
     try {
-      await saveMessage(conversationId, {
+      await saveMessage(convId, {
         role: 'assistant',
         content
       });
