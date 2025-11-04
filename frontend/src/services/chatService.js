@@ -72,6 +72,9 @@ export async function createConversation(userId, firstMessage = '') {
  * 
  * @param {string} conversationId - Conversation ID
  * @param {Object} message - Message object from useChat
+ * @param {string} message.role - 'user' or 'assistant'
+ * @param {string} message.content - Message text content
+ * @param {string} [message.imageUrl] - Optional image URL for user messages
  * @returns {Promise<void>}
  */
 export async function saveMessage(conversationId, message) {
@@ -83,15 +86,22 @@ export async function saveMessage(conversationId, message) {
       'messages'
     );
     
-    await addDoc(messagesRef, {
+    const messageData = {
       conversationId,
       role: message.role,
-      content: message.content,
+      content: message.content || '',
       timestamp: Date.now(),
       metadata: {}
-    });
+    };
+
+    // Add image URL if present
+    if (message.imageUrl) {
+      messageData.imageUrl = message.imageUrl;
+    }
     
-    console.log(`💾 Saved ${message.role} message to Firestore`);
+    await addDoc(messagesRef, messageData);
+    
+    console.log(`💾 Saved ${message.role} message to Firestore${message.imageUrl ? ' (with image)' : ''}`);
   } catch (error) {
     console.error('Error saving message:', error);
     // Don't throw - we don't want to break the chat if save fails

@@ -52,9 +52,31 @@ function MessageList({ messages }) {
           }}>
             {message.role === 'user' ? 'You' : 'Tutor'}
           </div>
-          <div style={{ whiteSpace: 'pre-wrap' }}>
-            {message.content}
-          </div>
+          
+          {/* Display image if present */}
+          {message.imageUrl && (
+            <div style={{ marginBottom: '0.5rem' }}>
+              <img 
+                src={message.imageUrl} 
+                alt="Uploaded" 
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '300px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: '1px solid #ddd'
+                }}
+                onClick={() => window.open(message.imageUrl, '_blank')}
+              />
+            </div>
+          )}
+          
+          {/* Display text content */}
+          {message.content && (
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {message.content}
+            </div>
+          )}
         </div>
       ))}
       {/* Invisible element at the bottom for scroll target */}

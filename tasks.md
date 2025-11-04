@@ -499,32 +499,84 @@ api/routes/conversation.js             (DELETED - REST API not needed)
 
 ---
 
-### PR #6: Image Upload UI
+### PR #6: Image Upload UI with Firebase Storage
 **Priority:** P0  
 **Day:** 2
 
-**Tasks:**
-- [ ] Create image upload button in chat UI
-- [ ] Implement file input with accept="image/*"
-- [ ] Add image preview before upload
-- [ ] Support multiple image selection
-- [ ] Add loading state during upload
-- [ ] Display uploaded images in chat
-- [ ] Handle file size limits (e.g., max 10MB)
+**Scope:** Single image upload for MVP (not multiple)
 
-**Acceptance Criteria:**
-- User can click upload button and select images
-- Multiple images can be selected at once
-- Image previews display correctly
-- Loading spinner shows during upload
-- Uploaded images display in conversation
-- Error handling for file size/type issues
+**Tasks:**
+1. [x] Set up Firebase Storage in frontend utils
+2. [x] Create image upload button in MessageInput component
+3. [x] Implement file input with accept="image/*" (single file only)
+4. [x] Add image preview before upload
+5. [x] Upload image to Firebase Storage and get download URL
+6. [x] Display uploaded images in chat messages
+7. [x] Handle file size/type validation (max 10MB, image types only)
+
+**Acceptance Criteria:** ✅ All Met
+- ✅ User can click upload button (📷) and select ONE image
+- ✅ Image preview displays before sending message (with remove button)
+- ✅ Image uploads to Firebase Storage during message send
+- ✅ Loading spinner shows during upload ("Uploading..." button state)
+- ✅ Uploaded image displays in conversation with message
+- ✅ Download URL stored in message `imageUrl` field
+- ✅ Error handling for file size/type issues (validation + alerts)
+- ✅ Security rules documented in firestore.rules (not applied yet - testing mode)
 
 **Files Created/Modified:**
 ```
-frontend/src/components/ImageUpload.jsx
-frontend/src/components/ImagePreview.jsx
+frontend/src/utils/firebase.js           (Already had Storage - exported firebaseStorage)
+frontend/src/services/storageService.js  (NEW - uploadImage, validateImageFile, formatFileSize)
+frontend/src/components/MessageInput.jsx (Added 📷 button, preview, file input)
+frontend/src/components/MessageList.jsx  (Display images in messages, click to open)
+frontend/src/components/Chat.jsx         (Image state, upload logic, optimistic UI)
+frontend/src/services/chatService.js     (saveMessage handles imageUrl field)
+firestore.rules                          (Documented both Firestore + Storage security rules)
 ```
+
+**Technical Implementation:**
+- **Single Image Upload**: 📷 button triggers file input (accept="image/*")
+- **Validation**: Client-side checks for type and 10MB size limit
+- **Preview**: Shows 60x60 thumbnail with remove button
+- **Upload Flow**: Image → Firebase Storage → get URL → send message with imageUrl
+- **Display**: Images show in chat with max 300px height, click to open full size
+- **Storage Path**: `chat-images/{userId}/{timestamp}_{filename}`
+- **Optimistic UI**: Upload happens before message send (blocking for this flow)
+- **Error Handling**: Validation errors show alerts, upload errors prevent message send
+
+**Security & CORS Setup:**
+
+**Firestore Rules (Documented, Not Applied):**
+- Helper functions for auth, conversation ownership checks
+- Users can only read/write their own conversations
+- Documented in `firestore.rules`
+
+**Storage Rules & CORS (Required for Testing):**
+1. **Apply Storage Rules** (Firebase Console → Storage → Rules):
+   ```
+   rules_version = '2';
+   service firebase.storage {
+     match /b/{bucket}/o {
+       match /{allPaths=**} {
+         allow read, write: if request.auth != null;  // Testing: any authenticated user
+       }
+     }
+   }
+   ```
+
+2. **Configure CORS** (fix localhost CORS errors):
+   ```bash
+   # Install Google Cloud SDK if not installed
+   # Then run:
+   gsutil cors set cors.json gs://YOUR-PROJECT-ID.appspot.com
+   ```
+   
+   Or use Firebase Console → Storage → allow localhost origins
+
+**CORS Configuration File:**
+- Created `cors.json` with localhost origins (5173, 3000)
+- Apply using gsutil command above
 
 ---
 

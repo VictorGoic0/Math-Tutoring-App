@@ -4,6 +4,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useAuth } from '../hooks/useAuth';
 import { loadConversationHistory, createConversation, saveMessage, deleteConversation } from '../services/chatService';
+import { uploadImage, validateImageFile } from '../services/storageService';
 import { API_URL } from '../services/api';
 
 /**
@@ -39,6 +40,9 @@ function Chat() {
   const { authToken, currentUser } = useAuth();
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null); // File object for preview
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null); // Preview URL
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   // Use ref instead of state to avoid stale closure in onFinish callback
   const conversationIdRef = useRef(null);
@@ -101,46 +105,96 @@ function Chat() {
   }, [authToken, setMessages]);
 
   /**
-   * Optimistic submit handler
+   * Handle image selection
+   */
+  const handleImageSelect = (file) => {
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
+    // Set selected image and create preview URL
+    setSelectedImage(file);
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreviewUrl(previewUrl);
+  };
+
+  /**
+   * Clear selected image
+   */
+  const handleClearImage = () => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setSelectedImage(null);
+    setImagePreviewUrl(null);
+  };
+
+  /**
+   * Optimistic submit handler with image upload support
    * 
    * Flow:
-   * 1. useChat immediately adds message to UI (optimistic update)
-   * 2. Message sent to /api/chat for AI response
-   * 3. Firestore save happens in background (non-blocking)
+   * 1. Upload image to Firebase Storage if present
+   * 2. useChat immediately adds message to UI (optimistic update)
+   * 3. Message sent to /api/chat for AI response
+   * 4. Firestore save happens in background (non-blocking)
    * 
    * This ensures instant UI feedback while persisting in the background.
    * If Firestore save fails, message is still in UI and AI still responds.
    */
-  const handleCustomSubmit = (e) => {
-    if (!input.trim() || !currentUser) return;
+  const handleCustomSubmit = async (e) => {
+    e.preventDefault();
+    
+    if ((!input.trim() && !selectedImage) || !currentUser) return;
     
     const userMessageContent = input; // Capture before useChat clears it
+    let imageUrl = null;
+
+    // Upload image if selected
+    if (selectedImage) {
+      setIsUploadingImage(true);
+      try {
+        imageUrl = await uploadImage(selectedImage, currentUser.uid);
+        console.log(`📷 Image uploaded: ${imageUrl}`);
+      } catch (error) {
+        console.error('Failed to upload image:', error);
+        alert(`Failed to upload image: ${error.message}`);
+        setIsUploadingImage(false);
+        return;
+      } finally {
+        setIsUploadingImage(false);
+        handleClearImage(); // Clear image after upload
+      }
+    }
     
     // 1. INSTANT: Let useChat handle optimistic UI update + AI request
     handleSubmit(e);
     
-    // 2. BACKGROUND: Save to Firestore (non-blocking)
-    saveUserMessageToFirestore(userMessageContent);
+    // 2. BACKGROUND: Save to Firestore with image URL (non-blocking)
+    saveUserMessageToFirestore(userMessageContent, imageUrl);
   };
 
   /**
    * Background save for user messages
    * Runs async without blocking UI
    */
-  async function saveUserMessageToFirestore(content) {
+  async function saveUserMessageToFirestore(content, imageUrl = null) {
     try {
       // Create conversation on first message if needed
       let convId = conversationIdRef.current;
       if (!convId) {
-        convId = await createConversation(currentUser.uid, content);
+        convId = await createConversation(currentUser.uid, content || 'Image message');
         console.log(`📝 Created conversation: ${convId}`);
         conversationIdRef.current = convId;
       }
       
-      // Save user message to Firestore
+      // Save user message to Firestore with optional image
       await saveMessage(convId, {
         role: 'user',
-        content
+        content,
+        imageUrl
       });
       
     } catch (error) {
@@ -259,6 +313,10 @@ function Chat() {
         handleInputChange={handleInputChange}
         handleSubmit={handleCustomSubmit}
         isLoading={isLoading}
+        onImageSelect={handleImageSelect}
+        imagePreviewUrl={imagePreviewUrl}
+        onClearImage={handleClearImage}
+        isUploadingImage={isUploadingImage}
       />
       
       {error && (
