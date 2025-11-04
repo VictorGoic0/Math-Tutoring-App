@@ -22,6 +22,11 @@ function initializeFirebase() {
       throw new Error(`Firebase Admin SDK credentials not configured. Missing: ${missing.join(', ')}. Check your environment variables.`);
     }
 
+     // FORCE REST: Disable gRPC at the lowest level
+    process.env.GRPC_DEFAULT_SSL_ROOTS_FILE_PATH = 'disabled';
+    process.env.FIRESTORE_EMULATOR_HOST = ''; // ensures no emulator
+    process.env.GOOGLE_CLOUD_PROJECT = projectId; // helps routing
+
     const serviceAccount = {
       projectId: projectId,
       privateKey: privateKey
