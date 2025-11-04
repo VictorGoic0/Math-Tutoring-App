@@ -22,14 +22,15 @@ function initializeFirebase() {
   }
 
   const serviceAccount = {
-    project_id: projectId,  // Must be 'project_id' not 'projectId'
-    private_key: privateKey.replace(/\\n/g, '\n'),  // Must be 'private_key' not 'privateKey'
-    client_email: clientEmail,  // Must be 'client_email' not 'clientEmail'
+    projectId: projectId,
+    privateKey: privateKey
+    .replace(/\\n/g, '\n')     // Fix escaped \n
+    .trim(),
+    clientEmail: clientEmail,
   };
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    projectId: projectId,
   });
 
   initialized = true;

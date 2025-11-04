@@ -1257,11 +1257,47 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
 
 **Files Created/Modified:**
 ```
-frontend/vercel.json (NEW - optional, for routing/rewrites if needed)
-api/vercel.json (NEW - optional, for serverless function config)
-  - Backend: Serverless function configuration
-  - Routes: Configure Express routes as serverless functions
+frontend/vercel.json (NEW - SPA routing configuration for React Router)
+  - Rewrites all routes to /index.html for client-side routing
+
+api/vercel.json (NEW - Serverless function configuration)
+  - Explicitly configures index.js as @vercel/node function
+  - Ensures npm install runs during build
+
+api/server.js (MODIFIED - Fixed routing for Vercel serverless)
+  - Removed /api prefix from all Express routes (Vercel strips /api when Root Directory is /api)
+  - Enabled CORS for production (separate projects = different origins)
+  - Routes: /health, /test, /user/profile, /chat, /chat/history
+
+api/utils/firebaseAdmin.js (MODIFIED - Lazy initialization)
+  - Changed from eager initialization to lazy getter functions
+  - Fixes Vercel serverless cold start timing issues
+  - Exports: getAdmin(), getAuth(), getDb() instead of direct instances
+
+api/middleware/auth.js (MODIFIED - Updated for lazy initialization)
+  - Changed from const { auth } to const { getAuth }
+  - Calls getAuth() inside middleware function
+
+api/services/firestoreService.js (MODIFIED - Updated for lazy initialization)
+  - Changed from const { db } to const { getDb }
+  - All db. calls changed to db() function calls
+
+frontend/src/components/Chat.jsx (MODIFIED - Removed /api prefix)
+  - Changed /api/chat to /chat
+
+frontend/src/services/chatService.js (MODIFIED - Removed /api prefix)
+  - Changed /api/chat/history to /chat/history
+
+frontend/src/services/api.js (MODIFIED - Updated comments)
+  - Updated endpoint examples to reflect new paths without /api prefix
 ```
+
+**Key Deployment Fixes:**
+1. **Vercel Serverless Routing:** When Root Directory is `/api`, Vercel strips `/api` prefix from routes. Express routes must be at root level (e.g., `/health` not `/api/health`)
+2. **CORS Configuration:** Separate Vercel projects = different origins. CORS must be enabled in production with `FRONTEND_URL` environment variable
+3. **Firebase Lazy Initialization:** Fixed serverless cold start timing by initializing Firebase Admin on first access, not at module load
+4. **SPA Routing:** Added `frontend/vercel.json` to handle React Router client-side routes
+5. **API Prefix Removal:** Removed `/api` from frontend calls since backend URL already contains "api" in domain name
 
 **Key Security Notes:**
 - **Environment Variable Isolation:** Frontend project only gets `VITE_*` prefixed vars (bundled into client JS)

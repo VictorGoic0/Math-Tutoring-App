@@ -29,8 +29,18 @@
 - **File Storage:** Firebase Storage (images uploaded from frontend)
 
 ### Infrastructure
-- **Frontend Deployment:** Vercel
-- **Backend Deployment:** Vercel (Express app auto-wrapped as serverless functions)
+- **Frontend Deployment:** Vercel (separate project)
+  - Root Directory: `/frontend`
+  - Framework Preset: `Vite`
+  - SPA routing: `frontend/vercel.json` rewrites all routes to `/index.html`
+- **Backend Deployment:** Vercel (separate project, Express as serverless functions)
+  - Root Directory: `/api`
+  - Framework Preset: `Other` (Node.js)
+  - Entry Point: `api/index.js` (exports Express app)
+  - Configuration: `api/vercel.json` explicitly configures `@vercel/node` runtime
+  - **Important:** When Root Directory is `/api`, Vercel strips `/api` prefix from routes
+  - Express routes must be at root level (e.g., `/health` not `/api/health`)
+  - CORS enabled in production (separate projects = different origins)
 - **Database:** Firebase (managed)
 - **Real-time:** Firestore real-time listeners (no WebSockets needed)
 
@@ -114,6 +124,7 @@ npm run dev
 1. **Local Development:**
    - Frontend runs on `localhost:5173` (Vite default)
    - Backend runs on `localhost:3000`
+   - Frontend calls: `http://localhost:3000/api/chat` (with `/api` prefix locally)
    - Firebase emulator (optional) for local testing
 
 2. **Testing:**
@@ -122,10 +133,36 @@ npm run dev
    - Responsive design testing
 
 3. **Deployment:**
-   - Frontend: Vercel deployment (standard static site)
-   - Backend: Express app deployed to Vercel (auto-wrapped as serverless functions via vercel.json)
-   - Environment variables configured in Vercel dashboard
-   - Vercel automatically converts Express routes to serverless functions
+   - **Frontend:** Separate Vercel project
+    - Root Directory: `/frontend`
+    - Framework: Vite (auto-detected)
+    - Build: `npm run build` → `frontend/dist`
+    - Environment Variables: All `VITE_*` prefixed
+    - API URL: Set `VITE_API_URL` to backend deployment URL
+    - Routes: `frontend/vercel.json` handles React Router SPA routing
+  - **Backend:** Separate Vercel project
+    - Root Directory: `/api`
+    - Framework: Other (Node.js)
+    - Entry Point: `api/index.js` (wraps Express app)
+    - Configuration: `api/vercel.json` for explicit serverless function config
+    - Environment Variables: Server-only (no `VITE_` prefix)
+    - CORS: Enabled with `FRONTEND_URL` environment variable
+    - Routes: No `/api` prefix in Express (Vercel strips it when Root Directory is `/api`)
+    - Frontend calls: `https://backend-url.vercel.app/chat` (no `/api` prefix)
+
+## Firebase Admin SDK Initialization
+
+**Lazy Initialization Pattern (Vercel Serverless):**
+- Firebase Admin SDK initializes on first access, not at module load
+- Fixes Vercel serverless cold start timing issues
+- Environment variables may not be available when module loads
+- Exports getter functions: `getAdmin()`, `getAuth()`, `getDb()`
+- All Firebase operations use lazy getters to ensure env vars are available
+
+**Implementation:**
+- `api/utils/firebaseAdmin.js` - Lazy initialization with getter functions
+- `api/middleware/auth.js` - Uses `getAuth()` inside middleware function
+- `api/services/firestoreService.js` - Uses `getDb()` via wrapper function `db()`
 
 ## Key Technical Decisions
 

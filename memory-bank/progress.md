@@ -154,7 +154,24 @@
 
 None currently - all PRs through Day 2 working!
 
-### Resolved Issues
+### Current Status (Latest)
+
+### PR #18: Deployment to Vercel (In Progress)
+- ✅ Frontend deployed as separate Vercel project
+- ✅ Backend deployed as separate Vercel project
+- ✅ Fixed Vercel serverless routing (removed `/api` prefix from Express routes)
+- ✅ Fixed CORS for separate projects (different origins)
+- ✅ Fixed Firebase Admin lazy initialization for serverless cold starts
+- ✅ Added SPA routing configuration for React Router
+- ✅ Updated frontend API calls to remove `/api` prefix
+
+**Key Learnings:**
+- When Root Directory is `/api`, Vercel strips `/api` prefix from routes
+- Separate Vercel projects require CORS enabled in production
+- Firebase Admin must initialize lazily in serverless functions (env vars not available at module load)
+- Frontend/backend API paths differ between local and production (local has `/api`, production doesn't)
+
+## Resolved Issues
 - ✅ OpenAI API Connection verified and working
 - ✅ Chat streaming working properly
 - ✅ Auth flow working end-to-end
