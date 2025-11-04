@@ -1192,15 +1192,15 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
 **Day:** 5
 
 **Tasks:**
-- [ ] Configure Vercel project for frontend
-- [ ] Deploy Express backend to Vercel (Vercel auto-wraps Express as serverless functions)
-- [ ] Configure `vercel.json` with proper build settings
-- [ ] Set up environment variables in Vercel dashboard
-- [ ] Test frontend deployment
-- [ ] Test backend API routes in production (Express routes work as serverless endpoints)
-- [ ] Verify Firebase connection in production
-- [ ] Test end-to-end flow in production
-- [ ] Fix any production-specific bugs
+1. [x] Configure Vercel project for frontend
+2. [ ] Set up environment variables in Vercel dashboard
+3. [x] Configure `vercel.json` with proper build settings
+4. [ ] Deploy Express backend to Vercel (Vercel auto-wraps Express as serverless functions)
+5. [ ] Test frontend deployment
+6. [ ] Test backend API routes in production (Express routes work as serverless endpoints)
+7. [ ] Verify Firebase connection in production
+8. [ ] Test end-to-end flow in production
+9. [ ] Fix any production-specific bugs
 
 **Acceptance Criteria:**
 - Frontend deployed and accessible via public URL
@@ -1214,7 +1214,11 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
 
 **Files Created/Modified:**
 ```
-vercel.json (root-level configuration)
+vercel.json (MODIFIED - configured for frontend build and backend serverless functions)
+  - Frontend: Builds from frontend/ directory, outputs to frontend/dist
+  - Backend: Serverless function at api/index.js with @vercel/node runtime
+  - Routes: /api/* requests go to backend, all other requests serve frontend
+  - Install: Installs dependencies for both frontend and backend
 ```
 
 ---
