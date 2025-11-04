@@ -25,14 +25,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-// CORS: Only needed for local development (different ports)
-// In production on Vercel, frontend and backend are same origin
-if (process.env.NODE_ENV !== 'production') {
-  app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true
-  }));
-}
+// CORS: Frontend and backend are separate Vercel projects (different origins)
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
