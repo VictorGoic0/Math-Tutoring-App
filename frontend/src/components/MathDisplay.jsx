@@ -1,5 +1,6 @@
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { parseMarkdown, renderMarkdown } from '../utils/markdownParser';
 
 /**
  * Efficiently determines if math should render as block or inline
@@ -131,9 +132,11 @@ function MathDisplay({ content, style = {} }) {
             return <InlineMath key={index} math={part.content} />;
           }
         } else {
+          // Process markdown on text parts (after math processing)
+          const parsedMarkdown = parseMarkdown(part.content);
           return (
             <span key={index} style={{ whiteSpace: 'pre-wrap' }}>
-              {part.content}
+              {renderMarkdown(parsedMarkdown, `text-${index}`)}
             </span>
           );
         }

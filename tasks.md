@@ -706,8 +706,9 @@ frontend/src/services/api.js (parseAIStream utility for plain text streaming)
 
 **Files Created/Modified:**
 ```
-frontend/src/components/MathDisplay.jsx (NEW - intelligent inline/block rendering with complexity detection)
+frontend/src/components/MathDisplay.jsx (NEW - intelligent inline/block rendering with complexity detection + markdown parsing)
 frontend/src/components/MessageList.jsx (MODIFIED - uses MathDisplay for content rendering)
+frontend/src/utils/markdownParser.jsx (NEW - lightweight regex-based markdown parser)
 api/services/promptService.js (MODIFIED - updated formatting instructions to use $...$ format)
 ```
 
@@ -764,6 +765,31 @@ Copy and paste these into the chat to test LaTeX rendering:
 - Complex equations render as centered block math for clarity
 - Supports all LaTeX formats (normalized automatically)
 - Consistent, readable formatting across all message types
+
+**Additional Tasks:**
+11. [x] Implement markdown parsing for text formatting (bold, italic, code)
+    - Created lightweight regex-based markdown parser utility (`markdownParser.jsx`)
+    - Processes markdown **after** math extraction (preserves math notation)
+    - Supports `**bold**`, `*italic*`, and `` `code` `` formatting
+    - Handles nested formatting (bold can contain italic)
+    - Integrated into MathDisplay component for seamless rendering
+    - Zero dependencies, efficient O(n) regex-based parsing
+
+**Markdown Parsing Implementation:**
+- **Processing Order**: Math extraction first, then markdown parsing on text parts only
+- **Supported Formats**: 
+  - `**bold text**` → `<strong>bold text</strong>`
+  - `*italic text*` → `<em>italic text</em>`
+  - `` `code` `` → `<code>` with styled background
+- **Nesting Support**: Bold text can contain italic formatting
+- **Performance**: Regex-based parsing with O(n) complexity, lightweight and fast
+- **Integration**: Runs automatically in MathDisplay component on all text content
+
+**Files Created/Modified:**
+```
+frontend/src/utils/markdownParser.jsx (NEW - lightweight markdown parser)
+frontend/src/components/MathDisplay.jsx (MODIFIED - processes markdown on text parts after math extraction)
+```
 
 ---
 
