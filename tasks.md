@@ -597,10 +597,43 @@ firestore.rules                          (Documented both Firestore + Storage se
    - [x] Replace `isLoading` from `useChat` with `useState`
    - [x] Replace `handleSubmit` with custom submit handler
    - [x] Remove `handleInputChange`, use direct `setInput`
+   - [x] Add `conversationId` state (replaced ref-based tracking)
 4. [x] Implement manual streaming with `fetch` + `parseAIStream`
 5. [ ] Test chat functionality (send message, receive streaming response, persistence)
 6. [ ] Update `.cursor/rules/vercel-ai-sdk-imports.mdc` to reflect removal
 7. [ ] Update memory bank to document the refactor
+
+**State Management Flow (Post-Refactor):**
+
+**On Mount:**
+- Fetch conversation history once via `loadConversationHistory(authToken)`
+- Set `conversationId` and `messages` state
+- No real-time listeners, single fetch only
+
+**User Sends Message (Optimistic UI):**
+1. Upload image to Firebase Storage if present (blocking)
+2. Create user message object with `imageUrl` if applicable
+3. Add user message to local state immediately (optimistic)
+4. Clear input and set loading state
+5. Fire non-blocking Firebase persistence: `persistUserMessage(content, imageUrl)`
+6. Create AI message placeholder and add to state
+7. Make fetch request to `/api/chat` with message history
+8. Stream AI response chunks and update AI message in real-time
+9. On stream complete: persist AI message to Firebase (non-blocking)
+
+**Firebase Persistence (Fire-and-Forget):**
+- All Firebase writes are non-blocking (async, no await in main flow)
+- Errors logged but don't block UI
+- User messages persist immediately after appearing in UI
+- AI messages persist after streaming completes
+- `conversationId` created on first message if needed
+
+**Key Principles:**
+- Local state is source of truth during session
+- Optimistic updates for instant UX
+- Firebase persistence happens in background
+- No real-time sync (prevents race conditions with streaming)
+- On refresh: load from Firebase, continue session
 
 **Vision Integration**
 8. [x] Modify POST `/api/chat` to accept `imageUrl` in message body

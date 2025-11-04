@@ -1,42 +1,64 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useAuth } from '../hooks/useAuth';
+import { loadConversationHistory, createConversation, saveMessage, deleteConversation } from '../services/chatService';
+import { uploadImage, validateImageFile } from '../services/storageService';
+import { API_URL, parseAIStream } from '../services/api';
 
-/**
- * Chat Component
- * 
- * BUSINESS LOGIC REMOVED - UI/Styling Only
- * TODO: Implement proper state management for messaging
- */
 function Chat() {
   const { authToken, currentUser } = useAuth();
   
-  // Minimal state for UI only
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [conversationId, setConversationId] = useState(null);
   
-  // UI state
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  /**
-   * Handle image selection - UI only
-   */
+  useEffect(() => {
+    async function fetchHistory() {
+      if (!authToken) {
+        setIsLoadingHistory(false);
+        return;
+      }
+
+      try {
+        const { conversationId: loadedConvId, messages: loadedMessages } = await loadConversationHistory(authToken);
+        setConversationId(loadedConvId);
+        
+        if (loadedMessages.length > 0) {
+          setMessages(loadedMessages);
+          console.log(`📥 Loaded ${loadedMessages.length} messages from history`);
+        }
+        
+        setIsLoadingHistory(false);
+      } catch (error) {
+        console.error('Error loading history:', error);
+        setIsLoadingHistory(false);
+      }
+    }
+
+    fetchHistory();
+  }, [authToken]);
+
   const handleImageSelect = (file) => {
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
     setSelectedImage(file);
     const previewUrl = URL.createObjectURL(file);
     setImagePreviewUrl(previewUrl);
   };
 
-  /**
-   * Clear selected image - UI only
-   */
   const handleClearImage = () => {
     if (imagePreviewUrl) {
       URL.revokeObjectURL(imagePreviewUrl);
@@ -45,22 +67,157 @@ function Chat() {
     setImagePreviewUrl(null);
   };
 
-  /**
-   * Handle form submission - PLACEHOLDER
-   * TODO: Implement message sending logic
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('TODO: Implement message sending logic');
+    
+    if ((!input.trim() && !selectedImage) || !currentUser || isLoading) return;
+    
+    const userMessageContent = input;
+    let imageUrl = null;
+
+    if (selectedImage) {
+      setIsUploadingImage(true);
+      try {
+        imageUrl = await uploadImage(selectedImage, currentUser.uid);
+        console.log(`📷 Image uploaded: ${imageUrl}`);
+      } catch (error) {
+        console.error('Failed to upload image:', error);
+        alert(`Failed to upload image: ${error.message}`);
+        setIsUploadingImage(false);
+        return;
+      } finally {
+        setIsUploadingImage(false);
+        handleClearImage();
+      }
+    }
+    
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: userMessageContent,
+      createdAt: new Date(),
+      ...(imageUrl && { imageUrl })
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setError(null);
+    setIsLoading(true);
+    
+    persistUserMessage(userMessageContent, imageUrl);
+    
+    const aiMessageId = `assistant-${Date.now()}`;
+    const aiMessage = {
+      id: aiMessageId,
+      role: 'assistant',
+      content: '',
+      createdAt: new Date()
+    };
+    
+    setMessages(prev => [...prev, aiMessage]);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(m => ({
+            role: m.role,
+            content: m.content,
+            ...(m.imageUrl && { imageUrl: m.imageUrl })
+          })),
+          ...(imageUrl && { imageUrl })
+        })
+      });
+      
+      await parseAIStream(
+        response,
+        (chunk) => {
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === aiMessageId
+                ? { ...msg, content: msg.content + chunk }
+                : msg
+            )
+          );
+        },
+        async (fullText) => {
+          setIsLoading(false);
+          persistAIMessage(fullText);
+        },
+        (error) => {
+          setIsLoading(false);
+          setError(error.message);
+          console.error('Stream error:', error);
+          setMessages(prev => prev.filter(msg => msg.id !== aiMessageId));
+        }
+      );
+    } catch (error) {
+      setIsLoading(false);
+      setError(error.message);
+      console.error('Chat request failed:', error);
+      setMessages(prev => prev.filter(msg => msg.id !== aiMessageId));
+    }
   };
 
-  /**
-   * Delete conversation - PLACEHOLDER
-   * TODO: Implement conversation deletion logic
-   */
+  async function persistUserMessage(content, imageUrl = null) {
+    try {
+      let convId = conversationId;
+      if (!convId) {
+        convId = await createConversation(currentUser.uid, content || 'Image message');
+        setConversationId(convId);
+        console.log(`📝 Created conversation: ${convId}`);
+      }
+      
+      await saveMessage(convId, {
+        role: 'user',
+        content,
+        ...(imageUrl && { imageUrl })
+      });
+      
+      console.log('✅ User message persisted');
+    } catch (error) {
+      console.error('⚠️ Failed to persist user message (non-fatal):', error);
+    }
+  }
+
+  async function persistAIMessage(content) {
+    if (!conversationId) return;
+    
+    try {
+      await saveMessage(conversationId, {
+        role: 'assistant',
+        content
+      });
+      console.log('✅ AI message persisted');
+    } catch (error) {
+      console.error('⚠️ Failed to persist AI message (non-fatal):', error);
+    }
+  }
+
   const handleDeleteConversation = async () => {
-    console.log('TODO: Implement conversation deletion logic');
+    if (!conversationId) {
+      setMessages([]);
+      return;
+    }
+
+    setIsDeleting(true);
+
     setMessages([]);
+    const convIdToDelete = conversationId;
+    setConversationId(null);
+
+    try {
+      await deleteConversation(convIdToDelete);
+      console.log('✅ Conversation deleted');
+    } catch (error) {
+      console.error('⚠️ Failed to delete conversation:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Show loading state while fetching history

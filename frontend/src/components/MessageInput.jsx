@@ -21,7 +21,7 @@ function MessageInput({
     e.target.value = '';
   };
 
-  const canSend = true; // Simplified - business logic removed
+  const canSend = (input.trim() || imagePreviewUrl) && !isLoading && !isUploadingImage;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
