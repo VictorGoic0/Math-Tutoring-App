@@ -1191,35 +1191,77 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
 **Priority:** P0  
 **Day:** 5
 
+**Approach:** Deploy as separate Vercel projects (monorepo setup) - one for frontend, one for backend. This ensures proper environment variable isolation and independent deployments.
+
 **Tasks:**
-1. [x] Configure Vercel project for frontend
-2. [ ] Set up environment variables in Vercel dashboard
-3. [x] Configure `vercel.json` with proper build settings
-4. [ ] Deploy Express backend to Vercel (Vercel auto-wraps Express as serverless functions)
-5. [ ] Test frontend deployment
-6. [ ] Test backend API routes in production (Express routes work as serverless endpoints)
-7. [ ] Verify Firebase connection in production
-8. [ ] Test end-to-end flow in production
-9. [ ] Fix any production-specific bugs
+1. [x] Create separate Vercel project for frontend
+   - Import Git repo
+   - Set Root Directory to `/frontend`
+   - Set Framework Preset to `Vite`
+   - Configure build settings (auto-detected by Vercel)
+2. [ ] Set up frontend environment variables in Vercel dashboard
+   - Add all `VITE_*` prefixed variables (Firebase config, API URL)
+   - Scope to Production, Preview, and Development environments
+   - Variables prefixed with `VITE_` are bundled into client-side JS
+3. [ ] Create separate Vercel project for backend
+   - Import same Git repo
+   - Set Root Directory to `/api`
+   - Set Framework Preset to `Other` (Node.js)
+   - Configure serverless function settings
+4. [ ] Set up backend environment variables in Vercel dashboard
+   - Add server-only variables (no `VITE_` prefix): `OPENAI_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_PRIVATE_KEY`, `FIREBASE_CLIENT_EMAIL`
+   - These stay server-side only, never exposed to browser
+   - Scope to Production, Preview, and Development environments
+5. [ ] Configure frontend to point to backend URL
+   - Update `VITE_API_URL` in frontend project to backend deployment URL
+   - Add `vercel.json` in frontend/ if needed for routing rewrites
+6. [ ] Test frontend deployment
+   - Verify frontend is accessible via public URL
+   - Check browser console for errors
+   - Verify Firebase connection works
+7. [ ] Test backend API routes in production
+   - Test `/api/health` endpoint
+   - Test `/api/chat` endpoint
+   - Verify Express routes work as serverless functions
+8. [ ] Verify Firebase connection in production
+   - Test authentication flow
+   - Test Firestore reads/writes
+   - Test Firebase Storage uploads
+9. [ ] Test end-to-end flow in production
+   - Sign up / login
+   - Send chat message
+   - Upload image
+   - Verify streaming responses
+   - Verify message persistence
+10. [ ] Fix any production-specific bugs
+    - CORS issues
+    - Environment variable loading
+    - Routing issues
+    - Cold start performance
 
 **Acceptance Criteria:**
-- Frontend deployed and accessible via public URL
-- Express backend deployed to Vercel (auto-converted to serverless)
-- Backend API routes work in production with no cold start issues
-- Environment variables configured correctly in Vercel
-- Firebase works in production environment
-- Image upload works in production
-- Chat functionality works end-to-end
-- No console errors in production
+- ✅ Frontend deployed as separate Vercel project and accessible via public URL
+- ✅ Backend deployed as separate Vercel project (Express as serverless functions)
+- ✅ Backend API routes work in production with no cold start issues
+- ✅ Environment variables properly isolated (frontend `VITE_*` vars only in frontend project, backend vars only in backend project)
+- ✅ Frontend configured to call backend production URL
+- ✅ Firebase works in production environment
+- ✅ Image upload works in production
+- ✅ Chat functionality works end-to-end
+- ✅ No console errors in production
 
 **Files Created/Modified:**
 ```
-vercel.json (MODIFIED - configured for frontend build and backend serverless functions)
-  - Frontend: Builds from frontend/ directory, outputs to frontend/dist
-  - Backend: Serverless function at api/index.js with @vercel/node runtime
-  - Routes: /api/* requests go to backend, all other requests serve frontend
-  - Install: Installs dependencies for both frontend and backend
+frontend/vercel.json (NEW - optional, for routing/rewrites if needed)
+api/vercel.json (NEW - optional, for serverless function config)
+  - Backend: Serverless function configuration
+  - Routes: Configure Express routes as serverless functions
 ```
+
+**Key Security Notes:**
+- **Environment Variable Isolation:** Frontend project only gets `VITE_*` prefixed vars (bundled into client JS)
+- **Backend Variables Stay Server-Side:** Variables without `VITE_` prefix (like `OPENAI_API_KEY`) are only available in serverless functions, never in browser
+- **Separate Projects:** Each project has its own environment variables, preventing accidental exposure
 
 ---
 
