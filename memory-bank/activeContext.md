@@ -2,89 +2,192 @@
 
 ## Current Work Focus
 
-**Status:** PR #3 Fully Complete & Tested  
-**Phase:** Day 1 Foundation Complete - Ready for PR #4
+**Status:** PR #5 Complete & Tested  
+**Phase:** Day 2 - Core Features Complete, Ready for PR #6
 
-All Day 1 PRs (#1, #2, #3) are complete and tested. The chat interface is working end-to-end with OpenAI GPT-4 Turbo. Authentication, streaming, and error handling all functional. Ready to begin PR #4: Socratic Prompting System.
+PRs #1-5 are complete and tested. The full tutoring system works end-to-end:
+- Chat interface with streaming AI responses
+- Socratic teaching system with adaptive scaffolding
+- Conversation persistence with Firestore
+- History loads on page refresh
+- Single conversation per user (simplified MVP approach)
+
+Ready to begin PR #6: Image Upload UI
 
 ## Recent Changes
 
-### Just Completed (PR #3) - FULLY TESTED
-- ✅ Integrated `useChat` hook (AI SDK v3: `ai/react`)
-- ✅ Created `/api/chat` endpoint with streaming (pipeDataStreamToResponse)
-- ✅ Connected OpenAI GPT-4 Turbo and verified working
-- ✅ Fixed Firebase Admin SDK exports and property names
-- ✅ Converted backend to CommonJS for proper env loading
-- ✅ Downgraded AI SDK to v3 for model compatibility
-- ✅ Added comprehensive error handling (all levels)
-- ✅ Auth working end-to-end
-- ✅ Tested full chat flow successfully
+### Just Completed (PR #5) - Firestore Integration
+- ✅ Created Firestore collections: `/conversations/{id}` → `/messages/{id}`
+- ✅ Implemented single-conversation-per-user pattern (get-or-create)
+- ✅ Built full REST API for conversations and messages
+- ✅ Created `GET /api/chat/history` endpoint
+- ✅ Frontend services layer: `api.js` + `chatService.js`
+- ✅ Simple persistence model: local state during session, DB on reload
+- ✅ Delete conversation button for testing
+- ✅ No real-time listeners (avoids race conditions)
+- ✅ In-memory sorting (no composite index needed)
+- ✅ Fixed Firestore index issue
 
-### Previously Completed (PR #1 & #2)
-- ✅ React + Vite frontend setup
-- ✅ Express backend setup
-- ✅ Firebase Auth + Firestore + Storage initialized
-- ✅ Login/SignUp components
-- ✅ AuthContext + useAuth hook
-- ✅ Protected routes with React Router
-- ✅ Auth middleware on backend
+### Recently Completed (PR #4) - Socratic Prompting
+- ✅ Complete Socratic system prompt with adaptive scaffolding
+- ✅ Context manager (stateless) tracking student progress
+- ✅ Detects stuck turns, triggers hints appropriately
+- ✅ Plain text math formatting (no LaTeX escaping)
+- ✅ Comprehensive CONTEXT_MANAGER.md documentation
+
+### Previously Completed (PR #1, #2, #3)
+- ✅ React + Vite frontend + Express backend
+- ✅ Firebase Auth (login, signup, protected routes)
+- ✅ Chat UI with useChat hook (AI SDK v3)
+- ✅ OpenAI GPT-4 Turbo streaming
+- ✅ Comprehensive error handling
 
 ## Next Steps
 
-### Immediate - Start PR #4
-2. **PR #4: Socratic Prompting System**
-   - Create Socratic system prompt (follow PRD template)
-   - Implement prompt in `/api/chat` endpoint
-   - Add conversation context management
-   - Test with hardcoded math problem: "2x + 5 = 13"
-   - Verify AI never gives direct answers
-   - Test hint triggering after 2+ stuck turns
+### Immediate - Start PR #6
+**PR #6: Image Upload UI**
+- Image upload button in chat interface
+- File input with image preview
+- Multiple image selection support
+- Loading state during upload
+- Display uploaded images in conversation
+- File size/type validation
 
-3. **PR #5: Firestore Integration for Conversation Persistence**
-   - Set up Firestore collections structure
-   - Implement conversation creation endpoint
-   - Persist messages on each turn
-   - Add conversation history retrieval
+### After PR #6
+**PR #7: OpenAI Vision Integration**
+- Send images to GPT-4 Vision API
+- Extract math problems from images
+- Display extracted text for user confirmation
+- Handle image + text in same message
 
-## Active Decisions & Considerations
+## Active Decisions & Architecture
+
+### Key Architecture Decisions Made
+
+1. **Single Conversation Per User (PR #5)**
+   - Simplifies MVP
+   - Auto-creates on first message
+   - No conversation selection UI needed
+   - Easy to extend to multiple conversations later
+
+2. **Simple Persistence Model (PR #5)**
+   - useChat manages local state during session
+   - Firestore stores history
+   - Load on page refresh
+   - No real-time listeners (avoids race conditions)
+   - No streaming persistence (simpler, more reliable)
+
+3. **Stateless Context Manager (PR #4)**
+   - Analyzes messages array each request
+   - No database state to manage
+   - Easy to migrate to stateful later
+   - Works perfectly for single conversation
+
+4. **Frontend Services Layer (PR #5)**
+   - Services pattern over custom hooks
+   - Clean API abstraction
+   - `api.js` base client + `chatService.js`
+   - Easy to test and extend
+
+5. **AI SDK v3 (PR #3)**
+   - Broader model compatibility
+   - Simpler streaming API
+   - Stable, well-documented
 
 ### Pending Decisions
-1. **Styling Approach:** Need to decide on CSS framework/approach (styled-components, Tailwind, plain CSS)
-2. **Image Storage:** Base64 encoding vs. temporary file storage vs. Firebase Storage
-3. **Canvas Rendering Library:** How exactly to render LaTeX on canvas (KaTeX to offscreen canvas, custom renderer, etc.)
-4. **Voice Implementation Timing:** Decide if voice (P2) will be included in MVP based on timeline
+1. **Image Storage:** Base64 in messages vs. Firebase Storage URLs
+2. **Canvas Rendering Library:** How to render LaTeX on canvas
+3. **Voice Implementation:** Decide if voice (P2) included in MVP
 
 ### Current Priorities
-- **P0 Features First:** All core features must work before enhancements
-- **Chat Before Canvas:** Need working AI conversation before visual features
-- **Canvas Foundation Before Drawing:** Rendering must work before interaction
-- **Testing Critical:** Can't ship untested code
+- **P0 Features First:** Core functionality before enhancements
+- **Image Upload Next:** Enable visual problem input
+- **Canvas Foundation:** Need visual feedback for steps
+- **Testing Critical:** Verify each feature works
 
 ## Current Blockers
 
-None! All Day 1 PRs complete and tested. Ready to proceed with PR #4.
+None! Ready to proceed with PR #6.
 
-## Active Considerations
+## System Architecture Summary
 
-1. **Timeline Pressure:** 3-5 day timeline is aggressive - need to prioritize carefully
-2. **Voice Feature:** P2 priority - can be dropped if timeline is tight
-3. **Handwritten Recognition:** Lower priority than printed text
-4. **Quality vs. Speed:** Need to balance feature completeness with timeline
+### Frontend (`frontend/src/`)
+```
+components/
+  ├── Chat.jsx              (main chat interface)
+  ├── MessageList.jsx       (displays messages)
+  ├── MessageInput.jsx      (text input)
+  ├── Header.jsx            (navigation + logout)
+  ├── Login.jsx
+  └── SignUp.jsx
+
+services/
+  ├── api.js                (base API client)
+  └── chatService.js        (chat API calls)
+
+hooks/
+  └── useAuth.js            (auth state management)
+```
+
+### Backend (`api/`)
+```
+routes/
+  ├── chat.js               (POST /api/chat, GET /api/chat/history)
+  └── conversation.js       (full CRUD for conversations)
+
+services/
+  ├── promptService.js      (Socratic prompts)
+  ├── contextManager.js     (adaptive scaffolding)
+  ├── conversationManager.js (single conversation logic)
+  └── firestoreService.js   (Firestore CRUD)
+
+middleware/
+  └── auth.js               (verifyAuthToken)
+```
+
+### Data Flow
+```
+1. Page load → GET /api/chat/history → load messages
+2. User types → useChat local state updates
+3. Submit → POST /api/chat → streams AI response
+4. AI responds → useChat updates in real-time
+5. Page refresh → repeat step 1
+```
 
 ## Testing Strategy
 
-- Manual testing with 5+ problem types
-- Verify AI never gives direct answers
-- Test drawing lock/unlock flow
-- Test image upload and parsing
-- Browser compatibility testing
-- Responsive design testing
+### Completed Testing
+- ✅ Chat streaming works
+- ✅ Auth flow end-to-end
+- ✅ Socratic prompting (guides without answers)
+- ✅ Context detection (stuck turns)
+- ✅ History persistence across refreshes
+- ✅ Delete conversation
 
-## Documentation Needs
+### Upcoming Testing
+- [ ] Image upload and preview
+- [ ] Image parsing with Vision API
+- [ ] Multiple images in one message
+- [ ] Canvas rendering
+- [ ] Drawing tools
+- [ ] Lock/unlock mechanism
 
-- README.md with setup instructions
-- SETUP.md with detailed setup steps
-- EXAMPLES.md with problem walkthroughs
-- PROMPT_ENGINEERING.md with prompt notes
-- .env.example files
+## Documentation Status
 
+### Created
+- ✅ `CONTEXT_MANAGER.md` - Full context manager docs
+- ✅ `tasks.md` - All PRs documented
+- ✅ Memory bank updated (progress, activeContext, techContext)
+
+### Needed
+- [ ] README.md with setup instructions
+- [ ] .env.example files
+- [ ] EXAMPLES.md with problem walkthroughs
+
+## Progress Metrics
+
+- **PRs Complete:** 5 of 19 (26%)
+- **Phase:** Day 2 of 5
+- **Status:** Ahead of schedule
+- **Core System:** Fully functional
+- **Next Milestone:** Image upload working

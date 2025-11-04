@@ -2,6 +2,7 @@ const express = require('express');
 const { streamText } = require('ai');
 const { createOpenAI } = require('@ai-sdk/openai');
 const { buildMessagesWithSystemPrompt, analyzeConversationContext } = require('../services/promptService');
+const { loadConversationHistory } = require('../services/conversationManager');
 
 const router = express.Router();
 
@@ -74,7 +75,8 @@ router.post('/chat', async (req, res) => {
       temperature: 0.7,
     });
 
-    // Convert to data stream response format expected by useChat hook
+    // Stream response to client
+    // Note: Persistence handled by frontend state + history reload (simple & reliable)
     result.pipeDataStreamToResponse(res);
 
   } catch (error) {
@@ -115,6 +117,39 @@ router.post('/chat', async (req, res) => {
       // If streaming already started, log the error
       console.error('Error occurred after streaming started - connection may be broken');
     }
+  }
+});
+
+/**
+ * GET /api/chat/history
+ * Load conversation history for the authenticated user
+ * Returns messages in format compatible with useChat hook
+ */
+router.get('/chat/history', async (req, res) => {
+  try {
+    // Verify user is authenticated
+    if (!req.user) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Authentication required'
+      });
+    }
+
+    const limit = parseInt(req.query.limit) || 100;
+    
+    // Load conversation history
+    const messages = await loadConversationHistory(req.user.uid, limit);
+    
+    res.status(200).json({
+      messages
+    });
+  } catch (error) {
+    console.error('Error loading conversation history:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to load conversation history',
+      details: process.env.NODE_ENV === 'production' ? undefined : error.message
+    });
   }
 });
 

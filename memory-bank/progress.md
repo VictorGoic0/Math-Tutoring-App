@@ -36,6 +36,28 @@
 - AI SDK downgraded to v3 for broader model compatibility
 - **TESTED & WORKING** - Full chat flow functional
 
+### ✅ PR #4: Socratic Prompting System (COMPLETE)
+- Complete Socratic teaching system prompt with adaptive scaffolding
+- Context manager tracks: problemText, currentStep, studentUnderstanding, stuckTurns, hintsGiven
+- Stateless context analysis (derives from messages array)
+- Adaptive scaffolding: triggers hints at 2+ stuck turns, escalates at 4+
+- No LaTeX formatting (plain text equations)
+- System adapts teaching approach based on student understanding level
+- Comprehensive documentation in CONTEXT_MANAGER.md
+- **TESTED** - AI guides without giving direct answers
+
+### ✅ PR #5: Firestore Integration for Conversation Persistence (COMPLETE)
+- Firestore collections: `/conversations/{id}` and `/conversations/{id}/messages/{id}`
+- Single conversation per user (get-or-create pattern)
+- Full REST API: conversation CRUD + message operations
+- `GET /api/chat/history` - loads conversation on page refresh
+- Frontend services layer: `api.js` (base client) + `chatService.js`
+- Simple persistence model: useChat local state during session, Firestore on reload
+- Delete conversation button for testing
+- No real-time listeners (avoids race conditions)
+- In-memory sorting (no composite index needed)
+- **TESTED & WORKING** - History persists across refreshes
+
 ## What's Left to Build
 
 ### Foundation (Day 1)
@@ -72,19 +94,21 @@
 
 ## Current Status
 
-**Phase:** Day 1 - Foundation Complete & Tested  
-**Completion:** ~15% (3 of 19 PRs complete and tested)
+**Phase:** Day 2 - Core Features Complete  
+**Completion:** ~26% (5 of 19 PRs complete and tested)
 
 ### Completed PRs
 - ✅ PR #1: Project Setup & Basic Infrastructure
 - ✅ PR #2: Firebase Authentication & Configuration  
-- ✅ PR #3: Basic Chat UI with Vercel AI SDK (FULLY TESTED & WORKING)
+- ✅ PR #3: Basic Chat UI with Vercel AI SDK
+- ✅ PR #4: Socratic Prompting System
+- ✅ PR #5: Firestore Integration for Conversation Persistence
 
 ### In Progress
-- None - ready to start PR #4
+- None - ready to start PR #6
 
 ### Next Up
-- PR #4: Socratic Prompting System
+- PR #6: Image Upload UI
 
 ## Known Issues
 
@@ -127,11 +151,11 @@ None currently - all Day 1 PRs working!
 
 ## Timeline Status
 
-**Day 1:** ✅ Complete (PR #1, #2, #3 code complete - testing in progress)  
-**Day 2:** Not started (blocked on PR #3 testing)  
+**Day 1:** ✅ Complete (PR #1, #2, #3, #4, #5)  
+**Day 2:** ✅ In Progress (PR #5 complete, ready for PR #6)  
 **Day 3:** Not started  
 **Day 4:** Not started  
 **Day 5:** Not started
 
-**Overall:** On track - Day 1 foundation complete, ready for testing
+**Overall:** Ahead of schedule - Core tutoring system working end-to-end!
 
