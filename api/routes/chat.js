@@ -11,7 +11,7 @@ const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// POST /api/chat - Handle chat messages with streaming
+// POST /chat - Handle chat messages with streaming
 router.post('/chat', async (req, res) => {
   try {
     const { messages, imageUrl } = req.body;
@@ -158,7 +158,7 @@ router.post('/chat', async (req, res) => {
 });
 
 /**
- * GET /api/chat/history
+ * GET /chat/history
  * Load conversation history for the authenticated user
  * Returns: { conversationId, messages }
  */

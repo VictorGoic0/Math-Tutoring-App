@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 /**
  * Base fetch wrapper with authentication
  * 
- * @param {string} endpoint - API endpoint (e.g., '/api/chat/history')
+ * @param {string} endpoint - API endpoint (e.g., '/chat/history')
  * @param {Object} options - Fetch options
  * @param {string} authToken - Firebase auth token
  * @returns {Promise<Response>} Fetch response
@@ -84,7 +84,7 @@ export async function apiDelete(endpoint, authToken = null) {
 /**
  * Parse AI stream response (Plain text stream)
  * 
- * Handles streaming responses from /api/chat endpoint.
+ * Handles streaming responses from /chat endpoint.
  * Backend uses `toTextStreamResponse()` which sends plain text chunks.
  * 
  * @param {Response} response - Fetch response with streaming body
@@ -93,7 +93,7 @@ export async function apiDelete(endpoint, authToken = null) {
  * @param {Function} onError - Callback for errors: (error: Error) => void
  * 
  * @example
- * const response = await fetch('/api/chat', {...});
+ * const response = await fetch('/chat', {...});
  * parseAIStream(response, 
  *   (chunk) => console.log('Chunk:', chunk),
  *   (full) => console.log('Complete:', full),

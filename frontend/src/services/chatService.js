@@ -18,7 +18,7 @@ import { collection, addDoc, doc, serverTimestamp, getDocs, deleteDoc } from 'fi
 export async function loadConversationHistory(authToken, limit = 100) {
   try {
     const response = await apiGet(
-      `/api/chat/history?limit=${limit}`,
+      `/chat/history?limit=${limit}`,
       authToken
     );
 
