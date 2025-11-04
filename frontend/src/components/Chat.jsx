@@ -255,10 +255,13 @@ function Chat() {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: '100%',
-      maxWidth: '800px',
+      height: '100vh',
+      width: '1200px',
+      maxWidth: '1200px',
       margin: '0 auto',
-      padding: '1rem'
+      padding: '1rem',
+      boxSizing: 'border-box',
+      overflow: 'hidden'
     }}>
       <div style={{ 
         display: 'flex', 

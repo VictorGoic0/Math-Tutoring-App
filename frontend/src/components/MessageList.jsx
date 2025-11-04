@@ -2,38 +2,50 @@ import { useEffect, useRef } from 'react';
 import MathDisplay from './MathDisplay';
 
 function MessageList({ messages }) {
-  const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   if (messages.length === 0) {
     return (
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#666',
-        padding: '2rem'
-      }}>
+      <div 
+        ref={containerRef}
+        style={{
+          height: 'calc(100vh - 200px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#666',
+          padding: '2rem',
+          overflowY: 'auto',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+          backgroundColor: '#f9f9f9'
+        }}
+      >
         <p>Start a conversation by asking a math question or uploading a problem!</p>
       </div>
     );
   }
 
   return (
-    <div style={{
-      flex: 1,
-      overflowY: 'auto',
-      padding: '1rem 0',
-      marginBottom: '1rem',
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      backgroundColor: '#f9f9f9'
-    }}>
+    <div 
+      ref={containerRef}
+      style={{
+        height: 'calc(100vh - 200px)',
+        overflowY: 'auto',
+        padding: '1rem 0',
+        marginBottom: '1rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        backgroundColor: '#f9f9f9'
+      }}
+    >
       {messages.map((message) => (
         <div
           key={message.id}
@@ -78,8 +90,6 @@ function MessageList({ messages }) {
           )}
         </div>
       ))}
-      {/* Invisible element at the bottom for scroll target */}
-      <div ref={messagesEndRef} />
     </div>
   );
 }
