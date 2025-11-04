@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useChat } from 'ai/react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useAuth } from '../hooks/useAuth';
-import { loadConversationHistory, createConversation, saveMessage } from '../services/chatService';
+import { loadConversationHistory, createConversation, saveMessage, deleteConversation } from '../services/chatService';
 import { API_URL } from '../services/api';
 
 /**
@@ -38,7 +38,10 @@ import { API_URL } from '../services/api';
 function Chat() {
   const { authToken, currentUser } = useAuth();
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const [conversationId, setConversationId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Use ref instead of state to avoid stale closure in onFinish callback
+  const conversationIdRef = useRef(null);
 
   const {
     messages,
@@ -55,10 +58,10 @@ function Chat() {
     } : {},
     // Save AI response after streaming completes
     onFinish: async (message) => {
-      if (!conversationId || !currentUser) return;
+      if (!conversationIdRef.current || !currentUser) return;
       
       try {
-        await saveMessage(conversationId, message);
+        await saveMessage(conversationIdRef.current, message);
       } catch (error) {
         console.error('⚠️ Failed to save AI message (non-fatal):', error);
         // Silent fail - message is already displayed in UI
@@ -77,8 +80,8 @@ function Chat() {
       try {
         const { conversationId: loadedConvId, messages: loadedMessages } = await loadConversationHistory(authToken);
         
-        // Set conversation ID
-        setConversationId(loadedConvId);
+        // Set conversation ID (using ref to avoid stale closure)
+        conversationIdRef.current = loadedConvId;
         
         // Initialize useChat with existing messages
         if (loadedMessages.length > 0) {
@@ -127,10 +130,11 @@ function Chat() {
   async function saveUserMessageToFirestore(content) {
     try {
       // Create conversation on first message if needed
-      let convId = conversationId;
+      let convId = conversationIdRef.current;
       if (!convId) {
         convId = await createConversation(currentUser.uid, content);
-        setConversationId(convId);
+        console.log(`📝 Created conversation: ${convId}`);
+        conversationIdRef.current = convId;
       }
       
       // Save user message to Firestore
@@ -145,6 +149,36 @@ function Chat() {
       // Will be persisted on next successful message or user can refresh
     }
   }
+
+  /**
+   * Delete conversation (optimistic UI)
+   * Clears UI immediately, deletes from Firestore in background
+   */
+  const handleDeleteConversation = async () => {
+    if (!conversationIdRef.current) {
+      // No conversation to delete, just clear local state
+      setMessages([]);
+      return;
+    }
+
+    setIsDeleting(true);
+
+    // 1. INSTANT: Clear UI immediately (optimistic)
+    setMessages([]);
+    const convIdToDelete = conversationIdRef.current;
+    conversationIdRef.current = null;
+
+    // 2. BACKGROUND: Delete from Firestore (non-blocking)
+    try {
+      await deleteConversation(convIdToDelete);
+      console.log('✅ Conversation deleted successfully');
+    } catch (error) {
+      console.error('⚠️ Failed to delete conversation from Firestore:', error);
+      // Silent fail - UI is already cleared
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Show loading state while fetching history
   if (isLoadingHistory) {
@@ -186,7 +220,37 @@ function Chat() {
       margin: '0 auto',
       padding: '1rem'
     }}>
-      <h2 style={{ marginBottom: '1rem' }}>AI Math Tutor</h2>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '1rem' 
+      }}>
+        <h2 style={{ margin: 0 }}>AI Math Tutor</h2>
+        
+        {/* Delete conversation button (only show if messages exist) */}
+        {messages.length > 0 && (
+          <button
+            onClick={handleDeleteConversation}
+            disabled={isDeleting}
+            style={{
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              cursor: isDeleting ? 'not-allowed' : 'pointer',
+              fontSize: '0.9rem',
+              opacity: isDeleting ? 0.6 : 1,
+              transition: 'opacity 0.2s, background-color 0.2s'
+            }}
+            onMouseEnter={(e) => !isDeleting && (e.target.style.backgroundColor = '#c82333')}
+            onMouseLeave={(e) => !isDeleting && (e.target.style.backgroundColor = '#dc3545')}
+          >
+            {isDeleting ? '🗑️ Deleting...' : '🗑️ Delete Conversation'}
+          </button>
+        )}
+      </div>
       
       <MessageList messages={messages} />
       

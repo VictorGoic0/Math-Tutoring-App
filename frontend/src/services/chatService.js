@@ -5,7 +5,7 @@
 
 import { apiGet } from './api';
 import { firebaseFireStore } from '../utils/firebase';
-import { collection, addDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, serverTimestamp, getDocs, deleteDoc } from 'firebase/firestore';
 
 /**
  * Load conversation history for the authenticated user
@@ -95,6 +95,37 @@ export async function saveMessage(conversationId, message) {
   } catch (error) {
     console.error('Error saving message:', error);
     // Don't throw - we don't want to break the chat if save fails
+  }
+}
+
+/**
+ * Delete a conversation and all its messages
+ * @param {string} conversationId - The conversation ID to delete
+ */
+export async function deleteConversation(conversationId) {
+  try {
+    // Delete all messages in the conversation
+    const messagesRef = collection(
+      firebaseFireStore,
+      'conversations',
+      conversationId,
+      'messages'
+    );
+    
+    const messagesSnapshot = await getDocs(messagesRef);
+    const deletePromises = messagesSnapshot.docs.map((messageDoc) =>
+      deleteDoc(messageDoc.ref)
+    );
+    await Promise.all(deletePromises);
+    
+    // Delete the conversation document
+    const conversationRef = doc(firebaseFireStore, 'conversations', conversationId);
+    await deleteDoc(conversationRef);
+    
+    console.log(`🗑️ Deleted conversation ${conversationId} and ${messagesSnapshot.size} messages`);
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
+    throw error; // Re-throw so caller knows it failed
   }
 }
 
