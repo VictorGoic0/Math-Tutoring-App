@@ -32,7 +32,11 @@ function initializeFirebase() {
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
+      databaseURL: `https://${projectId}.firebaseio.com`,  // <-- ADD THIS: Forces REST
     });
+
+    // Optional: Explicitly disable gRPC
+    process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA';  // Helps with OpenSSL 3.0
 
     initialized = true;
     console.log('✓ Firebase Admin SDK initialized successfully');
