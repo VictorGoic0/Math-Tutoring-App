@@ -59,7 +59,7 @@ export async function createConversation(userId, firstMessage = '') {
       lastMessage: ''
     });
     
-    console.log(`✅ Created conversation: ${conversationRef.id}`);
+    // console.log(`✅ Created conversation: ${conversationRef.id}`);
     return conversationRef.id;
   } catch (error) {
     console.error('Error creating conversation:', error);
@@ -101,7 +101,7 @@ export async function saveMessage(conversationId, message) {
     
     await addDoc(messagesRef, messageData);
     
-    console.log(`💾 Saved ${message.role} message to Firestore${message.imageUrl ? ' (with image)' : ''}`);
+    // console.log(`💾 Saved ${message.role} message to Firestore${message.imageUrl ? ' (with image)' : ''}`);
   } catch (error) {
     console.error('Error saving message:', error);
     // Don't throw - we don't want to break the chat if save fails
@@ -132,7 +132,7 @@ export async function deleteConversation(conversationId) {
     const conversationRef = doc(firebaseFireStore, 'conversations', conversationId);
     await deleteDoc(conversationRef);
     
-    console.log(`🗑️ Deleted conversation ${conversationId} and ${messagesSnapshot.size} messages`);
+    // console.log(`🗑️ Deleted conversation ${conversationId} and ${messagesSnapshot.size} messages`);
   } catch (error) {
     console.error('Error deleting conversation:', error);
     throw error; // Re-throw so caller knows it failed

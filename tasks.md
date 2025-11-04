@@ -599,9 +599,9 @@ firestore.rules                          (Documented both Firestore + Storage se
    - [x] Remove `handleInputChange`, use direct `setInput`
    - [x] Add `conversationId` state (replaced ref-based tracking)
 4. [x] Implement manual streaming with `fetch` + `parseAIStream`
-5. [ ] Test chat functionality (send message, receive streaming response, persistence)
-6. [ ] Update `.cursor/rules/vercel-ai-sdk-imports.mdc` to reflect removal
-7. [ ] Update memory bank to document the refactor
+5. [x] Test chat functionality (send message, receive streaming response, persistence)
+6. [x] Update `.cursor/rules/vercel-ai-sdk-imports.mdc` to reflect removal
+7. [x] Update memory bank to document the refactor
 
 **State Management Flow (Post-Refactor):**
 
@@ -637,11 +637,11 @@ firestore.rules                          (Documented both Firestore + Storage se
 
 **Vision Integration**
 8. [x] Modify POST `/api/chat` to accept `imageUrl` in message body
-9. [x] Integrate OpenAI Vision API (gpt-4-vision-preview) in chat route
+9. [x] Integrate OpenAI Vision API (gpt-4o) in chat route
 10. [x] When imageUrl present, include image in OpenAI request with vision model
 11. [x] Update Socratic prompt to acknowledge and work with extracted problem
-12. [ ] Test with printed math problem screenshots
-13. [ ] Handle Vision API errors gracefully (fallback to text-only response)
+12. [x] Test with printed math problem screenshots
+13. [x] Handle Vision API errors gracefully (fallback to text-only response)
 
 **Acceptance Criteria:**
 - User sends image → AI automatically sees and parses it
@@ -655,16 +655,27 @@ firestore.rules                          (Documented both Firestore + Storage se
 **Technical Approach:**
 - Leverage existing image upload from PR #6 (imageUrl already saved)
 - Modify `/api/chat` to check for `imageUrl` in request
-- Use `gpt-4-vision-preview` model when image present
-- Pass image URL directly to OpenAI (no re-upload needed)
+- Use `gpt-4o` model when image present (native vision support, replaces deprecated `gpt-4-vision-preview`)
+- Use `gpt-4-turbo` for text-only messages
+- Pass image URL directly to OpenAI via multi-part content format (no re-upload needed)
 - Vision and Socratic prompting work together seamlessly
+- Fixed context manager to handle multi-part content (array format for images)
 
 **Files Modified:**
 ```
-api/routes/chat.js           (Add vision model support, check for imageUrl)
+api/routes/chat.js           (Add vision model support, check for imageUrl, upgraded to AI SDK v5)
 api/services/promptService.js (Update system prompt for image awareness)
-frontend/src/components/Chat.jsx (Send imageUrl in chat request body)
+api/services/contextManager.js (Fixed extractTextContent to handle multi-part content arrays)
+frontend/src/components/Chat.jsx (Send imageUrl in chat request body, removed useChat, manual state management)
+frontend/src/services/api.js (parseAIStream utility for plain text streaming)
 ```
+
+**Additional Changes:**
+- Upgraded AI SDK from v3.4.33 to v5.0.76 (backend only)
+- Changed from `pipeDataStreamToResponse` to `pipeTextStreamToResponse` (v5 API)
+- Removed `ai` package from frontend dependencies
+- Fixed context manager to extract text from multi-part content (handles image messages)
+- All debug logs commented out (can be uncommented for troubleshooting)
 
 ---
 

@@ -40,9 +40,9 @@ router.post('/chat', async (req, res) => {
     }
 
     // Log if image is included in request
-    if (imageUrl) {
-      console.log(`📷 Image included in chat request: ${imageUrl.substring(0, 80)}...`);
-    }
+    // if (imageUrl) {
+    //   console.log(`📷 Image included in chat request: ${imageUrl.substring(0, 80)}...`);
+    // }
 
     // Validate OpenAI API key
     if (!process.env.OPENAI_API_KEY) {
@@ -99,20 +99,22 @@ router.post('/chat', async (req, res) => {
     const messagesWithPrompt = buildMessagesWithSystemPrompt(processedMessages);
 
     // Use vision model if image is present, otherwise use regular model
-    const modelToUse = imageUrl ? openai('gpt-4-vision-preview') : openai('gpt-4-turbo');
+    // Note: gpt-4o has native vision support, gpt-4-turbo for text-only
+    const modelToUse = imageUrl ? openai('gpt-4o') : openai('gpt-4-turbo');
     
-    console.log(`🤖 Using model: ${imageUrl ? 'gpt-4-vision-preview (with image)' : 'gpt-4-turbo (text-only)'}`);
+    // console.log(`🤖 Using model: ${imageUrl ? 'gpt-4o (with vision)' : 'gpt-4-turbo (text-only)'}`);
+
 
     // Stream the response from OpenAI using Vercel AI SDK with Socratic prompting
-    const result = await streamText({
+    const result = streamText({
       model: modelToUse,
       messages: messagesWithPrompt,
       temperature: 0.7,
     });
 
-    // Stream response to client
+    // Stream plain text response to client (v5: pipes to Express response)
     // Note: Persistence handled by frontend state + history reload (simple & reliable)
-    result.pipeDataStreamToResponse(res);
+    result.pipeTextStreamToResponse(res);
 
   } catch (error) {
     console.error('Chat API error:', error);

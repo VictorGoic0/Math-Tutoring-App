@@ -82,10 +82,10 @@ export async function apiDelete(endpoint, authToken = null) {
 }
 
 /**
- * Parse AI stream response (Vercel AI SDK v3 format)
+ * Parse AI stream response (Plain text stream)
  * 
  * Handles streaming responses from /api/chat endpoint.
- * Backend uses `pipeDataStreamToResponse` which sends in format: "0:chunk"
+ * Backend uses `toTextStreamResponse()` which sends plain text chunks.
  * 
  * @param {Response} response - Fetch response with streaming body
  * @param {Function} onChunk - Callback for each text chunk: (text: string) => void
@@ -110,7 +110,6 @@ export async function parseAIStream(response, onChunk, onComplete, onError) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let fullText = '';
-  let buffer = '';
 
   try {
     while (true) {
@@ -121,42 +120,11 @@ export async function parseAIStream(response, onChunk, onComplete, onError) {
         break;
       }
 
-      // Decode the chunk
-      buffer += decoder.decode(value, { stream: true });
+      const chunk = decoder.decode(value, { stream: true });
+      fullText += chunk;
       
-      // Process complete lines
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-      for (const line of lines) {
-        if (!line.trim()) continue;
-
-        // Vercel AI SDK v3 format: "0:text chunk" for text deltas
-        if (line.startsWith('0:')) {
-          const text = line.slice(2); // Remove "0:" prefix
-          if (text) {
-            fullText += text;
-            onChunk(text);
-          }
-        }
-        // Also support standard SSE format as fallback
-        else if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.content) {
-              fullText += parsed.content;
-              onChunk(parsed.content);
-            } else if (typeof parsed === 'string') {
-              fullText += parsed;
-              onChunk(parsed);
-            }
-          } catch {
-            // Plain text
-            fullText += data;
-            onChunk(data);
-          }
-        }
+      if (onChunk) {
+        onChunk(chunk);
       }
     }
   } catch (error) {

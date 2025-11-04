@@ -21,6 +21,31 @@
  */
 
 /**
+ * Helper function to extract text content from message
+ * Handles both string content and multi-part content (with images)
+ * 
+ * @param {string|Array} content - Message content (string or array of parts)
+ * @returns {string} Extracted text content
+ */
+function extractTextContent(content) {
+  // If content is a string, return as-is
+  if (typeof content === 'string') {
+    return content;
+  }
+  
+  // If content is an array (multi-part with images), extract text parts
+  if (Array.isArray(content)) {
+    return content
+      .filter(part => part.type === 'text')
+      .map(part => part.text)
+      .join(' ');
+  }
+  
+  // Fallback for unexpected formats
+  return '';
+}
+
+/**
  * Keywords that indicate a student is stuck or confused
  */
 const STUCK_INDICATORS = [
@@ -122,7 +147,8 @@ function countStuckTurns(messages) {
   
   // Count from most recent backwards until we find a non-stuck response
   for (let i = recentUserMessages.length - 1; i >= 0; i--) {
-    const content = recentUserMessages[i].content.toLowerCase();
+    const textContent = extractTextContent(recentUserMessages[i].content);
+    const content = textContent.toLowerCase();
     
     // Check if this message indicates being stuck
     const isStuck = STUCK_INDICATORS.some(indicator => content.includes(indicator)) ||
@@ -152,7 +178,8 @@ function countHints(messages) {
   let hintCount = 0;
   
   assistantMessages.forEach(msg => {
-    const content = msg.content.toLowerCase();
+    const textContent = extractTextContent(msg.content);
+    const content = textContent.toLowerCase();
     const hasHintLanguage = HINT_INDICATORS.some(indicator => content.includes(indicator));
     
     if (hasHintLanguage) {
@@ -202,7 +229,7 @@ function assessUnderstanding(messages, stuckTurns) {
   
   // Excelling indicators: longer responses, asking clarifying questions, attempting steps
   const hasSubstantiveResponses = recentUserMessages.some(msg => {
-    const content = msg.content;
+    const content = extractTextContent(msg.content);
     return content.length > 30 && // Reasonably detailed
            (content.includes('?') || // Asking questions
             /\d/.test(content) ||    // Working with numbers

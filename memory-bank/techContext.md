@@ -7,21 +7,26 @@
 - **Math Rendering:** KaTeX for chat UI
 - **Canvas:** HTML5 Canvas API for whiteboard
 - **Voice:** Web Speech API (TTS/STT) - P2
-- **AI Integration:** Vercel AI SDK (`useChat` hook for chat UI state management and streaming - configured to call our Express `/api/chat` endpoint, never OpenAI directly)
-  - **CORRECT IMPORT:** `import { useChat } from '@ai-sdk/react'` (NOT `'ai/react'`)
-  - This is the verified correct import path for the `ai` v5+ package
-  - The `@ai-sdk/react` export provides React-specific hooks including `useChat`
-- **Styling:** CSS (approach TBD - could be styled-components, Tailwind, or plain CSS)
+- **AI Integration:** ~~Vercel AI SDK removed from frontend~~ - Manual state management with `fetch` + custom stream parser
+  - Previously used `useChat` hook, removed in PR #7 for simplification
+  - Frontend now handles: messages state, input state, loading state, manual streaming
+  - Stream parsing: Plain text chunks via `ReadableStream` API
+  - No AI SDK dependencies on frontend
+- **Styling:** Inline styles (TBD: Will migrate to SASS/CSS Modules in PR #16)
 
 ### Backend
-- **Runtime:** Node.js
+- **Runtime:** Node.js (CommonJS modules)
 - **Framework:** Express.js
-- **AI Integration:** Vercel AI SDK for OpenAI integration (API key server-side only)
-  - **Backend imports:** `import { streamText } from 'ai'` and `import { createOpenAI } from '@ai-sdk/openai'`
-  - Uses `streamText` for streaming responses and `createOpenAI` for OpenAI provider initialization
-- **AI Model:** OpenAI GPT-4 with Vision (via Vercel AI SDK)
-- **Database:** Firebase Firestore
-- **File Storage:** TBD (base64 encoding or temporary storage for images)
+- **AI Integration:** Vercel AI SDK v5 for OpenAI integration (API key server-side only)
+  - **Backend imports:** `const { streamText } = require('ai')` and `const { createOpenAI } = require('@ai-sdk/openai')`
+  - Uses `streamText` for streaming responses (synchronous in v5, returns StreamTextResult)
+  - Uses `pipeTextStreamToResponse(res)` to pipe plain text stream to Express response
+  - OpenAI provider initialization via `createOpenAI({ apiKey })`
+- **AI Models:** 
+  - `gpt-4-turbo` for text-only conversations
+  - `gpt-4o` for conversations with images (native vision support)
+- **Database:** Firebase Firestore (client writes from frontend, backend read-only)
+- **File Storage:** Firebase Storage (images uploaded from frontend)
 
 ### Infrastructure
 - **Frontend Deployment:** Vercel
@@ -80,17 +85,17 @@ npm run dev
 ### Frontend (Installed)
 - `react`, `react-dom` (v19.2.0)
 - `vite`, `@vitejs/plugin-react` (v7.1.12, v5.1.0)
-- `ai` (v5.0.86) - Vercel AI SDK
-  - Provides `@ai-sdk/react` export with `useChat` hook
-- `firebase` (v11.1.0)
+- ~~`ai` - Removed in PR #7~~ - No longer using Vercel AI SDK on frontend
+- `firebase` (v11.1.0) - Auth, Firestore, Storage
 - `katex`, `react-katex` (v0.16.11, v3.0.1) - for math rendering
 - `react-router-dom` (v7.9.5) - for routing
 
 ### Backend (Installed)
 - `express` (v4.21.2)
-- `ai` (v5.0.86) - Vercel AI SDK (provides `streamText` function)
-- `@ai-sdk/openai` (v1.0.0) - OpenAI provider for Vercel AI SDK
-- `openai` (v6.7.0) - OpenAI SDK (legacy, kept for compatibility)
+- `ai` (v5.0.76) - Vercel AI SDK (upgraded from v3.4.33)
+  - Provides `streamText` function for streaming AI responses
+  - Key change in v5: `streamText` is synchronous, returns StreamTextResult directly
+- `@ai-sdk/openai` (latest) - OpenAI provider for Vercel AI SDK
 - `firebase-admin` (v13.5.0)
 - `cors` (v2.8.5)
 - `dotenv` (v16.4.7)
@@ -125,12 +130,17 @@ npm run dev
 ## Key Technical Decisions
 
 1. **Express + Vercel:** Express provides professional, standard backend architecture for hiring manager demo. Vercel auto-wraps Express as serverless functions, giving best of both worlds: clean structure + serverless benefits (no cold starts during demos, auto-scaling)
-2. **Vercel AI SDK:** Saves 4-6 hours on chat UI implementation
-3. **Firestore:** Provides real-time updates + persistence with minimal setup
-4. **JavaScript Ecosystem:** Stay in JS for faster development
-5. **OpenAI Vision:** Handles image parsing (no separate OCR needed)
-6. **Canvas API:** Native HTML5 for whiteboard (no external libraries)
-7. **Web Speech API:** Browser native for MVP speed (can upgrade later)
+2. **Manual State Management (Frontend):** Removed `useChat` hook in PR #7 for simplicity. Direct control over messages, input, loading states with optimistic updates.
+3. **Vercel AI SDK v5 (Backend):** Upgraded from v3 to v5 for cleaner API and better model support
+   - `streamText` is synchronous in v5 (no await needed)
+   - `pipeTextStreamToResponse(res)` for Express (plain text streaming)
+   - `gpt-4o` for vision instead of deprecated `gpt-4-vision-preview`
+4. **Plain Text Streaming:** Simpler than data stream format - frontend just reads text chunks
+5. **Firestore Direct Writes:** Frontend writes directly to Firestore (optimistic UI), backend read-only
+6. **JavaScript Ecosystem:** Stay in JS for faster development (CommonJS on backend for dotenv)
+7. **OpenAI Vision:** `gpt-4o` handles image parsing natively (no separate OCR needed)
+8. **Canvas API:** Native HTML5 for whiteboard (no external libraries)
+9. **Web Speech API:** Browser native for MVP speed (can upgrade later)
 
 ## Known Technical Challenges
 

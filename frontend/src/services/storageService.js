@@ -34,12 +34,12 @@ export async function uploadImage(file, userId) {
     const storageRef = ref(firebaseStorage, filePath);
 
     // Upload file
-    console.log(`📤 Uploading image to: ${filePath}`);
+    // console.log(`📤 Uploading image to: ${filePath}`);
     const snapshot = await uploadBytes(storageRef, file);
-
+    
     // Get download URL
     const downloadURL = await getDownloadURL(snapshot.ref);
-    console.log(`✅ Image uploaded successfully: ${downloadURL}`);
+    // console.log(`✅ Image uploaded successfully: ${downloadURL}`);
 
     return downloadURL;
   } catch (error) {

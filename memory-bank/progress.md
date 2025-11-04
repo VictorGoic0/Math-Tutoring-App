@@ -59,6 +59,43 @@
 - In-memory sorting (no composite index needed)
 - **TESTED & WORKING** - Instant UX, reliable persistence
 
+### ✅ PR #6: Image Upload UI with Firebase Storage (COMPLETE)
+- Single image upload per message with 📷 button
+- Image preview before sending (60x60 thumbnail with remove button)
+- Firebase Storage integration (`storageService.js`)
+- File validation: max 10MB, image types only
+- Storage path: `chat-images/{userId}/{timestamp}_{filename}`
+- Images display in chat with click to open full size
+- Upload happens before message send (blocking for this flow)
+- Security rules documented in `firestore.rules`
+- **TESTED & WORKING** - Image upload and display functional
+
+### ✅ PR #7: OpenAI Vision Integration & useChat Removal (COMPLETE)
+**Refactoring:**
+- Removed `ai` package from frontend (no longer using `useChat` hook)
+- Implemented manual state management in `Chat.jsx`
+- Created `parseAIStream` utility for plain text stream parsing
+- Upgraded AI SDK from v3.4.33 to v5.0.76 (backend only)
+- Changed from `pipeDataStreamToResponse` (v3) to `pipeTextStreamToResponse` (v5)
+- Plain text streaming instead of data stream format (simpler parsing)
+
+**Vision Integration:**
+- Backend accepts `imageUrl` in message body
+- Uses `gpt-4o` for image messages (native vision support)
+- Uses `gpt-4-turbo` for text-only messages
+- Vision and Socratic prompting work together seamlessly
+- Multi-part content format for images: `[{type: 'text'}, {type: 'image', image: url}]`
+
+**State Management:**
+- Local state is source of truth during session
+- Optimistic updates for instant UX
+- Non-blocking Firebase persistence (fire-and-forget)
+- Fetch history on mount only (no real-time sync)
+- AI responses stream in real-time as plain text
+- Debug logs commented out (can be uncommented for troubleshooting)
+
+**TESTED & WORKING** - Streaming, vision, and persistence all functional
+
 ## What's Left to Build
 
 ### Foundation (Day 1)
@@ -96,7 +133,7 @@
 ## Current Status
 
 **Phase:** Day 2 - Core Features Complete  
-**Completion:** ~26% (5 of 19 PRs complete and tested)
+**Completion:** ~37% (7 of 19 PRs complete and tested)
 
 ### Completed PRs
 - ✅ PR #1: Project Setup & Basic Infrastructure
@@ -104,16 +141,18 @@
 - ✅ PR #3: Basic Chat UI with Vercel AI SDK
 - ✅ PR #4: Socratic Prompting System
 - ✅ PR #5: Firestore Integration for Conversation Persistence
+- ✅ PR #6: Image Upload UI with Firebase Storage
+- ✅ PR #7: OpenAI Vision Integration & useChat Removal
 
 ### In Progress
-- None - ready to start PR #6
+- None - ready to start PR #8
 
 ### Next Up
-- PR #6: Image Upload UI
+- PR #8: Math Rendering with KaTeX
 
 ## Known Issues
 
-None currently - all Day 1 PRs working!
+None currently - all PRs through Day 2 working!
 
 ### Resolved Issues
 - ✅ OpenAI API Connection verified and working
@@ -126,9 +165,12 @@ None currently - all Day 1 PRs working!
 - ✅ Fixed Firebase Admin SDK property names (snake_case required)
 - ✅ Fixed Firebase Admin SDK exports (proper object export)
 - ✅ Fixed environment variable loading (converted to CommonJS)
-- ✅ Fixed AI SDK version compatibility (downgraded to v3)
-- ✅ Fixed streaming method (pipeDataStreamToResponse for v3)
+- ✅ Fixed AI SDK version compatibility (initially downgraded to v3, then upgraded to v5 in PR #7)
+- ✅ Fixed streaming method (v3: `pipeDataStreamToResponse`, v5: `pipeTextStreamToResponse`)
 - ✅ Added comprehensive error handling throughout backend
+- ✅ Removed `useChat` dependency (PR #7) - simpler manual state management
+- ✅ Fixed stream parsing (v5 uses plain text, not data stream format)
+- ✅ Upgraded to `gpt-4o` for vision (replaces deprecated `gpt-4-vision-preview`)
 
 ## Problem Types to Test (Once Built)
 
@@ -153,10 +195,10 @@ None currently - all Day 1 PRs working!
 ## Timeline Status
 
 **Day 1:** ✅ Complete (PR #1, #2, #3, #4, #5)  
-**Day 2:** ✅ In Progress (PR #5 complete, ready for PR #6)  
+**Day 2:** ✅ Complete (PR #6, #7 - Image upload + Vision integration working!)  
 **Day 3:** Not started  
 **Day 4:** Not started  
 **Day 5:** Not started
 
-**Overall:** Ahead of schedule - Core tutoring system working end-to-end!
+**Overall:** Ahead of schedule - Core tutoring system with vision working end-to-end!
 

@@ -34,7 +34,7 @@ function Chat() {
         
         if (loadedMessages.length > 0) {
           setMessages(loadedMessages);
-          console.log(`📥 Loaded ${loadedMessages.length} messages from history`);
+          // console.log(`📥 Loaded ${loadedMessages.length} messages from history`);
         }
         
         setIsLoadingHistory(false);
@@ -79,7 +79,7 @@ function Chat() {
       setIsUploadingImage(true);
       try {
         imageUrl = await uploadImage(selectedImage, currentUser.uid);
-        console.log(`📷 Image uploaded: ${imageUrl}`);
+        // console.log(`📷 Image uploaded: ${imageUrl}`);
       } catch (error) {
         console.error('Failed to upload image:', error);
         alert(`Failed to upload image: ${error.message}`);
@@ -169,7 +169,7 @@ function Chat() {
       if (!convId) {
         convId = await createConversation(currentUser.uid, content || 'Image message');
         setConversationId(convId);
-        console.log(`📝 Created conversation: ${convId}`);
+        // console.log(`📝 Created conversation: ${convId}`);
       }
       
       await saveMessage(convId, {
@@ -178,9 +178,9 @@ function Chat() {
         ...(imageUrl && { imageUrl })
       });
       
-      console.log('✅ User message persisted');
+      // console.log('✅ User message persisted');
     } catch (error) {
-      console.error('⚠️ Failed to persist user message (non-fatal):', error);
+      // console.error('⚠️ Failed to persist user message (non-fatal):', error);
     }
   }
 
@@ -192,9 +192,9 @@ function Chat() {
         role: 'assistant',
         content
       });
-      console.log('✅ AI message persisted');
+      // console.log('✅ AI message persisted');
     } catch (error) {
-      console.error('⚠️ Failed to persist AI message (non-fatal):', error);
+      // console.error('⚠️ Failed to persist AI message (non-fatal):', error);
     }
   }
 
@@ -212,9 +212,9 @@ function Chat() {
 
     try {
       await deleteConversation(convIdToDelete);
-      console.log('✅ Conversation deleted');
+      // console.log('✅ Conversation deleted');
     } catch (error) {
-      console.error('⚠️ Failed to delete conversation:', error);
+      // console.error('⚠️ Failed to delete conversation:', error);
     } finally {
       setIsDeleting(false);
     }
