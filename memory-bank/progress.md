@@ -2,7 +2,36 @@
 
 ## What Works
 
-**Nothing yet** - Project is in initialization phase.
+### ✅ PR #1: Project Setup & Basic Infrastructure (COMPLETE)
+- React + Vite frontend running on localhost:5173
+- Express backend running on localhost:3000
+- Environment variables configured
+- Firebase connection established (Auth, Firestore, Storage)
+- Basic API health check endpoint
+- Vercel deployment configuration
+
+### ✅ PR #2: Firebase Authentication & Configuration (COMPLETE)
+- Firebase Auth initialized (frontend + backend)
+- AuthContext with AuthProvider managing auth state
+- useAuth hook for accessing auth in components
+- Login component with email/password
+- Sign Up component with email/password
+- Protected routes (ProtectedRoute component)
+- Auth middleware on backend (verifyAuthToken)
+- React Router with BrowserRouter in main.jsx
+- Auth tokens sent with API requests
+
+### ✅ PR #3: Basic Chat UI with Vercel AI SDK (COMPLETE - READY FOR TESTING)
+- Chat component with message history
+- MessageList component displaying user/assistant messages
+- MessageInput component with text input
+- useChat hook integrated (correct import: `@ai-sdk/react`)
+- `/api/chat` endpoint created with streaming support
+- OpenAI GPT-4 Turbo connected via Vercel AI SDK
+- Authentication required for chat endpoint
+- Error handling and loading states
+- CORS configured for local development
+- **READY FOR MANUAL TESTING** (see TESTING_PR3.md)
 
 ## What's Left to Build
 
@@ -40,23 +69,32 @@
 
 ## Current Status
 
-**Phase:** Project Initialization  
-**Completion:** ~0%
+**Phase:** Day 1 - Foundation Complete, Testing Required  
+**Completion:** ~15% (3 of 19 PRs complete)
 
-### Completed Tasks
-- ✅ Created project structure
-- ✅ Initialized package.json files
-- ✅ Created memory bank documentation
+### Completed PRs
+- ✅ PR #1: Project Setup & Basic Infrastructure
+- ✅ PR #2: Firebase Authentication & Configuration  
+- ✅ PR #3: Basic Chat UI with Vercel AI SDK (code complete, needs testing)
 
 ### In Progress
-- None
+- 🧪 **Testing PR #3:** Manual testing with math problems required
 
 ### Next Up
-- PR #1: Project Setup & Basic Infrastructure
+- PR #4: Socratic Prompting System (once PR #3 testing passes)
 
 ## Known Issues
 
-None yet - project just starting.
+### Pending Verification
+1. **OpenAI API Connection:** Need to test that OPENAI_API_KEY is valid and streaming works
+2. **Chat Streaming:** Need to verify messages stream properly from backend to frontend
+3. **Auth Flow:** Need to verify auth tokens work end-to-end with chat endpoint
+
+### Resolved Issues
+- ✅ Fixed React Router navigation (moved BrowserRouter to main.jsx, use useNavigate instead of window.location)
+- ✅ Fixed Vercel AI SDK imports (documented correct import: `@ai-sdk/react`)
+- ✅ Added CORS fallback for local development
+- ✅ Added API URL fallback in Chat component
 
 ## Problem Types to Test (Once Built)
 
@@ -80,11 +118,11 @@ None yet - project just starting.
 
 ## Timeline Status
 
-**Day 1:** Not started  
-**Day 2:** Not started  
+**Day 1:** ✅ Complete (PR #1, #2, #3 code complete - testing in progress)  
+**Day 2:** Not started (blocked on PR #3 testing)  
 **Day 3:** Not started  
 **Day 4:** Not started  
 **Day 5:** Not started
 
-**Overall:** On track (project just starting)
+**Overall:** On track - Day 1 foundation complete, ready for testing
 

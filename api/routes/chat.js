@@ -1,6 +1,6 @@
-import express from 'express';
-import { streamText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
+const express = require('express');
+const { streamText } = require('ai');
+const { createOpenAI } = require('@ai-sdk/openai');
 
 const router = express.Router();
 
@@ -49,5 +49,5 @@ router.post('/chat', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
 

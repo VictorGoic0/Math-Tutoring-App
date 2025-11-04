@@ -2,39 +2,58 @@
 
 ## Current Work Focus
 
-**Status:** Project initialization phase  
-**Phase:** Pre-development setup
+**Status:** PR #3 Complete - Ready for Testing  
+**Phase:** Day 1 Foundation Complete, Manual Testing Required
 
-The project is in the very early stages. Basic package.json files exist for both frontend and backend, but no actual implementation has started yet.
+All Day 1 PRs (#1, #2, #3) are code-complete. The chat interface is built and connected to OpenAI GPT-4 Turbo via Vercel AI SDK. Now ready for manual testing to verify the complete flow works end-to-end.
 
 ## Recent Changes
 
-- Created basic project structure (frontend/ and backend/ directories)
-- Initialized package.json files (minimal, no dependencies yet)
-- Memory bank initialization (this document)
+### Just Completed (PR #3)
+- ✅ Integrated `useChat` hook with correct import (`@ai-sdk/react`)
+- ✅ Created `/api/chat` endpoint with streaming support
+- ✅ Connected OpenAI GPT-4 Turbo via Vercel AI SDK
+- ✅ Added auth middleware to protect chat endpoint
+- ✅ Added CORS fallbacks for local development
+- ✅ Added API URL fallback in Chat component
+- ✅ Created TESTING_PR3.md guide
+- ✅ Documented correct SDK imports in memory bank and cursor rules
+
+### Previously Completed (PR #1 & #2)
+- ✅ React + Vite frontend setup
+- ✅ Express backend setup
+- ✅ Firebase Auth + Firestore + Storage initialized
+- ✅ Login/SignUp components
+- ✅ AuthContext + useAuth hook
+- ✅ Protected routes with React Router
+- ✅ Auth middleware on backend
 
 ## Next Steps
 
-### Immediate (Day 1)
-1. **PR #1: Project Setup & Basic Infrastructure**
-   - Initialize React + Vite project
-   - Set up Express backend
-   - Configure environment variables
-   - Set up Firebase project and Firestore
-   - Install Vercel AI SDK dependencies
-   - Configure CORS and basic API routes
+### Immediate - Testing Required
+1. **Manual Testing of PR #3** (see TESTING_PR3.md)
+   - Start backend server: `cd api && npm run dev`
+   - Start frontend server: `cd frontend && npm run dev`
+   - Log in to the application
+   - Test chat with math problems
+   - Verify streaming works
+   - Verify error handling
+   - Mark task #8 complete once testing passes
 
-2. **PR #2: Basic Chat UI with Vercel AI SDK**
-   - Create Chat component
-   - Implement text input
-   - Integrate `useChat()` hook
-   - Create `/api/chat` endpoint
-   - Connect to OpenAI GPT-4
+### After Testing Passes
+2. **PR #4: Socratic Prompting System**
+   - Create Socratic system prompt (follow PRD template)
+   - Implement prompt in `/api/chat` endpoint
+   - Add conversation context management
+   - Test with hardcoded math problem: "2x + 5 = 13"
+   - Verify AI never gives direct answers
+   - Test hint triggering after 2+ stuck turns
 
-3. **PR #3: Socratic Prompting System**
-   - Create Socratic system prompt
-   - Implement prompt in `/api/chat`
-   - Test with hardcoded problem
+3. **PR #5: Firestore Integration for Conversation Persistence**
+   - Set up Firestore collections structure
+   - Implement conversation creation endpoint
+   - Persist messages on each turn
+   - Add conversation history retrieval
 
 ## Active Decisions & Considerations
 
@@ -52,7 +71,19 @@ The project is in the very early stages. Basic package.json files exist for both
 
 ## Current Blockers
 
-None identified yet - project just starting.
+**⚠️ TESTING REQUIRED:** PR #3 is code-complete but needs manual testing before moving to PR #4.
+
+**Testing Checklist:**
+- [ ] Backend server runs without errors
+- [ ] Frontend server runs without errors
+- [ ] User can log in successfully
+- [ ] Chat interface displays
+- [ ] Messages can be sent
+- [ ] AI responses stream back
+- [ ] Error handling works
+- [ ] Auth token is sent with requests
+
+**Once testing passes:** Move to PR #4 (Socratic Prompting)
 
 ## Active Considerations
 

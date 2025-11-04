@@ -1,14 +1,12 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+// IMPORTANT: Load environment variables BEFORE any other imports
+require('dotenv').config();
 
-// Load environment variables first
-dotenv.config();
-
-// Initialize Firebase Admin after env vars are loaded
-import './utils/firebaseAdmin.js';
-import { verifyAuthToken, optionalAuth } from './middleware/auth.js';
-import chatRouter from './routes/chat.js';
+// Now import everything else AFTER env vars are loaded
+const express = require('express');
+const cors = require('cors');
+require('./utils/firebaseAdmin.js');
+const { verifyAuthToken, optionalAuth } = require('./middleware/auth.js');
+const chatRouter = require('./routes/chat.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,5 +53,5 @@ if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
 }
 
 // Export for Vercel serverless
-export default app;
+module.exports = app;
 

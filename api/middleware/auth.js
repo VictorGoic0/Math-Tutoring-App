@@ -1,10 +1,10 @@
-import { auth } from '../utils/firebaseAdmin.js';
+const { auth } = require('../utils/firebaseAdmin.js');
 
 /**
  * Middleware to verify Firebase authentication token
  * Expects Authorization header with format: "Bearer <token>"
  */
-export const verifyAuthToken = async (req, res, next) => {
+const verifyAuthToken = async (req, res, next) => {
   try {
     // Get the authorization header
     const authHeader = req.headers.authorization;
@@ -62,7 +62,7 @@ export const verifyAuthToken = async (req, res, next) => {
  * If auth is provided, it will be verified and user attached to req
  * If not provided, req.user will be null
  */
-export const optionalAuth = async (req, res, next) => {
+const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -89,4 +89,6 @@ export const optionalAuth = async (req, res, next) => {
     next();
   }
 };
+
+module.exports = { verifyAuthToken, optionalAuth };
 
