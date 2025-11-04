@@ -232,12 +232,40 @@ api/server.js (add auth middleware)
 
 **Status:** ✅ **COMPLETE** - All tasks implemented, ready for manual testing
 
+**Technical Issues Resolved:**
+1. **Firebase Admin SDK Property Names:**
+   - Fixed: Changed from camelCase (`projectId`, `privateKey`, `clientEmail`) to snake_case (`project_id`, `private_key`, `client_email`)
+   - Firebase Admin SDK requires snake_case property names in service account object
+
+2. **Environment Variable Loading with ES Modules:**
+   - Problem: `dotenv.config()` wasn't executing before Firebase imports in ES modules
+   - Solution: Converted entire backend from ES modules to CommonJS
+   - Changed all `import`/`export` to `require`/`module.exports`
+   - Removed `"type": "module"` from `package.json`
+   - Now `require('dotenv').config()` runs synchronously before any other imports
+
+3. **.env File Naming:**
+   - Clarified that file must be named `.env` (not `.env.local`) for default `dotenv.config()`
+   - Alternative: Use `--env-file=.env.local` flag with Node.js 20.6+ native support
+
+4. **.env Quoting Rules:**
+   - `FIREBASE_PROJECT_ID` - NO quotes
+   - `FIREBASE_PRIVATE_KEY` - YES quotes (preserves `\n` characters)
+   - `FIREBASE_CLIENT_EMAIL` - NO quotes
+   - `OPENAI_API_KEY` - NO quotes
+
 **Files Created/Modified:**
 ```
-frontend/src/components/Chat.jsx
+frontend/src/components/Chat.jsx (uses @ai-sdk/react with useChat hook)
 frontend/src/components/MessageList.jsx
 frontend/src/components/MessageInput.jsx
-api/routes/chat.js (or api/server.js with chat route)
+api/routes/chat.js (POST /api/chat endpoint with OpenAI streaming)
+api/server.js (converted to CommonJS, dotenv config at top)
+api/index.js (converted to CommonJS for Vercel)
+api/utils/firebaseAdmin.js (fixed property names, converted to CommonJS)
+api/middleware/auth.js (converted to CommonJS)
+api/package.json (removed "type": "module")
+.cursor/rules/vercel-ai-sdk-imports.mdc (import documentation)
 ```
 
 **Architecture:**

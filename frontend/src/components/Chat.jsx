@@ -1,4 +1,4 @@
-import { useChat } from '@ai-sdk/react';
+import { useChat } from 'ai/react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useAuth } from '../hooks/useAuth';

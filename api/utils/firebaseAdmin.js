@@ -25,7 +25,13 @@ if (!admin.apps.length) {
   console.log('✓ Firebase Admin SDK initialized successfully');
 }
 
-module.exports = admin;
-module.exports.auth = admin.auth();
-module.exports.db = admin.firestore();
+// Export both the admin instance and auth/db shortcuts
+const auth = admin.auth();
+const db = admin.firestore();
+
+module.exports = {
+  admin,
+  auth,
+  db
+};
 

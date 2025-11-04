@@ -14,17 +14,40 @@ router.post('/chat', async (req, res) => {
   try {
     const { messages } = req.body;
 
+    // Validate messages
     if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Messages array is required' });
+      return res.status(400).json({ 
+        error: 'Bad Request',
+        message: 'Messages array is required' 
+      });
+    }
+
+    if (messages.length === 0) {
+      return res.status(400).json({ 
+        error: 'Bad Request',
+        message: 'Messages array cannot be empty' 
+      });
     }
 
     // Verify user is authenticated (middleware should set req.user)
     if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'Authentication required' 
+      });
+    }
+
+    // Validate OpenAI API key
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is not configured');
+      return res.status(500).json({ 
+        error: 'Configuration Error',
+        message: 'OpenAI API key not configured' 
+      });
     }
 
     // Stream the response from OpenAI using Vercel AI SDK
-    const result = streamText({
+    const result = await streamText({
       model: openai('gpt-4-turbo'),
       messages: messages.map(msg => ({
         role: msg.role,
@@ -34,17 +57,45 @@ router.post('/chat', async (req, res) => {
     });
 
     // Convert to data stream response format expected by useChat hook
-    return result.toDataStreamResponse(res);
+    result.pipeDataStreamToResponse(res);
 
   } catch (error) {
     console.error('Chat API error:', error);
+    console.error('Error stack:', error.stack);
     
     // If headers haven't been sent yet, send error response
     if (!res.headersSent) {
+      // Handle specific OpenAI errors
+      if (error.message?.includes('API key')) {
+        return res.status(401).json({ 
+          error: 'OpenAI Authentication Error',
+          message: 'Invalid OpenAI API key'
+        });
+      }
+      
+      if (error.message?.includes('rate limit')) {
+        return res.status(429).json({ 
+          error: 'Rate Limit Exceeded',
+          message: 'Too many requests, please try again later'
+        });
+      }
+
+      if (error.message?.includes('quota')) {
+        return res.status(402).json({ 
+          error: 'Quota Exceeded',
+          message: 'OpenAI API quota exceeded'
+        });
+      }
+
+      // Generic error response
       return res.status(500).json({ 
-        error: 'Failed to process chat request',
-        details: error.message 
+        error: 'Internal Server Error',
+        message: 'Failed to process chat request',
+        details: process.env.NODE_ENV === 'production' ? undefined : error.message
       });
+    } else {
+      // If streaming already started, log the error
+      console.error('Error occurred after streaming started - connection may be broken');
     }
   }
 });
