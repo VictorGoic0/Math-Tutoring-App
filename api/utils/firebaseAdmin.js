@@ -8,33 +8,40 @@ function initializeFirebase() {
     return;
   }
 
-  // Validate required environment variables
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  try {
+     // Validate required environment variables
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 
-  if (!projectId || !privateKey || !clientEmail) {
-    const missing = [];
-    if (!projectId) missing.push('FIREBASE_PROJECT_ID');
-    if (!privateKey) missing.push('FIREBASE_PRIVATE_KEY');
-    if (!clientEmail) missing.push('FIREBASE_CLIENT_EMAIL');
-    throw new Error(`Firebase Admin SDK credentials not configured. Missing: ${missing.join(', ')}. Check your environment variables.`);
+    if (!projectId || !privateKey || !clientEmail) {
+      const missing = [];
+      if (!projectId) missing.push('FIREBASE_PROJECT_ID');
+      if (!privateKey) missing.push('FIREBASE_PRIVATE_KEY');
+      if (!clientEmail) missing.push('FIREBASE_CLIENT_EMAIL');
+      throw new Error(`Firebase Admin SDK credentials not configured. Missing: ${missing.join(', ')}. Check your environment variables.`);
+    }
+
+    const serviceAccount = {
+      projectId: projectId,
+      privateKey: privateKey
+      .replace(/\\n/g, '\n')     // Fix escaped \n
+      .trim(),
+      clientEmail: clientEmail,
+    };
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+
+    initialized = true;
+    console.log('✓ Firebase Admin SDK initialized successfully');
+  } catch (error) {
+    console.error('FIREBASE INIT FAILED:', error.message);
+    console.error('PRIVATE_KEY preview:', process.env.FIREBASE_PRIVATE_KEY?.slice(0, 100));
+    throw error; // Let Vercel log the full crash
   }
 
-  const serviceAccount = {
-    projectId: projectId,
-    privateKey: privateKey
-    .replace(/\\n/g, '\n')     // Fix escaped \n
-    .trim(),
-    clientEmail: clientEmail,
-  };
-
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-
-  initialized = true;
-  console.log('✓ Firebase Admin SDK initialized successfully');
 }
 
 // Getter functions - initialize on first access
