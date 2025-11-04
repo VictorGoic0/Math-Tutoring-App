@@ -6,22 +6,17 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /**
- * Base fetch wrapper with authentication
+ * Base fetch wrapper
  * 
- * @param {string} endpoint - API endpoint (e.g., '/chat/history')
+ * @param {string} endpoint - API endpoint (e.g., '/chat')
  * @param {Object} options - Fetch options
- * @param {string} authToken - Firebase auth token
  * @returns {Promise<Response>} Fetch response
  */
-async function apiFetch(endpoint, options = {}, authToken = null) {
+async function apiFetch(endpoint, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
-
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
-  }
 
   const config = {
     ...options,
@@ -42,43 +37,41 @@ async function apiFetch(endpoint, options = {}, authToken = null) {
 /**
  * GET request
  */
-export async function apiGet(endpoint, authToken = null) {
-  return apiFetch(endpoint, { method: 'GET' }, authToken);
+export async function apiGet(endpoint) {
+  return apiFetch(endpoint, { method: 'GET' });
 }
 
 /**
  * POST request
  */
-export async function apiPost(endpoint, data, authToken = null) {
+export async function apiPost(endpoint, data) {
   return apiFetch(
     endpoint,
     {
       method: 'POST',
       body: JSON.stringify(data),
-    },
-    authToken
+    }
   );
 }
 
 /**
  * PATCH request
  */
-export async function apiPatch(endpoint, data, authToken = null) {
+export async function apiPatch(endpoint, data) {
   return apiFetch(
     endpoint,
     {
       method: 'PATCH',
       body: JSON.stringify(data),
-    },
-    authToken
+    }
   );
 }
 
 /**
  * DELETE request
  */
-export async function apiDelete(endpoint, authToken = null) {
-  return apiFetch(endpoint, { method: 'DELETE' }, authToken);
+export async function apiDelete(endpoint) {
+  return apiFetch(endpoint, { method: 'DELETE' });
 }
 
 /**

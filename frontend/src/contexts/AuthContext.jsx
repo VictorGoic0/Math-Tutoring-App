@@ -4,34 +4,18 @@ import { onAuthStateChange } from '../utils/firebase';
 // Create the auth context
 export const AuthContext = createContext({
   currentUser: null,
-  authToken: null,
   loading: true,
 });
 
 // AuthProvider component wraps the app and provides auth state
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
-  const [authToken, setAuthToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Subscribe to auth state changes
-    const unsubscribe = onAuthStateChange(async (user) => {
+    const unsubscribe = onAuthStateChange((user) => {
       setCurrentUser(user);
-      
-      // Get auth token if user is logged in
-      if (user) {
-        try {
-          const token = await user.getIdToken();
-          setAuthToken(token);
-        } catch (error) {
-          console.error('Error getting auth token:', error);
-          setAuthToken(null);
-        }
-      } else {
-        setAuthToken(null);
-      }
-      
       setLoading(false);
     });
 
@@ -41,7 +25,6 @@ export function AuthProvider({ children }) {
 
   const value = {
     currentUser,
-    authToken,
     loading,
   };
 

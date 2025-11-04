@@ -17,8 +17,6 @@ process.on('unhandledRejection', (reason, promise) => {
 // Now import everything else AFTER env vars are loaded
 const express = require('express');
 const cors = require('cors');
-// Firebase Admin will be initialized lazily on first use
-const { verifyAuthToken, optionalAuth } = require('./middleware/auth.js');
 const chatRouter = require('./routes/chat.js');
 
 const app = express();
@@ -54,22 +52,9 @@ app.get('/test', (req, res) => {
   }
 });
 
-// Protected route example (requires authentication)
-app.get('/user/profile', verifyAuthToken, (req, res) => {
-  try {
-    res.json({ 
-      message: 'Protected route accessed successfully',
-      user: req.user 
-    });
-  } catch (error) {
-    console.error('Profile route error:', error);
-    res.status(500).json({ error: 'Failed to retrieve profile', message: error.message });
-  }
-});
-
-// Chat routes (protected - requires authentication)
+// Chat routes
 // Note: Vercel strips /api prefix, so mount at root
-app.use('/', verifyAuthToken, chatRouter);
+app.use('/', chatRouter);
 
 // Global error handler - catches any unhandled errors
 app.use((err, req, res, next) => {

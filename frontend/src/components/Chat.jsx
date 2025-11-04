@@ -7,7 +7,7 @@ import { uploadImage, validateImageFile } from '../services/storageService';
 import { API_URL, parseAIStream } from '../services/api';
 
 function Chat() {
-  const { authToken, currentUser } = useAuth();
+  const { currentUser } = useAuth();
   
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -23,13 +23,13 @@ function Chat() {
 
   useEffect(() => {
     async function fetchHistory() {
-      if (!authToken) {
+      if (!currentUser) {
         setIsLoadingHistory(false);
         return;
       }
 
       try {
-        const { conversationId: loadedConvId, messages: loadedMessages } = await loadConversationHistory(authToken);
+        const { conversationId: loadedConvId, messages: loadedMessages } = await loadConversationHistory(currentUser.uid);
         setConversationId(loadedConvId);
         
         if (loadedMessages.length > 0) {
@@ -45,7 +45,7 @@ function Chat() {
     }
 
     fetchHistory();
-  }, [authToken]);
+  }, [currentUser]);
 
   const handleImageSelect = (file) => {
     const validation = validateImageFile(file);
@@ -120,8 +120,7 @@ function Chat() {
       const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           messages: [...messages, userMessage].map(m => ({

@@ -2,7 +2,6 @@ const express = require('express');
 const { streamText } = require('ai');
 const { createOpenAI } = require('@ai-sdk/openai');
 const { buildMessagesWithSystemPrompt, analyzeConversationContext } = require('../services/promptService');
-const { getMessages, getUserConversations } = require('../services/firestoreService');
 
 const router = express.Router();
 
@@ -31,14 +30,6 @@ router.post('/chat', async (req, res) => {
       });
     }
 
-    // Verify user is authenticated (middleware should set req.user)
-    if (!req.user) {
-      return res.status(401).json({ 
-        error: 'Unauthorized',
-        message: 'Authentication required' 
-      });
-    }
-
     // Log if image is included in request
     // if (imageUrl) {
     //   console.log(`📷 Image included in chat request: ${imageUrl.substring(0, 80)}...`);
@@ -56,7 +47,6 @@ router.post('/chat', async (req, res) => {
     // Analyze conversation context for logging and debugging
     // const context = analyzeConversationContext(messages);
     // console.log('📊 Conversation Context:', {
-    //   userId: req.user.uid,
     //   messageCount: messages.length,
     //   problemText: context.problemText.substring(0, 50) + (context.problemText.length > 50 ? '...' : ''),
     //   currentStep: context.currentStep,
@@ -154,62 +144,6 @@ router.post('/chat', async (req, res) => {
       // If streaming already started, log the error
       console.error('Error occurred after streaming started - connection may be broken');
     }
-  }
-});
-
-/**
- * GET /chat/history
- * Load conversation history for the authenticated user
- * Returns: { conversationId, messages }
- */
-router.get('/chat/history', async (req, res) => {
-  try {
-    // Verify user is authenticated
-    if (!req.user) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
-    }
-
-    const limit = parseInt(req.query.limit) || 100;
-    
-    // Get user's conversation (single conversation per user)
-    const conversations = await getUserConversations(req.user.uid, 1);
-    
-    if (conversations.length === 0) {
-      // No conversation yet
-      return res.status(200).json({
-        conversationId: null,
-        messages: []
-      });
-    }
-    
-    const conversation = conversations[0];
-    
-    // Get messages from conversation
-    const messagesData = await getMessages(conversation.id, limit);
-    
-    // Transform to useChat format (strip unnecessary fields, convert timestamp)
-    const messages = messagesData.map(({ id, role, content, timestamp, imageUrl }) => ({
-      id,
-      role,
-      content,
-      createdAt: new Date(timestamp),
-      ...(imageUrl && { imageUrl })
-    }));
-    
-    res.status(200).json({
-      conversationId: conversation.id,
-      messages
-    });
-  } catch (error) {
-    console.error('Error loading conversation history:', error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to load conversation history',
-      details: process.env.NODE_ENV === 'production' ? undefined : error.message
-    });
   }
 });
 

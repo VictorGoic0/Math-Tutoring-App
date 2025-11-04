@@ -3,33 +3,71 @@
  * API calls and Firestore operations for chat functionality
  */
 
-import { apiGet } from './api';
 import { firebaseFireStore } from '../utils/firebase';
-import { collection, addDoc, doc, serverTimestamp, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDocs, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
 
 /**
  * Load conversation history for the authenticated user
  * Returns: { conversationId, messages }
  * 
- * @param {string} authToken - Firebase auth token
- * @param {number} limit - Maximum number of messages to load (default: 100)
+ * @param {string} userId - Firebase Auth user ID
+ * @param {number} messageLimit - Maximum number of messages to load (default: 100)
  * @returns {Promise<Object>} { conversationId: string | null, messages: Array }
  */
-export async function loadConversationHistory(authToken, limit = 100) {
+export async function loadConversationHistory(userId, messageLimit = 100) {
   try {
-    const response = await apiGet(
-      `/chat/history?limit=${limit}`,
-      authToken
+    // Get user's conversation (single conversation per user pattern)
+    const conversationsRef = collection(firebaseFireStore, 'conversations');
+    const conversationsQuery = query(
+      conversationsRef,
+      where('userId', '==', userId),
+      limit(1)
     );
-
-    if (!response.ok) {
-      throw new Error(`Failed to load conversation history: ${response.statusText}`);
+    
+    const conversationsSnapshot = await getDocs(conversationsQuery);
+    
+    if (conversationsSnapshot.empty) {
+      // No conversation yet
+      return {
+        conversationId: null,
+        messages: []
+      };
     }
-
-    const data = await response.json();
+    
+    const conversation = conversationsSnapshot.docs[0];
+    const conversationId = conversation.id;
+    
+    // Get messages from conversation subcollection
+    const messagesRef = collection(
+      firebaseFireStore,
+      'conversations',
+      conversationId,
+      'messages'
+    );
+    
+    const messagesQuery = query(
+      messagesRef,
+      orderBy('timestamp', 'asc'),
+      limit(messageLimit)
+    );
+    
+    const messagesSnapshot = await getDocs(messagesQuery);
+    
+    // Transform to match expected format (with createdAt instead of timestamp)
+    const messages = messagesSnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        role: data.role,
+        content: data.content,
+        createdAt: new Date(data.timestamp),
+        ...(data.imageUrl && { imageUrl: data.imageUrl })
+      };
+    });
+    
     return {
-      conversationId: data.conversationId || null,
-      messages: data.messages || []
+      conversationId,
+      messages
     };
   } catch (error) {
     console.error('Error loading conversation history:', error);
