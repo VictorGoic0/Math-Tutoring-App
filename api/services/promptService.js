@@ -3,6 +3,8 @@
  * Provides system prompts and conversation management for the AI Math Tutor
  */
 
+const { analyzeConversationContext, buildContextInstructions } = require('./contextManager');
+
 /**
  * Get the Socratic teaching system prompt
  * Based on PRD specifications for guided discovery learning
@@ -57,37 +59,37 @@ Remember: Your goal is to help students become better problem-solvers, not just 
 }
 
 /**
- * Build messages array with system prompt for OpenAI
+ * Build messages array with system prompt and context awareness for OpenAI
+ * Analyzes conversation to provide adaptive scaffolding
+ * 
  * @param {Array} userMessages - Array of user/assistant messages from the conversation
- * @returns {Array} - Complete messages array with system prompt
+ * @returns {Array} - Complete messages array with context-aware system prompt
  */
 function buildMessagesWithSystemPrompt(userMessages) {
+  // Analyze conversation context for adaptive scaffolding
+  const context = analyzeConversationContext(userMessages);
+  
+  // Build base system prompt
+  const basePrompt = getSocraticSystemPrompt();
+  
+  // Add dynamic context instructions
+  const contextInstructions = buildContextInstructions(context);
+  
+  // Combine into full system prompt
+  const fullSystemPrompt = basePrompt + contextInstructions;
+  
   return [
     {
       role: 'system',
-      content: getSocraticSystemPrompt()
+      content: fullSystemPrompt
     },
     ...userMessages
   ];
 }
 
-/**
- * Check if user appears to be stuck (for hint triggering)
- * This is a simple implementation - can be enhanced later
- * @param {Array} messages - Recent conversation messages
- * @returns {boolean} - True if hints should be triggered
- */
-function shouldTriggerHints(messages) {
-  // Simple heuristic: if last 2-3 messages from assistant were questions
-  // and student responses were short/confused, trigger hints
-  // For MVP, we'll let the system prompt handle this naturally
-  // This function is a placeholder for future enhancement
-  return false;
-}
-
 module.exports = {
   getSocraticSystemPrompt,
   buildMessagesWithSystemPrompt,
-  shouldTriggerHints
+  analyzeConversationContext // Re-export for convenience
 };
 

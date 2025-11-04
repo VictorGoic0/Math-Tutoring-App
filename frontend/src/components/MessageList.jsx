@@ -1,4 +1,13 @@
+import { useEffect, useRef } from 'react';
+
 function MessageList({ messages }) {
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   if (messages.length === 0) {
     return (
       <div style={{
@@ -48,6 +57,8 @@ function MessageList({ messages }) {
           </div>
         </div>
       ))}
+      {/* Invisible element at the bottom for scroll target */}
+      <div ref={messagesEndRef} />
     </div>
   );
 }

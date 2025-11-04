@@ -1,7 +1,7 @@
 const express = require('express');
 const { streamText } = require('ai');
 const { createOpenAI } = require('@ai-sdk/openai');
-const { buildMessagesWithSystemPrompt } = require('../services/promptService');
+const { buildMessagesWithSystemPrompt, analyzeConversationContext } = require('../services/promptService');
 
 const router = express.Router();
 
@@ -47,7 +47,19 @@ router.post('/chat', async (req, res) => {
       });
     }
 
-    // Build messages with Socratic system prompt
+    // Analyze conversation context for logging and debugging
+    // const context = analyzeConversationContext(messages);
+    // console.log('📊 Conversation Context:', {
+    //   userId: req.user.uid,
+    //   messageCount: messages.length,
+    //   problemText: context.problemText.substring(0, 50) + (context.problemText.length > 50 ? '...' : ''),
+    //   currentStep: context.currentStep,
+    //   studentUnderstanding: context.studentUnderstanding,
+    //   stuckTurns: context.stuckTurns,
+    //   hintsGiven: context.hintsGiven
+    // });
+
+    // Build messages with Socratic system prompt and adaptive scaffolding
     const messagesWithPrompt = buildMessagesWithSystemPrompt(
       messages.map(msg => ({
         role: msg.role,
