@@ -170,6 +170,8 @@ function Chat() {
     }
     
     // 1. INSTANT: Let useChat handle optimistic UI update + AI request
+    // Note: useChat doesn't support imageUrl, but we save it to Firestore
+    // Images will show after page refresh when loaded from backend
     handleSubmit(e);
     
     // 2. BACKGROUND: Save to Firestore with image URL (non-blocking)

@@ -153,12 +153,13 @@ router.get('/chat/history', async (req, res) => {
     // Get messages from conversation
     const messagesData = await getMessages(conversation.id, limit);
     
-    // Transform to useChat format
-    const messages = messagesData.map(msg => ({
-      id: msg.id,
-      role: msg.role,
-      content: msg.content,
-      createdAt: new Date(msg.timestamp)
+    // Transform to useChat format (strip unnecessary fields, convert timestamp)
+    const messages = messagesData.map(({ id, role, content, timestamp, imageUrl }) => ({
+      id,
+      role,
+      content,
+      createdAt: new Date(timestamp),
+      ...(imageUrl && { imageUrl })
     }));
     
     res.status(200).json({

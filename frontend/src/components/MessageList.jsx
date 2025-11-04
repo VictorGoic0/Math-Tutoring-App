@@ -44,17 +44,17 @@ function MessageList({ messages }) {
             borderRadius: '4px'
           }}
         >
-          <div style={{
-            fontWeight: 'bold',
-            marginBottom: '0.25rem',
-            fontSize: '0.875rem',
-            color: '#666'
-          }}>
-            {message.role === 'user' ? 'You' : 'Tutor'}
-          </div>
-          
-          {/* Display image if present */}
-          {message.imageUrl && (
+            <div style={{
+              fontWeight: 'bold',
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              color: '#666'
+            }}>
+              {message.role === 'user' ? 'You' : 'Tutor'}
+            </div>
+            
+            {/* Display image if present */}
+            {message.imageUrl && (
             <div style={{ marginBottom: '0.5rem' }}>
               <img 
                 src={message.imageUrl} 
