@@ -902,7 +902,7 @@ feature/pr-03-socratic-prompting
 - Add Firebase connection
 ```
 
-### PR #16: UI Polish & Design System Integration
+### PR #9: UI Polish & Design System Integration
 **Priority:** P0  
 **Day:** 4
 
@@ -990,7 +990,7 @@ function MyComponent() {
 ```
 ---
 
-### PR #17: Documentation & Setup Instructions
+### PR #10: Documentation & Setup Instructions
 **Priority:** P0  
 **Day:** 5
 
@@ -1019,7 +1019,7 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
 ```
 
 ---
-### PR #18: Deployment to Vercel
+### PR #11: Deployment to Vercel
 **Priority:** P0  
 **Day:** 5
 

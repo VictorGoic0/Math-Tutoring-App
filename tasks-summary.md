@@ -5,9 +5,9 @@
 - The work is organized by PRs, tracked by type: core app, canvas, and post-MVP enhancements.
 
 ## Task File Organization
-- `tasks.md`: Core (foundation, auth, chat, deployment, doc PRs)
-- `tasks-1.md`: Canvas/whiteboard development tasks
-- `tasks-2.md`: Post-MVP enhancements (undo/redo, notations, shape/line/highlighter tools)
+- `tasks-core.md`: Core (foundation, auth, chat, deployment, doc PRs)
+- `tasks-canvas.md`: Canvas/whiteboard development tasks
+- `tasks-post-mvp.md`: Post-MVP enhancements (undo/redo, notations, shape/line/highlighter tools, voice interface, etc.)
 
 ## MVP PR Sequence (Original)
 - Foundation: Setup → Auth → Chat
@@ -16,8 +16,8 @@
 - Final polish (UI, deployment, docs) closes out the MVP round
 
 ## Whiteboard/Canvas Project Sequencing
-- Canvas/whiteboard implementation tasks are now tracked in tasks-1.md, starting after the last main core PR in tasks.md.
-- Post-MVP canvas enhancements are tracked in tasks-2.md.
+- Canvas/whiteboard implementation tasks are tracked in `tasks-canvas.md`, starting after the last main core PR in `tasks-core.md`.
+- Post-MVP canvas enhancements are tracked in `tasks-post-mvp.md`.
 
 ## Renumbering/Task Tracking Policy
 - PR numbers are strictly sequential in all three files (per file, starting at PR #1 with no gaps).
@@ -37,4 +37,7 @@
 - Deployment (Vercel) and documentation (README, setup, arch) are required gates before marking the project as "feature-complete"
 
 ## Current File Assignment
-- See this file for summary/project-wide context; all PR-specific detail is in tasks.md, tasks-1.md, or tasks-2.md.
+- See this file for summary/project-wide context; all PR-specific detail is in:
+  - `tasks-core.md` - Core application features (PRs #1-18)
+  - `tasks-canvas.md` - Canvas/whiteboard features (PRs #1-7)
+  - `tasks-post-mvp.md` - Post-MVP enhancements (PRs #1-8)
