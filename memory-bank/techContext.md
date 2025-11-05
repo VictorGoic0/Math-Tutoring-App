@@ -3,207 +3,253 @@
 ## Technology Stack
 
 ### Frontend
-- **Framework:** React 18+ with Vite
-- **Math Rendering:** KaTeX for chat UI
-- **Canvas:** HTML5 Canvas API for whiteboard
-- **Voice:** Web Speech API (TTS/STT) - P2
-- **AI Integration:** ~~Vercel AI SDK removed from frontend~~ - Manual state management with `fetch` + custom stream parser
-  - Previously used `useChat` hook, removed in PR #7 for simplification
-  - Frontend now handles: messages state, input state, loading state, manual streaming
-  - Stream parsing: Plain text chunks via `ReadableStream` API
-  - No AI SDK dependencies on frontend
-- **Styling:** Inline styles (TBD: Will migrate to SASS/CSS Modules in PR #16)
+
+**Core:**
+- React 19+ with Vite
+- React Router for client-side routing
+- Firebase SDK (Auth, Firestore, Storage)
+
+**UI Libraries:**
+- KaTeX for math rendering
+- Custom design system components (Input, Card, Button)
+- Design tokens for consistent styling
+
+**State Management:**
+- React Context API (AuthContext)
+- useState hooks for local component state
+- Manual state management (removed useChat hook)
+
+**File Structure:**
+```
+frontend/src/
+├── components/
+│   ├── Chat.jsx (main chat interface)
+│   ├── MessageList.jsx (message display)
+│   ├── MessageInput.jsx (input with image upload)
+│   ├── MathDisplay.jsx (LaTeX rendering)
+│   ├── Login.jsx, SignUp.jsx (authentication)
+│   └── design-system/ (shared UI components)
+├── contexts/
+│   └── AuthContext.jsx (global auth state)
+├── hooks/
+│   └── useAuth.js (auth hook)
+├── services/
+│   ├── api.js (API utilities, parseAIStream)
+│   ├── chatService.js (Firestore operations)
+│   └── storageService.js (image upload)
+├── utils/
+│   ├── firebase.js (Firebase initialization)
+│   ├── authErrors.js (error message mapping)
+│   └── markdownParser.jsx (markdown parsing)
+└── styles/
+    └── tokens.js (design tokens)
+```
 
 ### Backend
-- **Runtime:** Node.js (CommonJS modules)
-- **Framework:** Express.js
-- **AI Integration:** Vercel AI SDK v5 for OpenAI integration (API key server-side only)
-  - **Backend imports:** `const { streamText } = require('ai')` and `const { createOpenAI } = require('@ai-sdk/openai')`
-  - Uses `streamText` for streaming responses (synchronous in v5, returns StreamTextResult)
-  - Uses `pipeTextStreamToResponse(res)` to pipe plain text stream to Express response
-  - OpenAI provider initialization via `createOpenAI({ apiKey })`
-- **AI Models:** 
-  - `gpt-4-turbo` for text-only conversations
-  - `gpt-4o` for conversations with images (native vision support)
-- **Database:** Firebase Firestore (client writes directly from frontend, no backend proxy)
-- **File Storage:** Firebase Storage (images uploaded from frontend)
-- **Authentication:** Firebase Auth (frontend only, no backend token verification)
 
-### Infrastructure
-- **Frontend Deployment:** Vercel (separate project)
-  - Root Directory: `/frontend`
-  - Framework Preset: `Vite`
-  - SPA routing: `frontend/vercel.json` rewrites all routes to `/index.html`
-- **Backend Deployment:** Vercel (separate project, Express as serverless functions)
-  - Root Directory: `/api`
-  - Framework Preset: `Other` (Node.js)
-  - Entry Point: `api/index.js` (exports Express app)
-  - Configuration: `api/vercel.json` explicitly configures `@vercel/node` runtime
-  - **Important:** When Root Directory is `/api`, Vercel strips `/api` prefix from routes
-  - Express routes must be at root level (e.g., `/health` not `/api/health`)
-  - CORS enabled in production (separate projects = different origins)
-- **Database:** Firebase (managed)
-- **Real-time:** Firestore real-time listeners (no WebSockets needed)
+**Core:**
+- Express.js (Node.js)
+- Vercel AI SDK v5 for OpenAI integration
+- Deployed as Vercel serverless functions
+
+**AI Integration:**
+- OpenAI GPT-4 Vision (gpt-4o) for image parsing
+- OpenAI GPT-4 Turbo (gpt-4-turbo) for text-only conversations
+- Socratic prompting system with adaptive scaffolding
+
+**File Structure:**
+```
+api/
+├── index.js (Vercel entry point)
+├── server.js (Express app setup)
+├── routes/
+│   └── chat.js (POST /chat endpoint)
+└── services/
+    ├── promptService.js (Socratic system prompt)
+    └── contextManager.js (adaptive scaffolding)
+```
+
+### Database & Storage
+
+**Firebase:**
+- Firestore for conversation persistence
+- Firebase Storage for image uploads
+- Firebase Auth for user authentication
+
+**Data Model:**
+- Collections: `conversations` (parent), `messages` (subcollection)
+- Single conversation per user (simplified MVP)
+- Optimistic UI with background persistence
+
+### Deployment
+
+**Platform:** Vercel
+
+**Configuration:**
+- Frontend: Separate Vercel project, Root Directory: `/frontend`
+- Backend: Separate Vercel project, Root Directory: `/api`
+- Environment variables isolated per project
+
+**Vercel Config Files:**
+- `frontend/vercel.json` - SPA routing rewrites
+- `api/vercel.json` - Serverless function configuration
 
 ## Development Setup
 
 ### Prerequisites
-- Node.js (version TBD - check package.json)
+
+- Node.js 18+
 - npm or yarn
-- Firebase account
-- OpenAI API key
+- Firebase account (free tier)
+- OpenAI API key with GPT-4 access
 
 ### Environment Variables
 
-**Frontend (.env):**
-```
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
-VITE_API_URL=http://localhost:3000
-```
-
-**Backend (.env):**
-```
-OPENAI_API_KEY=
-PORT=3000
-FRONTEND_URL=http://localhost:5173
+**Frontend (`frontend/.env`):**
+```env
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_API_URL=http://localhost:3000 (or production URL)
 ```
 
-**Note:** Firebase Admin SDK removed - frontend handles all Firestore operations directly
+**Backend (`api/.env`):**
+```env
+OPENAI_API_KEY=...
+FRONTEND_URL=http://localhost:5173 (or production URL)
+```
 
-### Installation Commands
+### Local Development
 
 **Frontend:**
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev  # Runs on http://localhost:5173
 ```
 
 **Backend:**
 ```bash
-cd backend
+cd api
 npm install
-npm run dev
+npm run dev  # Runs on http://localhost:3000
 ```
 
-## Dependencies
+### Build & Deploy
 
-### Frontend (Installed)
-- `react`, `react-dom` (v19.2.0)
-- `vite`, `@vitejs/plugin-react` (v7.1.12, v5.1.0)
-- ~~`ai` - Removed in PR #7~~ - No longer using Vercel AI SDK on frontend
-- `firebase` (v11.1.0) - Auth, Firestore, Storage
-- `katex`, `react-katex` (v0.16.11, v3.0.1) - for math rendering
-- `react-router-dom` (v7.9.5) - for routing
+**Frontend:**
+- Vite automatically builds for production
+- Vercel detects Vite and configures automatically
 
-### Backend (Installed)
-- `express` (v4.21.2)
-- `ai` (v5.0.76) - Vercel AI SDK (upgraded from v3.4.33)
-  - Provides `streamText` function for streaming AI responses
-  - Key change in v5: `streamText` is synchronous, returns StreamTextResult directly
-- `@ai-sdk/openai` (latest) - OpenAI provider for Vercel AI SDK
-- `cors` (v2.8.5)
-- `dotenv` (v16.4.7)
+**Backend:**
+- Express routes auto-wrapped as serverless functions
+- `api/index.js` is the Vercel entry point
 
-**Note:** `firebase-admin` removed - backend no longer handles Firebase operations
+## Key Dependencies
+
+### Frontend
+
+```json
+{
+  "react": "^19.x",
+  "react-dom": "^19.x",
+  "react-router-dom": "^6.x",
+  "firebase": "^10.x",
+  "katex": "^0.16.x",
+  "react-katex": "^3.x"
+}
+```
+
+### Backend
+
+```json
+{
+  "express": "^4.x",
+  "ai": "^5.0.76",
+  "@ai-sdk/openai": "^0.x",
+  "cors": "^2.x",
+  "dotenv": "^16.x"
+}
+```
 
 ## Technical Constraints
 
-1. **API Rate Limits:** OpenAI API has rate limits - implement caching if needed
-2. **Cost Management:** Monitor OpenAI API usage, set up cost alerts
-3. **Canvas Performance:** Complex visualizations may need optimization
-4. **Browser Compatibility:** Web Speech API varies by browser
-5. **Image Size:** Max 10MB per image upload
-6. **Firestore Limits:** Real-time listeners have connection limits
+### Vercel Serverless Limitations
+
+1. **Cold Starts:** Functions may have cold start delays (1-2 seconds)
+2. **Execution Time:** 10-second timeout on Hobby plan, 60 seconds on Pro
+3. **Environment Variables:** Must be set in Vercel dashboard, not `.env` files
+4. **File System:** Read-only, can't write temporary files
+
+### Firebase Admin SDK Removal
+
+**Why Removed:**
+- Incompatible with Vercel serverless cold starts
+- Environment variables not available at module load time
+- Lazy initialization attempts still failed intermittently
+
+**Solution:**
+- All Firestore operations moved to frontend
+- Firestore Security Rules enforce access control
+- Simpler, more reliable architecture
+
+### Browser Compatibility
+
+**Supported:**
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+**Features:**
+- KaTeX rendering: Works in all modern browsers
+- Firebase SDK: Works in all modern browsers
+- Web Speech API: Varies by browser (Chrome best support)
 
 ## Development Workflow
 
-1. **Local Development:**
-   - Frontend runs on `localhost:5173` (Vite default)
-   - Backend runs on `localhost:3000`
-   - Frontend calls: `http://localhost:3000/api/chat` (with `/api` prefix locally)
-   - Firebase emulator (optional) for local testing
+### Code Organization
 
-2. **Testing:**
-   - Manual testing with 5+ problem types
-   - Browser compatibility testing
-   - Responsive design testing
+1. **Components:** One file per component, co-located styles
+2. **Services:** API calls and Firestore operations
+3. **Utils:** Helper functions, Firebase initialization
+4. **Styles:** Design tokens in `styles/tokens.js`
 
-3. **Deployment:**
-   - **Frontend:** Separate Vercel project
-    - Root Directory: `/frontend`
-    - Framework: Vite (auto-detected)
-    - Build: `npm run build` → `frontend/dist`
-    - Environment Variables: All `VITE_*` prefixed
-    - API URL: Set `VITE_API_URL` to backend deployment URL
-    - Routes: `frontend/vercel.json` handles React Router SPA routing
-  - **Backend:** Separate Vercel project
-    - Root Directory: `/api`
-    - Framework: Other (Node.js)
-    - Entry Point: `api/index.js` (wraps Express app)
-    - Configuration: `api/vercel.json` for explicit serverless function config
-    - Environment Variables: Server-only (no `VITE_` prefix)
-    - CORS: Enabled with `FRONTEND_URL` environment variable
-    - Routes: No `/api` prefix in Express (Vercel strips it when Root Directory is `/api`)
-    - Frontend calls: `https://backend-url.vercel.app/chat` (no `/api` prefix)
+### State Management
 
-## Firebase Architecture (Post-PR #18)
+1. **Global State:** AuthContext for user authentication
+2. **Local State:** useState hooks in components
+3. **No Global State Library:** Redux/Zustand not needed for MVP
 
-**Frontend-Only Firebase:**
-- All Firebase operations (Firestore reads/writes, Storage uploads) handled by frontend
-- Frontend Firebase SDK configured and working reliably
-- No backend proxy needed - direct client-to-Firestore calls
-- Firestore Security Rules enforce access control at database level
-- Firebase Auth on frontend ensures only authenticated users can make requests
+### Error Handling
 
-**Why Firebase Admin Was Removed:**
-- Vercel serverless cold start timing issues with environment variables
-- Even with lazy initialization, intermittent failures persisted
-- Frontend already has Firebase SDK working reliably
-- Simpler architecture: fewer moving parts, fewer failure points
-- Better performance: direct client-to-Firestore calls are faster
-- Standard Firebase pattern: trust security rules + Firebase Auth
+1. **Backend:** Try-catch blocks, HTTP status codes, production-safe messages
+2. **Frontend:** User-friendly error messages, graceful degradation
+3. **Firebase Errors:** Mapped to readable messages in `authErrors.js`
 
-**Security Model:**
-- Firestore Security Rules ensure users can only access their own conversations
-- Firebase Auth on frontend ensures only authenticated users can make requests
-- Backend no longer needs to verify tokens - security enforced at database level
-- This is a standard and recommended pattern for Firebase applications
+## Performance Considerations
 
-## Key Technical Decisions
+1. **Optimistic UI:** Messages appear instantly, no waiting for persistence
+2. **Streaming Responses:** AI responses stream in real-time (SSE)
+3. **Image Optimization:** Images uploaded to Firebase Storage, not base64
+4. **Lazy Loading:** Components loaded on demand (planned)
+5. **Firestore Queries:** Limited to 100 messages per conversation (configurable)
 
-1. **Express + Vercel:** Express provides professional, standard backend architecture for hiring manager demo. Vercel auto-wraps Express as serverless functions, giving best of both worlds: clean structure + serverless benefits (no cold starts during demos, auto-scaling)
-2. **Manual State Management (Frontend):** Removed `useChat` hook in PR #7 for simplicity. Direct control over messages, input, loading states with optimistic updates.
-3. **Vercel AI SDK v5 (Backend):** Upgraded from v3 to v5 for cleaner API and better model support
-   - `streamText` is synchronous in v5 (no await needed)
-   - `pipeTextStreamToResponse(res)` for Express (plain text streaming)
-   - `gpt-4o` for vision instead of deprecated `gpt-4-vision-preview`
-4. **Plain Text Streaming:** Simpler than data stream format - frontend just reads text chunks
-5. **Firestore Direct Writes (Frontend Only):** Frontend writes directly to Firestore (optimistic UI), no backend proxy needed
-6. **Firebase Admin Removal:** Removed Firebase Admin SDK entirely - frontend handles all Firestore operations directly for better reliability and simpler architecture
-7. **JavaScript Ecosystem:** Stay in JS for faster development (CommonJS on backend for dotenv)
-8. **OpenAI Vision:** `gpt-4o` handles image parsing natively (no separate OCR needed)
-9. **Canvas API:** Native HTML5 for whiteboard (no external libraries)
-10. **Web Speech API:** Browser native for MVP speed (can upgrade later)
+## Security Considerations
 
-## Known Technical Challenges
+1. **Firestore Rules:** Enforce user can only access their own conversations
+2. **OpenAI API Key:** Server-side only, never exposed to browser
+3. **CORS:** Configured for production frontend URL
+4. **Environment Variables:** Isolated per Vercel project
 
-1. **LaTeX-to-Canvas Rendering:** Need to render math equations on canvas (not just DOM)
-2. **Canvas State Serialization:** Save/load drawings efficiently
-3. **Real-time Canvas Sync:** Keep canvas state in sync across updates
-4. **Voice Browser Support:** Web Speech API varies by browser
-5. **Image Processing:** Handle multiple image formats (PNG, JPG, HEIC)
+## Future Technical Improvements
 
-## Future Technical Enhancements
-
-- Higher-quality TTS/STT APIs (ElevenLabs, Deepgram)
-- Canvas optimization (requestAnimationFrame, layer caching)
-- Image optimization (compression, resizing)
-- PWA support for mobile
-- Service worker for offline support
+1. **Whiteboard:** HTML5 Canvas with drawing tools
+2. **Voice Interface:** Web Speech API for TTS/STT
+3. **Real-time Sync:** Firestore listeners for multi-device sync (optional)
+4. **Image Optimization:** Compress images before upload
+5. **Caching:** Cache AI responses for common problems (optional)
 

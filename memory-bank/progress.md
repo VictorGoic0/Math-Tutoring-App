@@ -1,273 +1,232 @@
 # Progress Tracking
 
-## What Works
+## Overall Status
 
-### ✅ PR #1: Project Setup & Basic Infrastructure (COMPLETE)
-- React + Vite frontend running on localhost:5173
-- Express backend running on localhost:3000
-- Environment variables configured
-- Firebase connection established (Auth, Firestore, Storage)
-- Basic API health check endpoint
-- Vercel deployment configuration
+**MVP Completion:** ~60% (Core chat features complete, whiteboard/voice pending)
 
-### ✅ PR #2: Firebase Authentication & Configuration (COMPLETE)
-- Firebase Auth initialized (frontend + backend)
-- AuthContext with AuthProvider managing auth state
-- useAuth hook for accessing auth in components
-- Login component with email/password
-- Sign Up component with email/password
-- Protected routes (ProtectedRoute component)
-- Auth middleware on backend (verifyAuthToken)
-- React Router with BrowserRouter in main.jsx
-- Auth tokens sent with API requests
+**Completed PRs:** 8 out of 19 P0 PRs
+**In Progress:** 0
+**Pending:** 11 PRs (mostly whiteboard and voice features)
 
-### ✅ PR #3: Basic Chat UI with Vercel AI SDK (FULLY COMPLETE & TESTED)
-- Chat component with message history
-- MessageList component displaying user/assistant messages
-- MessageInput component with text input
-- useChat hook integrated (import: `ai/react` - AI SDK v3)
-- `/api/chat` endpoint with streaming support via `pipeDataStreamResponse()`
-- OpenAI GPT-4 Turbo connected and working
+## Completed Features
+
+### ✅ PR #1: Project Setup & Basic Infrastructure
+- React + Vite project initialized
+- Express backend set up
+- Firebase configuration
+- Vercel AI SDK dependencies
+- CORS and API routes configured
+- Basic README created
+
+### ✅ PR #2: Firebase Authentication & Configuration
+- Firebase Auth initialized (Email/Password)
+- AuthContext and useAuth hook created
+- Login/SignUp components
+- Protected routes
 - Authentication working end-to-end
-- Comprehensive error handling (route-level + global + process-level)
-- CORS configured for local development
-- Backend converted to CommonJS for proper dotenv loading
-- Firebase Admin SDK fixed with proper exports
-- AI SDK downgraded to v3 for broader model compatibility
-- **TESTED & WORKING** - Full chat flow functional
 
-### ✅ PR #4: Socratic Prompting System (COMPLETE)
-- Complete Socratic teaching system prompt with adaptive scaffolding
-- Context manager tracks: problemText, currentStep, studentUnderstanding, stuckTurns, hintsGiven
-- Stateless context analysis (derives from messages array)
-- Adaptive scaffolding: triggers hints at 2+ stuck turns, escalates at 4+
-- No LaTeX formatting (plain text equations)
-- System adapts teaching approach based on student understanding level
-- Comprehensive documentation in CONTEXT_MANAGER.md
-- **TESTED** - AI guides without giving direct answers
+### ✅ PR #3: Basic Chat UI
+- Chat component with message history
+- Manual state management (removed useChat hook)
+- Text input field
+- Streaming responses from backend
+- Error handling
 
-### ✅ PR #5: Firestore Integration for Conversation Persistence (COMPLETE)
-- Firestore collections: `/conversations/{id}` and `/conversations/{id}/messages/{id}`
-- Single conversation per user (get-or-create pattern)
-- **Frontend Direct Writes**: All persistence from frontend to Firestore (simplified)
-- **Optimistic UI**: Messages appear instantly, saves happen in background
-- Backend read-only: `GET /api/chat/history` returns conversationId + messages
-- Frontend services: `chatService.js` with `createConversation()` and `saveMessage()`
-- Security rules: `firestore.rules` for authenticated client writes
-- Non-blocking saves: Failures are silent, don't interrupt UX
-- No real-time listeners (avoids race conditions)
-- In-memory sorting (no composite index needed)
-- **TESTED & WORKING** - Instant UX, reliable persistence
+### ✅ PR #4: Socratic Prompting System
+- Complete Socratic system prompt
+- Context manager for adaptive scaffolding
+- Hints trigger after 2+ stuck turns
+- Encouraging language and validation
+- Tested with hardcoded math problem
 
-### ✅ PR #6: Image Upload UI with Firebase Storage (COMPLETE)
-- Single image upload per message with 📷 button
-- Image preview before sending (60x60 thumbnail with remove button)
-- Firebase Storage integration (`storageService.js`)
-- File validation: max 10MB, image types only
-- Storage path: `chat-images/{userId}/{timestamp}_{filename}`
-- Images display in chat with click to open full size
-- Upload happens before message send (blocking for this flow)
-- Security rules documented in `firestore.rules`
-- **TESTED & WORKING** - Image upload and display functional
+### ✅ PR #5: Firestore Integration
+- Firestore collections set up
+- Single conversation per user pattern
+- Conversation history loads on mount
+- Optimistic UI updates
+- Background persistence
 
-### ✅ PR #7: OpenAI Vision Integration & useChat Removal (COMPLETE)
-**Refactoring:**
-- Removed `ai` package from frontend (no longer using `useChat` hook)
-- Implemented manual state management in `Chat.jsx`
-- Created `parseAIStream` utility for plain text stream parsing
-- Upgraded AI SDK from v3.4.33 to v5.0.76 (backend only)
-- Changed from `pipeDataStreamToResponse` (v3) to `pipeTextStreamToResponse` (v5)
-- Plain text streaming instead of data stream format (simpler parsing)
+### ✅ PR #6: Image Upload UI
+- Image upload button in MessageInput
+- File validation (size, type)
+- Image preview before upload
+- Firebase Storage integration
+- Images display in chat messages
 
-**Vision Integration:**
-- Backend accepts `imageUrl` in message body
-- Uses `gpt-4o` for image messages (native vision support)
-- Uses `gpt-4-turbo` for text-only messages
-- Vision and Socratic prompting work together seamlessly
-- Multi-part content format for images: `[{type: 'text'}, {type: 'image', image: url}]`
+### ✅ PR #7: OpenAI Vision Integration
+- Vision API integration (gpt-4o model)
+- Automatic problem extraction from images
+- Text + image can be sent together
+- Fallback to text-only if Vision fails
+- Removed useChat hook, manual state management
 
-**State Management:**
-- Local state is source of truth during session
-- Optimistic updates for instant UX
-- Non-blocking Firebase persistence (fire-and-forget)
-- Fetch history on mount only (no real-time sync)
-- AI responses stream in real-time as plain text
-- Debug logs commented out (can be uncommented for troubleshooting)
+### ✅ PR #8: Math Rendering with KaTeX
+- KaTeX library installed
+- MathDisplay component with intelligent rendering
+- Inline vs block rendering based on complexity
+- Supports fractions, exponents, roots, Greek letters
+- Markdown parsing for bold, italic, code
 
-**TESTED & WORKING** - Streaming, vision, and persistence all functional
+### ✅ PR #16: UI Polish & Design System Integration
+- Input component for login/signup
+- Card component for forms
+- Button component throughout (delete, upload, submit)
+- Removed emojis from buttons
+- Design tokens applied throughout
+- Logo integration (SVG, PNG, ICO)
+- Improved empty state design
+- Refined spacing and layout
 
-### ✅ PR #8: Math Rendering with KaTeX (COMPLETE)
-- Intelligent inline vs. block math rendering
-- System prompt updated to use `$...$` format
-- Markdown parsing (bold, italic, code) after math processing
-- Custom lightweight regex-based parser
+### ✅ PR #17: Documentation
+- Comprehensive README.md
+- SETUP.md with step-by-step instructions
+- ARCHITECTURE.md with system overview
+- Environment variable documentation
 
-### ✅ PR #17: Documentation & Setup Instructions (COMPLETE)
-- README.md updated with comprehensive overview
-- SETUP.md created with detailed step-by-step instructions
-- ARCHITECTURE.md created referencing architecture.mermaid
+### ✅ PR #18: Deployment to Vercel
+- Frontend deployed as separate Vercel project
+- Backend deployed as separate Vercel project
+- Environment variables configured
+- CORS configured for production
+- Firebase Admin removed from backend (Vercel compatibility)
+- Frontend queries Firestore directly
+- All routes working in production
 
-### ✅ PR #18: Deployment to Vercel (COMPLETE)
-**Deployment Architecture:**
-- Separate Vercel projects for frontend and backend (monorepo setup)
-- Frontend: Root Directory `/frontend`, Framework `Vite`
-- Backend: Root Directory `/api`, Framework `Other` (Node.js)
-- Express wrapped as serverless functions via `api/index.js`
+## In Progress
 
-**Key Fixes:**
-- Removed `/api` prefix from Express routes (Vercel strips when Root Directory is `/api`)
-- Enabled CORS for production (separate projects = different origins)
-- Added `frontend/vercel.json` for SPA routing (React Router)
-- Added `api/vercel.json` for explicit serverless function configuration
-- Removed `/api` prefix from frontend API calls
+**None currently**
 
-**Firebase Admin Removal:**
-- Removed Firebase Admin SDK entirely from backend
-- Removed auth middleware and token verification
-- Frontend queries Firestore directly (no backend proxy needed)
-- Removed `/chat/history` endpoint (frontend loads directly from Firestore)
-- Removed all authToken usage from frontend
-- Backend is now a pure OpenAI API proxy
+## Pending Features
 
-**Rationale for Firebase Removal:**
-- Vercel serverless cold start timing issues with environment variables
-- Frontend already has Firebase SDK working reliably
-- Firestore Security Rules provide access control at database level
-- Simpler architecture: fewer moving parts, fewer failure points
-- Better performance: direct client-to-Firestore calls are faster
-- Standard Firebase pattern: trust security rules + Firebase Auth
+### ⏳ PR #9: Canvas Component Foundation
+- [ ] Create Whiteboard component with Canvas element
+- [ ] Set up canvas context and sizing
+- [ ] Implement basic coordinate system
+- [ ] Create drawing state management
+- [ ] Add canvas to main layout (split view with chat)
 
-**TESTED & WORKING** - Production deployment functional end-to-end
+### ⏳ PR #10: Step Visualization Rendering on Canvas
+- [ ] Create LaTeX-to-Canvas rendering utility
+- [ ] Parse AI responses for [RENDER: ...] instructions
+- [ ] Implement system layer rendering
+- [ ] Position elements clearly on canvas
+- [ ] Clear previous step when new step renders
 
-## What's Left to Build
+### ⏳ PR #11: Drawing Lock/Unlock Mechanism
+- [ ] Implement drawing locked/unlocked state
+- [ ] Show visual indicator when drawing is locked
+- [ ] Lock drawing by default at conversation start
+- [ ] Unlock drawing after system renders step visualization
+- [ ] Lock drawing when progressing to next step
 
-### Foundation (Day 1)
-- [ ] Project setup (React + Vite, Express)
-- [ ] Basic chat UI with Vercel AI SDK
-- [ ] Socratic prompting system
-- [ ] Firebase integration
+### ⏳ PR #12: Basic Drawing Tools (Pen & Eraser)
+- [ ] Implement pen tool for freehand drawing
+- [ ] Implement eraser tool
+- [ ] Add drawing tool selector UI
+- [ ] Handle pointer events (down, move, up)
+- [ ] Draw smooth lines between points
 
-### Input & Parsing (Day 2)
-- [ ] Image upload UI
-- [ ] Image parsing with OpenAI Vision
-- [ ] Math rendering with KaTeX
-- [ ] Conversation persistence in Firestore
+### ⏳ PR #13: Collaborative Drawing State Management
+- [ ] Save canvas state (system layer + user layer) to Firestore
+- [ ] Load canvas state when retrieving conversation
+- [ ] Sync canvas state across real-time updates
+- [ ] Serialize/deserialize canvas drawings
+- [ ] Implement canvas state per message/step
 
-### Whiteboard (Day 3)
-- [ ] Canvas component foundation
-- [ ] Step visualization rendering
-- [ ] Drawing lock/unlock mechanism
-- [ ] Basic drawing tools (pen, eraser)
-- [ ] Canvas state management
+### ⏳ PR #14: Color Picker & Clear Button
+- [ ] Add color picker UI for pen tool
+- [ ] Implement color selection logic
+- [ ] Add clear button for user layer
+- [ ] Confirm clear action with user
+- [ ] Ensure clear only affects user drawings
 
-### Polish & Deployment (Day 4-5)
-- [ ] Color picker & clear button
-- [ ] Problem type testing
-- [ ] UI polish & responsiveness
-- [ ] Documentation
-- [ ] Vercel deployment
-- [ ] Demo video
+### ⏳ PR #15: Problem Type Testing & Bug Fixes
+- [ ] Test with simple arithmetic problem
+- [ ] Test with linear equation
+- [ ] Test with geometry problem
+- [ ] Test with word problem
+- [ ] Test with multi-step problem
+- [ ] Document each test walkthrough
+- [ ] Fix bugs discovered during testing
 
-### Optional (P1/P2)
-- [ ] Whiteboard enhancements (pan/zoom, undo/redo)
-- [ ] Handwritten math recognition
-- [ ] Voice interface (TTS/STT)
+### ⏳ PR #19: Demo Video & Final QA
+- [ ] Record 5-minute demo video
+- [ ] Final QA pass on production
+- [ ] Test all 5 problem types in production
+- [ ] Fix any last-minute issues
+- [ ] Update documentation with production URL
 
-## Current Status
-
-**Phase:** Day 5 - Deployment Complete  
-**Completion:** ~53% (10 of 19 PRs complete and tested)
-
-### Completed PRs
-- ✅ PR #1: Project Setup & Basic Infrastructure
-- ✅ PR #2: Firebase Authentication & Configuration  
-- ✅ PR #3: Basic Chat UI with Vercel AI SDK
-- ✅ PR #4: Socratic Prompting System
-- ✅ PR #5: Firestore Integration for Conversation Persistence
-- ✅ PR #6: Image Upload UI with Firebase Storage
-- ✅ PR #7: OpenAI Vision Integration & useChat Removal
-- ✅ PR #8: Math Rendering with KaTeX
-- ✅ PR #17: Documentation & Setup Instructions
-- ✅ PR #18: Deployment to Vercel
-
-### In Progress
-- None - ready for next features
-
-### Next Up
-- PR #9-12: Whiteboard features (if time permits)
+### ⏳ PR #21: Voice Interface (TTS + STT) - P2 Optional
+- [ ] Install Web Speech API (browser native)
+- [ ] Implement Text-to-Speech for tutor responses
+- [ ] Implement Speech-to-Text for student input
+- [ ] Add microphone button UI
+- [ ] Add speaker toggle button UI
+- [ ] Implement voice activity indicator
 
 ## Known Issues
 
-None currently - all PRs through Day 2 working!
+**None Currently**
 
-### Current Status (Latest)
+All reported issues have been resolved:
+- ✅ First AI response not saving (fixed: await conversationId)
+- ✅ Empty conversation state (fixed: redesigned with welcome message)
+- ✅ Chat window hugging bottom (fixed: flex layout adjustments)
+- ✅ Page scrolling instead of MessageList (fixed: global styles)
+- ✅ Spacing issues (fixed: reduced header/message list spacing)
 
-**Phase:** Day 5 - Deployment Complete  
-**Completion:** ~53% (10 of 19 PRs complete)
+## Technical Debt
 
-**PR #18: Deployment to Vercel (COMPLETE)**
-- ✅ Frontend deployed as separate Vercel project
-- ✅ Backend deployed as separate Vercel project
-- ✅ Fixed Vercel serverless routing (removed `/api` prefix from Express routes)
-- ✅ Fixed CORS for separate projects (different origins)
-- ✅ Removed Firebase Admin entirely (replaced with frontend direct Firestore queries)
-- ✅ Added SPA routing configuration for React Router
-- ✅ Updated frontend API calls to remove `/api` prefix
-- ✅ Removed all authToken usage from frontend
-- ✅ Refactored frontend to load conversation history directly from Firestore
+1. **Error Handling:**
+   - Backend has comprehensive error handling ✅
+   - Frontend has user-friendly error messages ✅
+   - Could add more specific error types for better UX
 
-**Key Learnings:**
-- When Root Directory is `/api`, Vercel strips `/api` prefix from routes
-- Separate Vercel projects require CORS enabled in production
-- Firebase Admin SDK incompatible with Vercel serverless cold starts
-- Frontend direct Firestore queries are simpler and more reliable than backend proxy
-- Firestore Security Rules provide sufficient access control (no server-side token verification needed)
+2. **Performance:**
+   - Optimistic UI working well ✅
+   - Streaming responses working smoothly ✅
+   - Could add image compression before upload
 
-## Resolved Issues
-- ✅ OpenAI API Connection verified and working
-- ✅ Chat streaming working properly
-- ✅ Auth flow working end-to-end
-- ✅ Fixed React Router navigation (moved BrowserRouter to main.jsx, use useNavigate instead of window.location)
-- ✅ Fixed Vercel AI SDK imports (AI SDK v3: `ai/react`)
-- ✅ Added CORS fallback for local development
-- ✅ Added API URL fallback in Chat component
-- ✅ Fixed Firebase Admin SDK property names (snake_case required)
-- ✅ Fixed Firebase Admin SDK exports (proper object export)
-- ✅ Fixed environment variable loading (converted to CommonJS)
-- ✅ Fixed AI SDK version compatibility (initially downgraded to v3, then upgraded to v5 in PR #7)
-- ✅ Fixed streaming method (v3: `pipeDataStreamToResponse`, v5: `pipeTextStreamToResponse`)
-- ✅ Added comprehensive error handling throughout backend
-- ✅ Removed `useChat` dependency (PR #7) - simpler manual state management
-- ✅ Fixed stream parsing (v5 uses plain text, not data stream format)
-- ✅ Upgraded to `gpt-4o` for vision (replaces deprecated `gpt-4-vision-preview`)
+3. **Testing:**
+   - Manual testing completed for core features ✅
+   - Could add automated tests for critical paths
 
-## Problem Types to Test (Once Built)
+4. **Code Organization:**
+   - Design system integration complete ✅
+   - Could refactor all styles to match design system pattern (optional)
 
-1. Simple Arithmetic: "What is 24 × 15?"
-2. Linear Equations: "Solve for x: 3x - 7 = 14"
-3. Systems of Equations: "Solve: 2x + y = 10, x - y = 2"
-4. Geometry: "Find the area of a triangle with base 8 and height 5"
-5. Word Problems: "If Sarah has 3 times as many apples as Tom, and together they have 24 apples, how many does each have?"
-6. Quadratic Equations: "Solve: x² - 5x + 6 = 0"
-7. Multi-step Problems: "A rectangle's length is 3 more than twice its width. If the perimeter is 36, find the dimensions."
+## Metrics
 
-## Success Metrics (To Track)
+### Completed
+- ✅ 8 PRs completed (P0 core features)
+- ✅ 100% of core chat functionality working
+- ✅ 100% of authentication working
+- ✅ 100% of image upload working
+- ✅ 100% of math rendering working
+- ✅ 100% of UI polish complete
 
-- [ ] Successfully guides through 5+ problem types without giving direct answers
-- [ ] Maintains conversation context across multi-turn dialogues
-- [ ] Whiteboard renders step visualizations correctly
-- [ ] Drawing lock/unlock works smoothly
-- [ ] Image parsing accuracy >90% for printed problems
-- [ ] Voice interface works (if implemented)
-- [ ] All P0 features complete and polished
+### Remaining
+- ⏳ 0% of whiteboard features complete
+- ⏳ 0% of voice interface complete
+- ⏳ 0% of problem type testing complete
 
-## Timeline Status
+## Next Milestones
 
-**Day 1:** ✅ Complete (PR #1, #2, #3, #4, #5)  
-**Day 2:** ✅ Complete (PR #6, #7 - Image upload + Vision integration working!)  
-**Day 3:** ✅ Partial (PR #8 - Math rendering complete)  
-**Day 4:** ✅ Partial (PR #17 - Documentation complete)  
-**Day 5:** ✅ Complete (PR #18 - Deployment complete!)
+1. **Whiteboard Foundation (PR #9):** Target: 1-2 days
+2. **Step Visualization (PR #10):** Target: 1 day
+3. **Drawing Tools (PRs #11-12):** Target: 1-2 days
+4. **Canvas State Management (PR #13):** Target: 1 day
+5. **Final Polish & Testing (PRs #14-15):** Target: 1-2 days
 
-**Overall:** Core MVP complete and deployed! Math rendering, vision, and deployment all working in production.
+**Total Estimated Time:** 5-8 days for remaining whiteboard features
+
+## Blockers
+
+**None Currently**
+
+All blockers resolved:
+- ✅ Firebase Admin Vercel compatibility
+- ✅ CORS errors
+- ✅ Routing issues
+- ✅ Environment variable loading
 

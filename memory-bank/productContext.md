@@ -2,64 +2,100 @@
 
 ## Why This Project Exists
 
-Traditional math tutoring often provides direct answers, which doesn't teach problem-solving skills. This project creates a pedagogically sound AI tutor that teaches mathematical reasoning through guided discovery rather than direct instruction. Students develop problem-solving skills by working through problems with intelligent scaffolding.
+The AI Math Tutor addresses a critical gap in educational technology: most AI tutors provide direct answers, which doesn't help students develop problem-solving skills. This application uses the Socratic method to guide students through discovery-based learning, helping them build mathematical reasoning rather than just getting correct answers.
 
 ## Problems It Solves
 
-1. **Passive Learning:** Students often get answers without understanding the process
-2. **Lack of Engagement:** Static tutorials don't adapt to student responses
-3. **No Visual Context:** Pure text conversations miss the visual/spatial aspect of math
-4. **Accessibility:** 24/7 availability of a patient tutor using proven teaching methods
+1. **Passive Learning:** Students often copy solutions without understanding the reasoning
+2. **Lack of Guidance:** Students get stuck without knowing how to proceed
+3. **No Visual Learning:** Many students learn better with visual step-by-step demonstrations
+4. **Limited Accessibility:** Voice interface makes learning accessible to students with different learning styles
 
 ## How It Should Work
 
-### Core User Experience
+### Core User Flow
 
-1. **Problem Entry:** Student types or uploads image of math problem
-2. **Problem Parsing:** System extracts problem text (if image) and displays for confirmation
-3. **Socratic Dialogue Begins:** Tutor asks guiding questions, never gives direct answers
-4. **Visual Guidance:** System renders step visualizations on whiteboard as problem progresses
-5. **Collaborative Drawing:** After each step visualization, drawing unlocks for student/tutor to annotate
-6. **Step Progression:** Drawing locks when moving to next step, keeping focus
-7. **Solution Discovery:** Student works through problem with guidance, discovers solution themselves
+1. **Student Input:**
+   - Types math problem OR uploads image of problem
+   - System automatically parses problem text (if image)
 
-### Pedagogical Flow
+2. **Socratic Dialogue:**
+   - AI asks guiding questions (never gives direct answers)
+   - Student responds with reasoning
+   - AI validates correct thinking or guides to discover errors
+   - Adaptive scaffolding provides hints after 2+ stuck turns
 
-1. **Problem Understanding:** "What information does the problem give us?"
-2. **Goal Identification:** "What are we trying to find?"
-3. **Method Selection:** "What mathematical approach might help here?"
-4. **Step Execution:** Guide through each step with questions
-5. **Validation:** "How can we check if this answer makes sense?"
+3. **Visual Learning (Planned):**
+   - Whiteboard renders step visualizations automatically
+   - Drawing unlocks for collaborative annotation
+   - Student and tutor can draw together on canvas
 
-### Key Interaction Patterns
+4. **Persistence:**
+   - Conversation history saved automatically
+   - Loads previous conversations on page refresh
+   - Single conversation per user (simplified MVP)
 
-- **Drawing Lock/Unlock:**
-  - Locked by default at conversation start
-  - Unlocks after system renders step visualization
-  - Locks when progressing to next step
-  - Prevents premature work and keeps focus on current step
+### Key User Experience Goals
 
-- **Hint System:**
-  - After 2+ stuck turns, provide concrete hint (but not answer)
-  - Hints point to relevant concepts or suggest strategies
-  - Never solve the step directly
+1. **Instant Feedback:** Messages appear immediately (optimistic UI)
+2. **Natural Conversation:** Feels like talking to a patient tutor
+3. **Visual Clarity:** Math equations render beautifully with KaTeX
+4. **Encouraging Tone:** Positive reinforcement throughout learning process
+5. **Error Recovery:** Helpful guidance when students make mistakes
 
-- **Encouragement:**
-  - Validate correct reasoning enthusiastically: "Exactly!", "Great thinking!", "Perfect!"
-  - When student makes errors, ask questions that lead them to discover the mistake
-  - Use positive, motivating language
+## User Personas
 
-## User Experience Goals
+**Primary:** Middle/high school students struggling with math concepts
+- Need: Patient guidance, visual learning, encouragement
+- Goals: Understand problem-solving process, build confidence
 
-1. **Intuitive:** Clear visual hierarchy, easy to understand what to do next
-2. **Engaging:** Interactive whiteboard makes learning visual and collaborative
-3. **Patient:** AI never gets frustrated, always encouraging
-4. **Adaptive:** Questions adjust based on student understanding level
-5. **Responsive:** Fast load times, smooth interactions, real-time updates
+**Secondary:** Parents/teachers monitoring student progress
+- Need: See conversation history, verify learning approach
+- Goals: Ensure students are learning, not just copying answers
 
-## Target Users
+## Success Indicators
 
-- **Primary:** Students learning math (elementary through high school)
-- **Use Cases:** Homework help, concept practice, problem-solving skill development
-- **Access:** Web-based, desktop-first, mobile-friendly
+**Pedagogical:**
+- Students solve problems correctly after guidance
+- Reduced need for hints over multiple problems
+- Students demonstrate understanding in their responses
+
+**Technical:**
+- Image parsing accuracy >90% for printed problems
+- AI response time <5 seconds
+- Conversation context maintained across 10+ turns
+
+**Engagement:**
+- Average conversation length: 8-15 messages per problem
+- Students return to solve additional problems
+- Positive feedback on learning experience
+
+## Design Principles
+
+1. **Never Give Direct Answers:** Core pedagogical principle - guide to discovery
+2. **Encouragement First:** Positive reinforcement builds confidence
+3. **Visual Learning:** Whiteboard makes abstract concepts concrete
+4. **Accessibility:** Voice interface supports different learning styles
+5. **Simplicity:** Clean UI that doesn't distract from learning
+
+## Competitive Advantage
+
+**vs. Khan Academy AI:**
+- Focus on Socratic method (not just answer generation)
+- Interactive whiteboard with collaborative drawing
+- Voice interface for accessibility
+
+**vs. ChatGPT:**
+- Purpose-built for math education
+- Never gives direct answers (enforced by system prompt)
+- Visual step-by-step guidance
+
+## Future Vision
+
+**Post-MVP Enhancements:**
+- Multi-student collaboration
+- Progress tracking and adaptive learning paths
+- Teacher dashboard for monitoring
+- Mobile app with better touch drawing
+- Advanced handwriting recognition
 

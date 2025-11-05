@@ -2,198 +2,163 @@
 
 ## Current Work Focus
 
-**Status:** PR #5 Complete & Tested  
-**Phase:** Day 2 - Core Features Complete, Ready for PR #6
+**Recent Completion:** PR #16 (UI Polish & Design System Integration) - ✅ COMPLETE
 
-PRs #1-5 are complete and tested. The full tutoring system works end-to-end:
-- Chat interface with streaming AI responses
-- Socratic teaching system with adaptive scaffolding
-- Conversation persistence with Firestore
-- History loads on page refresh
-- Single conversation per user (simplified MVP approach)
+**Latest Changes:**
+- Reduced spacing between header and message list
+- Decreased space around delete button
+- Improved overall visual polish with design tokens
 
-Ready to begin PR #6: Image Upload UI
+## Recent Decisions
 
-## Recent Changes
+### 1. Firebase Admin Removal (PR #18)
 
-### Just Completed (PR #5) - Firestore Integration with Optimistic UI
-- ✅ Created Firestore collections: `/conversations/{id}` → `/messages/{id}`
-- ✅ Implemented single-conversation-per-user pattern (get-or-create)
-- ✅ **Frontend Direct Writes**: Simplified - all writes from frontend to Firestore
-- ✅ **Optimistic UI**: Messages appear instantly, no blocking
-- ✅ **Background Saves**: Non-blocking persistence, silent error handling
-- ✅ Backend read-only: `GET /api/chat/history` returns conversationId + messages
-- ✅ Frontend services: `chatService.js` with Firestore write functions
-- ✅ Security rules: `firestore.rules` for authenticated client writes
-- ✅ Removed backend write complexity (deleted conversationManager, conversation routes)
-- ✅ No real-time listeners (avoids race conditions)
-- ✅ In-memory sorting (no composite index needed)
-- ✅ **TESTED & WORKING** - Instant UX with reliable persistence
+**Decision:** Remove Firebase Admin SDK from backend entirely
 
-### Recently Completed (PR #4) - Socratic Prompting
-- ✅ Complete Socratic system prompt with adaptive scaffolding
-- ✅ Context manager (stateless) tracking student progress
-- ✅ Detects stuck turns, triggers hints appropriately
-- ✅ Plain text math formatting (no LaTeX escaping)
-- ✅ Comprehensive CONTEXT_MANAGER.md documentation
+**Reason:**
+- Persistent incompatibility with Vercel serverless cold starts
+- Environment variables not available at module load time
+- Lazy initialization attempts still failed intermittently
 
-### Previously Completed (PR #1, #2, #3)
-- ✅ React + Vite frontend + Express backend
-- ✅ Firebase Auth (login, signup, protected routes)
-- ✅ Chat UI with useChat hook (AI SDK v3)
-- ✅ OpenAI GPT-4 Turbo streaming
-- ✅ Comprehensive error handling
+**Impact:**
+- All Firestore operations moved to frontend
+- Backend simplified to pure OpenAI API proxy
+- Security enforced by Firestore Security Rules
+- Simpler, more reliable architecture
+
+### 2. Manual State Management (PR #7)
+
+**Decision:** Remove `useChat` hook, use manual state management
+
+**Reason:**
+- Full control over chat state
+- Simpler debugging
+- No dependency on Vercel AI SDK for frontend
+
+**Impact:**
+- Manual `useState` hooks for messages, input, loading
+- Custom streaming via `fetch` + `parseAIStream`
+- More code but more control
+
+### 3. Single Conversation Per User
+
+**Decision:** Simplified MVP approach - one conversation per user
+
+**Reason:**
+- Faster development
+- Simpler state management
+- Sufficient for MVP
+
+**Impact:**
+- No conversation switching UI needed
+- Get-or-create pattern for conversation
+- All messages belong to same conversation
 
 ## Next Steps
 
-### Immediate - Start PR #6
-**PR #6: Image Upload UI**
-- Image upload button in chat interface
-- File input with image preview
-- Multiple image selection support
-- Loading state during upload
-- Display uploaded images in conversation
-- File size/type validation
+### Immediate (Next Session)
 
-### After PR #6
-**PR #7: OpenAI Vision Integration**
-- Send images to GPT-4 Vision API
-- Extract math problems from images
-- Display extracted text for user confirmation
-- Handle image + text in same message
+1. **Whiteboard Foundation (PR #9):**
+   - Create Whiteboard component with Canvas element
+   - Set up canvas context and sizing
+   - Implement basic coordinate system
+   - Add canvas to main layout (split view with chat)
 
-## Active Decisions & Architecture
+2. **Step Visualization (PR #10):**
+   - Create LaTeX-to-Canvas rendering utility
+   - Parse AI responses for [RENDER: ...] instructions
+   - Implement system layer rendering
+   - Position elements clearly on canvas
 
-### Key Architecture Decisions Made
+### Short Term
 
-1. **Single Conversation Per User (PR #5)**
-   - Simplifies MVP
-   - Auto-creates on first message
-   - No conversation selection UI needed
-   - Easy to extend to multiple conversations later
+3. **Drawing Lock/Unlock (PR #11):**
+   - Implement locked/unlocked state
+   - Show visual indicator when locked
+   - Lock by default, unlock after system renders visualization
 
-2. **Optimistic UI with Frontend Direct Writes (PR #5)**
-   - **Instant UX**: Messages appear immediately (optimistic updates)
-   - **Background Saves**: Non-blocking writes to Firestore
-   - **Frontend Writes**: All persistence from frontend to Firestore
-   - **Backend Read-Only**: Only loads history via GET endpoint
-   - useChat manages local state as source of truth during session
-   - Load history on page refresh
-   - No real-time listeners (avoids race conditions)
-   - Trade-off: Instant UX > Guaranteed Persistence (MVP acceptable)
+4. **Drawing Tools (PR #12):**
+   - Implement pen tool for freehand drawing
+   - Implement eraser tool
+   - Add drawing tool selector UI
 
-3. **Stateless Context Manager (PR #4)**
-   - Analyzes messages array each request
-   - No database state to manage
-   - Easy to migrate to stateful later
-   - Works perfectly for single conversation
+### Medium Term
 
-4. **Frontend Services Layer (PR #5)**
-   - Services pattern over custom hooks
-   - Clean API abstraction
-   - `api.js` base client + `chatService.js`
-   - Easy to test and extend
+5. **Canvas State Management (PR #13):**
+   - Save canvas state to Firestore
+   - Load canvas state when retrieving conversation
+   - Serialize/deserialize canvas drawings
 
-5. **AI SDK v3 (PR #3)**
-   - Broader model compatibility
-   - Simpler streaming API
-   - Stable, well-documented
+6. **Color Picker & Clear (PR #14):**
+   - Add color picker UI for pen tool
+   - Add clear button for user layer
+   - Ensure clear only affects user drawings
 
-### Pending Decisions
-1. **Image Storage:** Base64 in messages vs. Firebase Storage URLs
-2. **Canvas Rendering Library:** How to render LaTeX on canvas
-3. **Voice Implementation:** Decide if voice (P2) included in MVP
+## Active Considerations
 
-### Current Priorities
-- **P0 Features First:** Core functionality before enhancements
-- **Image Upload Next:** Enable visual problem input
-- **Canvas Foundation:** Need visual feedback for steps
-- **Testing Critical:** Verify each feature works
+### UI/UX Improvements
 
-## Current Blockers
+1. **Spacing Refinement:**
+   - ✅ Reduced spacing between header and message list (just completed)
+   - ✅ Decreased space around delete button (just completed)
+   - Consider: Further spacing optimizations based on user feedback
 
-None! Ready to proceed with PR #6.
+2. **Design System:**
+   - ✅ Integrated Input, Card, Button components
+   - ✅ Applied design tokens throughout
+   - Consider: Refactor all styles to match design system pattern (optional task)
 
-## System Architecture Summary
+### Technical Debt
 
-### Frontend (`frontend/src/`)
-```
-components/
-  ├── Chat.jsx              (main chat interface)
-  ├── MessageList.jsx       (displays messages)
-  ├── MessageInput.jsx      (text input)
-  ├── Header.jsx            (navigation + logout)
-  ├── Login.jsx
-  └── SignUp.jsx
+1. **Error Handling:**
+   - Backend has comprehensive error handling
+   - Frontend has user-friendly error messages
+   - Consider: More specific error types for better UX
 
-services/
-  ├── api.js                (base API client)
-  └── chatService.js        (chat API calls)
+2. **Performance:**
+   - Optimistic UI working well
+   - Streaming responses working smoothly
+   - Consider: Image compression before upload
 
-hooks/
-  └── useAuth.js            (auth state management)
-```
+3. **Testing:**
+   - Manual testing completed for core features
+   - Consider: Automated tests for critical paths
 
-### Backend (`api/`)
-```
-routes/
-  └── chat.js               (POST /api/chat, GET /api/chat/history)
+## Known Issues
 
-services/
-  ├── promptService.js      (Socratic prompts)
-  ├── contextManager.js     (adaptive scaffolding)
-  └── firestoreService.js   (Firestore CRUD - read-only)
+### None Currently
 
-middleware/
-  └── auth.js               (verifyAuthToken)
-```
+All reported issues have been resolved:
+- ✅ First AI response not saving (fixed: await conversationId)
+- ✅ Empty conversation state (fixed: redesigned with welcome message)
+- ✅ Chat window hugging bottom (fixed: flex layout adjustments)
+- ✅ Page scrolling instead of MessageList (fixed: global styles)
 
-### Data Flow (Optimistic UI)
-```
-1. Page load → GET /api/chat/history → load messages + conversationId
-2. User types → useChat local state only
-3. Submit (optimistic):
-   a. useChat adds message to UI instantly
-   b. POST /api/chat (AI request sent immediately, non-blocking)
-   c. Frontend saves to Firestore in background (non-blocking)
-4. AI responds → streams to UI in real-time → saves to Firestore after complete
-5. Page refresh → repeat step 1 (loads all successfully saved messages)
-```
+## Blockers
 
-## Testing Strategy
+**None Currently**
 
-### Completed Testing
-- ✅ Chat streaming works
-- ✅ Auth flow end-to-end
-- ✅ Socratic prompting (guides without answers)
-- ✅ Context detection (stuck turns)
-- ✅ History persistence across refreshes
-- ✅ Delete conversation
+All blockers have been resolved:
+- ✅ Firebase Admin Vercel compatibility (resolved: removed Firebase Admin)
+- ✅ CORS errors (resolved: enabled CORS in production)
+- ✅ Routing issues (resolved: removed /api prefix, added vercel.json)
 
-### Upcoming Testing
-- [ ] Image upload and preview
-- [ ] Image parsing with Vision API
-- [ ] Multiple images in one message
-- [ ] Canvas rendering
-- [ ] Drawing tools
-- [ ] Lock/unlock mechanism
+## Context for Next Developer Session
 
-## Documentation Status
+**If starting fresh:**
+1. Read `tasks.md` for full PR breakdown and current status
+2. Check `PRD.md` for product requirements (updated to match current state)
+3. Review `systemPatterns.md` for architecture decisions
+4. Check `techContext.md` for technology stack and setup
 
-### Created
-- ✅ `CONTEXT_MANAGER.md` - Full context manager docs
-- ✅ `tasks.md` - All PRs documented
-- ✅ Memory bank updated (progress, activeContext, techContext)
+**Current State:**
+- Core chat features complete and working
+- UI polished with design system
+- Deployed to Vercel (separate frontend/backend projects)
+- Whiteboard features not yet started
+- Voice interface not yet started
 
-### Needed
-- [ ] README.md with setup instructions
-- [ ] .env.example files
-- [ ] EXAMPLES.md with problem walkthroughs
+**Next Priority:**
+- Start whiteboard foundation (PR #9)
+- Focus on canvas component and basic layout
 
-## Progress Metrics
-
-- **PRs Complete:** 5 of 19 (26%)
-- **Phase:** Day 2 of 5
-- **Status:** Ahead of schedule
-- **Core System:** Fully functional
-- **Next Milestone:** Image upload working

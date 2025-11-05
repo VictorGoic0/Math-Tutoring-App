@@ -240,23 +240,27 @@ Tutor: "Yes! What does that give us?"
 ### Tech Stack
 
 **Frontend:**
-- React 18+ with Vite
+- React 19+ with Vite
 - KaTeX for math rendering in chat UI
-- HTML5 Canvas API for whiteboard
-- Web Speech API for voice interface
-- Vercel AI SDK (`useChat` hook) for chat UI
+- HTML5 Canvas API for whiteboard (planned, not yet implemented)
+- Web Speech API for voice interface (planned, not yet implemented)
+- Manual state management for chat (removed `useChat` hook for simplification)
+- Design system components (Input, Card, Button) for UI consistency
 
 **Backend:**
-- Express.js (Node.js)
-- Vercel AI SDK for OpenAI integration
-- OpenAI GPT-4 with Vision (via Vercel AI SDK)
+- Express.js (Node.js) deployed as Vercel serverless functions
+- Vercel AI SDK v5 for OpenAI integration
+- OpenAI GPT-4 Vision (gpt-4o) for image parsing
+- OpenAI GPT-4 Turbo (gpt-4-turbo) for text-only conversations
+- Pure OpenAI API proxy (no Firebase Admin, no Firestore operations)
 
 **Database & Persistence:**
 - Firebase Firestore for conversation persistence
 - **Optimistic UI**: Messages appear instantly, saves happen in background
-- **Frontend Direct Writes**: All persistence from frontend to Firestore
-- **Backend Read-Only**: Backend only loads conversation history
+- **Frontend Direct Writes**: All persistence from frontend to Firestore (Firebase Admin removed from backend)
+- **Backend Read-Only**: Backend does not interact with Firestore (removed for Vercel compatibility)
 - No real-time listeners (local state is source of truth during session)
+- Single conversation per user pattern (auto-created on first message)
 
 **Deployment:**
 - Frontend: Vercel (static site deployment)
@@ -265,9 +269,11 @@ Tutor: "Yes! What does that give us?"
 
 **Why This Stack:**
 - Express provides professional, standard backend architecture ideal for hiring manager demos
-- Vercel auto-wraps Express as serverless, giving clean structure + serverless benefits (no cold starts, auto-scaling)
-- Vercel AI SDK saves 4-6 hours on chat UI implementation (built-in optimistic updates)
+- Vercel auto-wraps Express as serverless, giving clean structure + serverless benefits (auto-scaling)
+- Manual state management provides full control over chat UI (removed `useChat` for simplicity)
 - Firestore enables direct frontend writes with security rules (instant UX, simple architecture)
+- Firebase Admin removed from backend due to Vercel serverless compatibility issues
+- Backend simplified to pure OpenAI API proxy (cleaner, more reliable)
 - Stay in JavaScript ecosystem for faster development
 - OpenAI Vision handles image parsing (no separate OCR needed)
 
@@ -351,23 +357,14 @@ Data Flow:
 
 ### API Endpoints
 
-**POST /api/chat**
-- Sends user message to AI tutor
-- Returns Socratic response
-- Includes canvas rendering instructions
+**POST /chat**
+- Sends user message to AI tutor (with optional imageUrl)
+- Streams Socratic response via Server-Sent Events (SSE)
+- Uses OpenAI GPT-4 Vision when imageUrl is present
+- Uses OpenAI GPT-4 Turbo for text-only messages
+- Includes conversation context analysis for adaptive scaffolding
 
-**POST /api/upload**
-- Uploads problem image(s)
-- Uses OpenAI Vision to extract problem text
-- Returns parsed problem
-
-**GET /api/conversation/:id**
-- Retrieves conversation history
-- Returns messages with canvas states
-
-**POST /api/conversation/new**
-- Creates new conversation
-- Initializes Firestore document
+**Note:** Frontend queries Firestore directly for conversation history (no backend endpoints for Firestore operations)
 
 ---
 
