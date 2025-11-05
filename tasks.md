@@ -5,12 +5,6 @@
 
 ---
 
-## Priority 0 (P0) - Core Foundation PRs
-
-These PRs must be completed first. They form the essential foundation of the application.
-
----
-
 ### PR #1: Project Setup & Basic Infrastructure
 **Priority:** P0  
 **Day:** 1

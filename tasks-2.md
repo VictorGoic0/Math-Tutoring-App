@@ -1,8 +1,6 @@
-# Post-MVP Features for Canvas
+# Post-MVP Canvas Features
 
-These PRs enhance the whiteboard after core MVP is complete. They build on the Zustand canvasStore from PRs 9-14.
-
-## PR #22: Undo/Redo for Whiteboard
+## PR #1: Undo/Redo for Whiteboard
 **Priority:** Post-MVP  
 
 **Tasks:**
@@ -23,7 +21,7 @@ frontend/src/stores/canvasStore.js  // Add undo/redo logic
 frontend/src/components/DrawingTools.jsx  // Add buttons
 ```
 
-## PR #23: Text Tool for Math Notations
+## PR #2: Text Tool for Math Notations
 **Priority:** Post-MVP  
 
 **Tasks:**
@@ -45,7 +43,7 @@ frontend/src/stores/canvasStore.js  // Support text in strokes
 frontend/src/utils/canvasRenderer.js  // Render text
 ```
 
-## PR #24: Shape Tool
+## PR #3: Shape Tool
 **Priority:** Post-MVP  
 
 **Tasks:**
@@ -66,7 +64,7 @@ frontend/src/stores/canvasStore.js  // Support shapes
 frontend/src/utils/drawingEngine.js  // Shape drawing logic
 ```
 
-## PR #25: Line/Arrow Tool
+## PR #4: Line/Arrow Tool
 **Priority:** Post-MVP  
 
 **Tasks:**
@@ -87,7 +85,7 @@ frontend/src/stores/canvasStore.js  // Support lines
 frontend/src/utils/drawingEngine.js  // Line drawing logic
 ```
 
-## PR #26: Highlighter Tool
+## PR #5: Highlighter Tool
 **Priority:** Post-MVP  
 
 **Tasks:**
@@ -106,4 +104,90 @@ frontend/src/utils/drawingEngine.js  // Line drawing logic
 frontend/src/components/DrawingTools.jsx  // Add highlighter
 frontend/src/stores/canvasStore.js  // Support highlighter strokes
 frontend/src/utils/drawingEngine.js  // Transparent drawing
+```
+
+## PR #6: Interactive Whiteboard Enhancement
+**Priority:** Post-MVP
+**Day:** 3-4 (after previous canvas PRs)
+
+**Tasks:**
+- [ ] Add pan and zoom functionality
+- [ ] Implement touch support for tablets
+- [ ] Add undo/redo for drawings
+- [ ] Improve drawing smoothness (line smoothing algorithm)
+- [ ] Add highlighter tool (semi-transparent)
+- [ ] Add shape tools (line, circle, rectangle) - optional
+- [ ] Test on different devices
+
+**Acceptance Criteria:**
+- Pan and zoom work smoothly
+- Touch drawing works on tablets
+- Undo/redo work correctly (up to 20 steps)
+- Drawing feels very smooth
+- Highlighter tool works with transparency
+- All tools tested on desktop and tablet
+
+**Files Created/Modified:**
+```
+frontend/src/hooks/useCanvasZoom.js
+frontend/src/utils/lineSmoothing.js
+frontend/src/hooks/useDrawingHistory.js
+```
+
+## PR #7: Advanced Image Parsing (Handwritten)
+**Priority:** Post-MVP
+**Day:** 2-3 (after image-related PRs)
+
+**Tasks:**
+- [ ] Test Vision API with handwritten math problems
+- [ ] Improve prompt for better handwriting recognition
+- [ ] Add confidence scores for parsed text
+- [ ] Allow user to correct parsed text before starting
+- [ ] Test with various handwriting styles
+- [ ] Document handwriting recognition limitations
+
+**Acceptance Criteria:**
+- Handwritten problems parse with >70% accuracy
+- User can edit parsed text before confirming
+- Clear messaging when confidence is low
+- Documentation notes which handwriting styles work best
+
+**Files Created/Modified:**
+```
+backend/services/visionService.js (update)
+frontend/src/components/ParsedProblemConfirmation.jsx
+```
+
+## PR #8: Voice Interface (TTS + STT)
+**Priority:** Post-MVP
+**Day:** 4-5 (only after whiteboard + step viz are polished)
+
+**Tasks:**
+- [ ] Install Web Speech API (browser native)
+- [ ] Implement Text-to-Speech for tutor responses
+- [ ] Implement Speech-to-Text for student input
+- [ ] Add microphone button UI
+- [ ] Add speaker toggle button UI
+- [ ] Implement voice activity indicator (waveform or pulsing)
+- [ ] Handle browser compatibility (feature detection)
+- [ ] Add error handling for voice failures
+- [ ] Test on multiple browsers
+- [ ] Fallback to text-only if voice not supported
+
+**Acceptance Criteria:**
+- TTS reads tutor responses aloud
+- STT captures student speech and converts to text
+- Microphone button starts/stops listening
+- Speaker button enables/disables TTS
+- Visual feedback shows when voice is active
+- Works on Chrome, Firefox, Safari, Edge
+- Graceful fallback when voice not supported
+- Error messages help user troubleshoot
+
+**Files Created/Modified:**
+```
+frontend/src/components/VoiceControls.jsx
+frontend/src/hooks/useTextToSpeech.js
+frontend/src/hooks/useSpeechToText.js
+frontend/src/utils/voiceFeatureDetection.js
 ```

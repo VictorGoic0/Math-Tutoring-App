@@ -1,4 +1,6 @@
-### PR #9: Canvas Component Foundation
+# Canvas & Whiteboard Tasks
+
+### PR #1: Canvas Component Foundation
 **Priority:** P0  
 **Day:** 3
 
@@ -28,7 +30,7 @@ frontend/src/stores/canvasStore.js  // NEW - Zustand store
 frontend/src/App.jsx (update layout)
 ```
 
-### PR #10: Step Visualization Rendering on Canvas
+### PR #2: Step Visualization Rendering on Canvas
 **Priority:** P0  
 **Day:** 3
 
@@ -56,7 +58,7 @@ frontend/src/utils/latexToCanvas.js
 frontend/src/components/Whiteboard.jsx (update)
 ```
 
-### PR #11: Drawing Lock/Unlock Mechanism
+### PR #3: Drawing Lock/Unlock Mechanism
 **Priority:** P0  
 **Day:** 3
 
@@ -84,7 +86,7 @@ frontend/src/components/Whiteboard.jsx (update)
 frontend/src/components/LockIndicator.jsx
 ```
 
-### PR #12: Basic Drawing Tools (Pen & Eraser)
+### PR #4: Basic Drawing Tools (Pen & Eraser)
 **Priority:** P0  
 **Day:** 3
 
@@ -113,7 +115,7 @@ frontend/src/hooks/useDrawingTools.js  // Integrate with canvasStore
 frontend/src/utils/drawingEngine.js
 ```
 
-### PR #13: Collaborative Drawing State Management
+### PR #5: Collaborative Drawing State Management
 **Priority:** P0  
 **Day:** 3-4
 
@@ -139,7 +141,7 @@ frontend/src/stores/canvasStore.js  // Update with persistence actions
 frontend/src/services/chatService.js  // Update to include canvas state in conversation
 ```
 
-### PR #14: Color Picker & Clear Button
+### PR #6: Color Picker & Clear Button
 **Priority:** P0  
 **Day:** 4
 
@@ -167,7 +169,7 @@ frontend/src/components/DrawingTools.jsx (update)
 
 ---
 
-### PR #15: Problem Type Testing & Bug Fixes
+### PR #7: Problem Type Testing & Bug Fixes
 **Priority:** P0  
 **Day:** 4
 
@@ -193,110 +195,6 @@ frontend/src/components/DrawingTools.jsx (update)
 ```
 docs/EXAMPLES.md
 (Various bug fixes across components)
-```
-
----
-
-## Priority 1 (P1) - High-Value Features (Post-P0)
-
-These PRs enhance the core experience but require P0 foundation to be complete first.
-
----
-
-### PR #19: Interactive Whiteboard Enhancement
-**Priority:** P1  
-**Day:** 3-4 (after PR #13)
-
-**Tasks:**
-- [ ] Add pan and zoom functionality
-- [ ] Implement touch support for tablets
-- [ ] Add undo/redo for drawings
-- [ ] Improve drawing smoothness (line smoothing algorithm)
-- [ ] Add highlighter tool (semi-transparent)
-- [ ] Add shape tools (line, circle, rectangle) - optional
-- [ ] Test on different devices
-
-**Acceptance Criteria:**
-- Pan and zoom work smoothly
-- Touch drawing works on tablets
-- Undo/redo work correctly (up to 20 steps)
-- Drawing feels very smooth
-- Highlighter tool works with transparency
-- All tools tested on desktop and tablet
-
-**Files Created/Modified:**
-```
-frontend/src/hooks/useCanvasZoom.js
-frontend/src/utils/lineSmoothing.js
-frontend/src/hooks/useDrawingHistory.js
-```
-
----
-
-### PR #20: Advanced Image Parsing (Handwritten)
-**Priority:** P1  
-**Day:** 2-3 (after PR #6)
-
-**Tasks:**
-- [ ] Test Vision API with handwritten math problems
-- [ ] Improve prompt for better handwriting recognition
-- [ ] Add confidence scores for parsed text
-- [ ] Allow user to correct parsed text before starting
-- [ ] Test with various handwriting styles
-- [ ] Document handwriting recognition limitations
-
-**Acceptance Criteria:**
-- Handwritten problems parse with >70% accuracy
-- User can edit parsed text before confirming
-- Clear messaging when confidence is low
-- Documentation notes which handwriting styles work best
-
-**Files Created/Modified:**
-```
-backend/services/visionService.js (update)
-frontend/src/components/ParsedProblemConfirmation.jsx
-```
-
----
-
-## Priority 2 (P2) - Voice Interface (Post-P0 & P1)
-
-This PR should only be started after all P0 features are complete and polished.
-
----
-
-### PR #21: Voice Interface (TTS + STT)
-**Priority:** P2  
-**Day:** 4-5 (only after whiteboard + step viz are polished)
-
-**Tasks:**
-- [ ] Install Web Speech API (browser native)
-- [ ] Implement Text-to-Speech for tutor responses
-- [ ] Implement Speech-to-Text for student input
-- [ ] Add microphone button UI
-- [ ] Add speaker toggle button UI
-- [ ] Implement voice activity indicator (waveform or pulsing)
-- [ ] Handle browser compatibility (feature detection)
-- [ ] Add error handling for voice failures
-- [ ] Test on multiple browsers
-- [ ] Fallback to text-only if voice not supported
-
-**Acceptance Criteria:**
-- TTS reads tutor responses aloud
-- STT captures student speech and converts to text
-- Microphone button starts/stops listening
-- Speaker button enables/disables TTS
-- Visual feedback shows when voice is active
-- Works on Chrome, Firefox, Safari, Edge
-- Graceful fallback when voice not supported
-- Error messages help user troubleshoot
-
-**Files Created/Modified:**
-```
-frontend/src/components/VoiceControls.jsx
-frontend/src/hooks/useTextToSpeech.js
-frontend/src/hooks/useSpeechToText.js
-frontend/src/utils/voiceFeatureDetection.js
 ```
 
 ---
