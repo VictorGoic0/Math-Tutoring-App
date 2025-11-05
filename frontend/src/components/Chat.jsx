@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 import { loadConversationHistory, createConversation, saveMessage, deleteConversation } from '../services/chatService';
 import { uploadImage, validateImageFile } from '../services/storageService';
 import { API_URL, parseAIStream } from '../services/api';
+import Button from './design-system/Button';
+import { colors, typography, spacing, borderRadius, shadows } from '../styles/tokens';
 
 function Chat() {
   const { currentUser } = useAuth();
@@ -225,25 +227,36 @@ function Chat() {
   };
 
   // Show loading state while fetching history
+  const loadingContainerStyles = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+  };
+
+  const spinnerStyles = {
+    width: '40px',
+    height: '40px',
+    border: `4px solid ${colors.neutral.light}`,
+    borderTop: `4px solid ${colors.primary.base}`,
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    margin: '0 auto',
+  };
+
+  const loadingTextStyles = {
+    marginTop: spacing[4],
+    color: colors.text.secondary,
+    fontSize: typography.fontSize.base,
+    fontFamily: typography.fontFamily.base,
+  };
+
   if (isLoadingHistory) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%'
-      }}>
+      <div style={loadingContainerStyles}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid #f3f3f3',
-            borderTop: '4px solid #007bff',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto'
-          }}></div>
-          <p style={{ marginTop: '1rem', color: '#666' }}>Loading conversation...</p>
+          <div style={spinnerStyles}></div>
+          <p style={loadingTextStyles}>Loading conversation...</p>
         </div>
         <style>{`
           @keyframes spin {
@@ -255,53 +268,69 @@ function Chat() {
     );
   }
 
+  const containerStyles = {
+    display: 'flex',
+    flexDirection: 'column',
+    height: 'calc(100vh - 80px)',
+    width: '1200px',
+    maxWidth: '100%',
+    margin: '0 auto',
+    padding: spacing[6],
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    gap: spacing[4],
+  };
+
+  const headerStyles = {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: spacing[4],
+    gap: spacing[2],
+  };
+
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      width: '1200px',
-      maxWidth: '1200px',
-      margin: '0 auto',
-      padding: '1rem',
-      boxSizing: 'border-box',
-      overflow: 'hidden'
-    }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '1rem' 
-      }}>
-        <h2 style={{ margin: 0 }}>AI Math Tutor</h2>
-        
-        {/* Delete conversation button (only show if messages exist) */}
-        {messages.length > 0 && (
-          <button
+    <div style={containerStyles}>
+      {/* Delete conversation button (only show if messages exist) */}
+      {messages.length > 0 && (
+        <div style={{ ...headerStyles, flexShrink: 0 }}>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleDeleteConversation}
             disabled={isDeleting}
+            loading={isDeleting}
             style={{
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: '4px',
-              cursor: isDeleting ? 'not-allowed' : 'pointer',
-              fontSize: '0.9rem',
-              opacity: isDeleting ? 0.6 : 1,
-              transition: 'opacity 0.2s, background-color 0.2s'
+              backgroundColor: colors.error.main,
+              borderColor: colors.error.main,
+              fontSize: typography.fontSize.xs,
+              padding: `${spacing[1]} ${spacing[3]}`,
+              minHeight: '28px',
             }}
-            onMouseEnter={(e) => !isDeleting && (e.target.style.backgroundColor = '#c82333')}
-            onMouseLeave={(e) => !isDeleting && (e.target.style.backgroundColor = '#dc3545')}
+            onMouseEnter={(e) => {
+              if (!isDeleting) {
+                e.currentTarget.style.backgroundColor = colors.error.dark;
+                e.currentTarget.style.borderColor = colors.error.dark;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isDeleting) {
+                e.currentTarget.style.backgroundColor = colors.error.main;
+                e.currentTarget.style.borderColor = colors.error.main;
+              }
+            }}
           >
-            {isDeleting ? '🗑️ Deleting...' : '🗑️ Delete Conversation'}
-          </button>
-        )}
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </div>
+      )}
+      
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <MessageList messages={messages} />
       </div>
       
-      <MessageList messages={messages} />
-      
-      <MessageInput
+      <div style={{ flexShrink: 0 }}>
+        <MessageInput
         input={input}
         onInputChange={(e) => setInput(e.target.value)}
         handleSubmit={handleSubmit}
@@ -311,6 +340,7 @@ function Chat() {
         onClearImage={handleClearImage}
         isUploadingImage={isUploadingImage}
       />
+      </div>
       
       {error && (
         <div style={{

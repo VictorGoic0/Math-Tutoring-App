@@ -998,162 +998,87 @@ docs/EXAMPLES.md
 
 ---
 
-### PR #16: UI Polish & Design System
+### PR #16: UI Polish & Design System Integration
 **Priority:** P0  
 **Day:** 4
 
+**Approach:** Integrate existing design system components (Input, Card, Button) from another project. Apply to key areas of the app for consistency and polish. Use design tokens from `styles/tokens.js` for styling.
+
 **Tasks:**
-1. [ ] Set up SASS in Vite project (install `sass`)
-2. [ ] Create design system foundation
-   - [ ] Create `styles/_variables.scss` (colors, spacing, typography, breakpoints)
-   - [ ] Create `styles/_mixins.scss` (reusable style patterns)
-   - [ ] Create `styles/_reset.scss` (CSS reset/normalize)
-   - [ ] Create `styles/global.scss` (global styles, imports)
-3. [ ] Remove all inline styles and create component-level SCSS files
-   - [ ] `components/Chat.module.scss`
-   - [ ] `components/Login.module.scss`
-   - [ ] `components/SignUp.module.scss`
-   - [ ] `components/MessageList.module.scss`
-   - [ ] `components/MessageInput.module.scss`
-   - [ ] `components/ProtectedRoute.module.scss`
-   - [ ] `App.module.scss`
-4. [ ] Improve chat UI styling (spacing, colors, typography)
-5. [ ] Polish whiteboard UI (borders, shadows, backgrounds)
-6. [ ] Add consistent loading states (spinner during AI response)
-7. [ ] Add empty states (no conversation, no messages)
-8. [ ] Implement responsive layout for different screen sizes
-9. [ ] Add consistent error states (API errors, upload failures)
-10. [ ] Improve visual hierarchy and accessibility
-11. [ ] Test on different screen sizes (desktop, tablet, mobile)
+1. [x] Use Input component from design system for login/signup inputs
+   - Replace native input elements in `Login.jsx` with `Input` component
+   - Replace native input elements in `SignUp.jsx` with `Input` component
+   - Ensure error states, labels, and validation work correctly
 
-**Design System Structure:**
-```
-frontend/src/styles/
-├── _variables.scss          # Design tokens (colors, spacing, typography)
-├── _mixins.scss             # Reusable SASS mixins
-├── _reset.scss              # CSS reset
-├── global.scss              # Global styles (imports all base styles)
-└── components/
-    ├── Chat.module.scss
-    ├── Login.module.scss
-    ├── SignUp.module.scss
-    ├── MessageList.module.scss
-    ├── MessageInput.module.scss
-    ├── ProtectedRoute.module.scss
-    └── App.module.scss
-```
+2. [x] Use Card component from design system for login/signup forms
+   - Wrap login form in `Card` component
+   - Wrap signup form in `Card` component
+   - Use appropriate variant (elevated/outlined) and padding
 
-**Design System Variables (Example):**
-```scss
-// Colors
-$primary: #007bff;
-$secondary: #6c757d;
-$success: #28a745;
-$danger: #dc3545;
-$warning: #ffc107;
-$info: #17a2b8;
+3. [x] Use Button component from design system
+   - Replace login/signup submit buttons with `Button` component
+   - Replace delete conversation button in `Chat.jsx` with `Button` component
+   - Replace image upload button in `MessageInput.jsx` with `Button` component
+   - Use appropriate variants (primary, danger, outline) and sizes
 
-$text-primary: #212529;
-$text-secondary: #6c757d;
-$bg-primary: #ffffff;
-$bg-secondary: #f8f9fa;
-$border-color: #dee2e6;
+4. [x] Remove emojis from buttons
+   - Remove 📷 emoji from image upload button in `MessageInput.jsx`
+   - Remove 🗑️ emoji from delete conversation button in `Chat.jsx`
+   - Replace with text labels or icons if needed
 
-// Spacing (8px base)
-$spacing-xs: 0.25rem;   // 4px
-$spacing-sm: 0.5rem;    // 8px
-$spacing-md: 1rem;      // 16px
-$spacing-lg: 1.5rem;    // 24px
-$spacing-xl: 2rem;      // 32px
-$spacing-xxl: 3rem;     // 48px
+5. [ ] Make app more polished
+   - Improve spacing and layout consistency
+   - Use design tokens for colors, spacing, and typography
+   - Ensure consistent styling across components
+   - Add proper hover/focus states where needed
 
-// Typography
-$font-family-base: system-ui, -apple-system, sans-serif;
-$font-size-sm: 0.875rem;
-$font-size-base: 1rem;
-$font-size-lg: 1.125rem;
-$font-size-xl: 1.25rem;
-$font-size-2xl: 1.5rem;
+6. [ ] (Optional) Refactor all styles to match design system pattern
+   - Move inline styles to JS objects declared outside components
+   - Use dynamic styles inside component only when necessary
+   - Import and use design tokens from `styles/tokens.js`
+   - Follow pattern: `const styles = { ... }` outside component
 
-$font-weight-normal: 400;
-$font-weight-medium: 500;
-$font-weight-bold: 700;
-
-// Breakpoints
-$breakpoint-mobile: 480px;
-$breakpoint-tablet: 768px;
-$breakpoint-desktop: 1024px;
-$breakpoint-wide: 1440px;
-
-// Border radius
-$border-radius-sm: 4px;
-$border-radius-md: 8px;
-$border-radius-lg: 12px;
-
-// Shadows
-$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-$shadow-md: 0 2px 10px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15);
-
-// Transitions
-$transition-fast: 150ms ease-in-out;
-$transition-base: 300ms ease-in-out;
-$transition-slow: 500ms ease-in-out;
-```
+**Design System Components Available:**
+- `components/design-system/Input.jsx` - Full-featured input with label, error/success states
+- `components/design-system/Card.jsx` - Container component with variants (elevated, outlined, flat)
+- `components/design-system/Button.jsx` - Button with variants (primary, outline, danger, etc.) and sizes
+- `styles/tokens.js` - Design tokens (colors, typography, spacing, borderRadius, shadows, transitions)
 
 **Acceptance Criteria:**
-- SASS properly configured in Vite
-- Design system with comprehensive variables established
-- All inline styles removed and replaced with CSS Modules
-- Consistent spacing, colors, and typography throughout app
-- UI looks professional and polished
-- All loading states display correctly with consistent styling
-- Empty states guide user on what to do
-- Error messages are helpful and user-friendly
-- Layout works on desktop (1920x1080 and 1366x768)
-- Responsive on tablet (768px) and mobile (480px)
-- Visual hierarchy is clear (user knows where to look)
-- Accessibility considerations (contrast, focus states)
+- Login and signup forms use Input and Card components
+- All buttons use Button component from design system
+- No emojis in buttons (text labels or icons only)
+- Consistent styling using design tokens
+- UI looks more polished and professional
+- Styles follow design system pattern (JS objects outside components)
 
 **Files Created/Modified:**
 ```
-frontend/package.json (add sass dependency)
-frontend/vite.config.js (configure SASS if needed)
-
-frontend/src/styles/
-├── _variables.scss
-├── _mixins.scss
-├── _reset.scss
-├── global.scss
-└── components/
-    ├── Chat.module.scss
-    ├── Login.module.scss
-    ├── SignUp.module.scss
-    ├── MessageList.module.scss
-    ├── MessageInput.module.scss
-    ├── ProtectedRoute.module.scss
-    └── App.module.scss
-
-frontend/src/main.jsx (import global.scss)
-
-frontend/src/components/ (update all components to use CSS Modules)
-├── Chat.jsx
-├── Login.jsx
-├── SignUp.jsx
-├── MessageList.jsx
-├── MessageInput.jsx
-├── ProtectedRoute.jsx
-
-frontend/src/App.jsx
+frontend/src/components/
+├── Login.jsx (MODIFIED - use Input, Card, Button)
+├── SignUp.jsx (MODIFIED - use Input, Card, Button)
+├── Chat.jsx (MODIFIED - use Button for delete, remove emoji)
+└── MessageInput.jsx (MODIFIED - use Button for upload, remove emoji)
 ```
 
-**Why This Approach:**
-- **SASS Variables** - Centralized design tokens, easy to theme
-- **CSS Modules** - Scoped styles, no class name conflicts
-- **Component-level files** - Co-located with components, easy to maintain
-- **Design System** - Consistent spacing, colors, typography across app
-- **Scalable** - Easy to add new components with consistent styling
-- **Professional** - Industry-standard approach for React apps
+**Design System Pattern:**
+```javascript
+// Styles declared outside component (preferred)
+const containerStyles = {
+  display: 'flex',
+  gap: spacing[4],
+  padding: spacing[6],
+};
+
+function MyComponent() {
+  // Dynamic styles inside component (only when needed)
+  const dynamicStyles = {
+    color: isActive ? colors.primary.base : colors.text.secondary,
+  };
+  
+  return <div style={{ ...containerStyles, ...dynamicStyles }}>...</div>;
+}
+```
 
 ---
 

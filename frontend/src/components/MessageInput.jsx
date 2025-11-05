@@ -1,4 +1,6 @@
 import { useRef } from 'react';
+import Button from './design-system/Button';
+import { colors, typography, spacing, borderRadius, shadows, transitions } from '../styles/tokens';
 
 function MessageInput({ 
   input, 
@@ -23,52 +25,93 @@ function MessageInput({
 
   const canSend = (input.trim() || imagePreviewUrl) && !isLoading && !isUploadingImage;
 
+  const containerStyles = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing[2],
+  };
+
+  const previewStyles = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: spacing[2],
+    padding: spacing[3],
+    backgroundColor: colors.background.default,
+    borderRadius: borderRadius.base,
+    border: `1px solid ${colors.divider}`,
+    boxShadow: shadows.sm,
+  };
+
+  const previewImageStyles = {
+    width: '60px',
+    height: '60px',
+    objectFit: 'cover',
+    borderRadius: borderRadius.base,
+    border: `1px solid ${colors.divider}`,
+  };
+
+  const previewTextStyles = {
+    flex: 1,
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+  };
+
+  const formStyles = {
+    display: 'flex',
+    gap: spacing[2],
+  };
+
+  const textInputStyles = {
+    flex: 1,
+    padding: `${spacing[3]} ${spacing[4]}`,
+    border: `1px solid ${colors.divider}`,
+    borderRadius: borderRadius.base,
+    fontSize: typography.fontSize.base,
+    fontFamily: typography.fontFamily.base,
+    color: colors.text.primary,
+    backgroundColor: colors.background.paper,
+    outline: 'none',
+    transition: `border-color ${transitions.duration.short} ${transitions.easing.easeInOut}, box-shadow ${transitions.duration.short} ${transitions.easing.easeInOut}`,
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <div style={containerStyles}>
       {/* Image Preview */}
       {imagePreviewUrl && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.5rem',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '4px',
-          border: '1px solid #ddd'
-        }}>
+        <div style={previewStyles}>
           <img 
             src={imagePreviewUrl} 
             alt="Preview" 
-            style={{
-              width: '60px',
-              height: '60px',
-              objectFit: 'cover',
-              borderRadius: '4px'
-            }}
+            style={previewImageStyles}
           />
-          <span style={{ flex: 1, fontSize: '0.9rem', color: '#666' }}>
+          <span style={previewTextStyles}>
             Image ready to send
           </span>
-          <button
+          <Button
             type="button"
+            variant="primary"
+            size="sm"
             onClick={onClearImage}
             style={{
-              padding: '0.25rem 0.5rem',
-              backgroundColor: '#f44336',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.85rem'
+              backgroundColor: colors.error.main,
+              borderColor: colors.error.main,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colors.error.dark;
+              e.currentTarget.style.borderColor = colors.error.dark;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.error.main;
+              e.currentTarget.style.borderColor = colors.error.main;
             }}
           >
-            ✕ Remove
-          </button>
+            Remove
+          </Button>
         </div>
       )}
 
       {/* Input Form */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
+      <form onSubmit={handleSubmit} style={formStyles}>
         {/* Hidden File Input */}
         <input
           ref={fileInputRef}
@@ -79,24 +122,24 @@ function MessageInput({
         />
 
         {/* Image Upload Button */}
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="md"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading || isUploadingImage || imagePreviewUrl}
           title="Upload image"
           style={{
-            padding: '0.75rem',
-            backgroundColor: imagePreviewUrl ? '#ccc' : '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: (isLoading || isUploadingImage || imagePreviewUrl) ? 'not-allowed' : 'pointer',
-            fontSize: '1.2rem',
-            minWidth: '50px'
+            minWidth: '50px',
+            ...(imagePreviewUrl && {
+              backgroundColor: colors.action.disabledBackground,
+              borderColor: colors.neutral.lightBase,
+              color: colors.text.disabled,
+            }),
           }}
         >
-          📷
-        </button>
+          Image
+        </Button>
 
         {/* Text Input */}
         <input
@@ -105,34 +148,30 @@ function MessageInput({
           onChange={onInputChange}
           placeholder="Ask a math question or upload an image..."
           disabled={isLoading || isUploadingImage}
-          style={{
-            flex: 1,
-            padding: '0.75rem',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            fontSize: '1rem',
-            outline: 'none'
+          style={textInputStyles}
+          onFocus={(e) => {
+            e.target.style.borderColor = colors.primary.base;
+            e.target.style.boxShadow = `0 0 0 3px ${colors.primary.base}1A`;
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = colors.divider;
+            e.target.style.boxShadow = 'none';
           }}
         />
 
         {/* Send Button */}
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="md"
           disabled={!canSend}
+          loading={isLoading || isUploadingImage}
           style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: canSend ? '#2196f3' : '#ccc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: canSend ? 'pointer' : 'not-allowed',
-            fontSize: '1rem',
-            fontWeight: 'bold',
             minWidth: '100px'
           }}
         >
           {isUploadingImage ? 'Uploading...' : isLoading ? 'Sending...' : 'Send'}
-        </button>
+        </Button>
       </form>
     </div>
   );

@@ -5,29 +5,42 @@ import SignUp from './components/SignUp';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import { useAuth } from './hooks/useAuth';
+import { colors, typography } from './styles/tokens';
 
 function App() {
   const { loading } = useAuth();
 
+  const loadingStyles = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: colors.background.default,
+  };
+
+  const spinnerStyles = {
+    width: '40px',
+    height: '40px',
+    border: `4px solid ${colors.neutral.light}`,
+    borderTop: `4px solid ${colors.primary.base}`,
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    margin: '0 auto',
+  };
+
+  const loadingTextStyles = {
+    marginTop: '1rem',
+    color: colors.text.secondary,
+    fontSize: typography.fontSize.base,
+    fontFamily: typography.fontFamily.base,
+  };
+
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
-      }}>
+      <div style={loadingStyles}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid #f3f3f3',
-            borderTop: '4px solid #007bff',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto'
-          }}></div>
-          <p style={{ marginTop: '1rem', color: '#666' }}>Loading...</p>
+          <div style={spinnerStyles}></div>
+          <p style={loadingTextStyles}>Loading...</p>
         </div>
         <style>{`
           @keyframes spin {
@@ -39,13 +52,16 @@ function App() {
     );
   }
 
+  const appStyles = {
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    fontFamily: typography.fontFamily.base,
+    backgroundColor: colors.background.default,
+  };
+
   return (
-    <div style={{
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
+    <div style={appStyles}>
       <Header />
 
       <Routes>

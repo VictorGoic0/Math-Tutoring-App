@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInUser } from '../utils/firebase';
 import { useAuth } from '../hooks/useAuth';
+import { getAuthErrorMessage } from '../utils/authErrors';
+import Input from './design-system/Input';
+import Card from './design-system/Card';
+import Button from './design-system/Button';
+import { colors, typography, spacing, borderRadius } from '../styles/tokens';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -24,7 +29,7 @@ function Login() {
     const { user, error: signInError } = await signInUser(email, password);
 
     if (signInError) {
-      setError(signInError);
+      setError(getAuthErrorMessage(signInError));
       setLoading(false);
     } else {
       // Successfully logged in, navigate to home
@@ -32,100 +37,99 @@ function Login() {
     }
   };
 
+  const containerStyles = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    backgroundColor: colors.background.default,
+    padding: spacing[4],
+  };
+
+  const titleStyles = {
+    marginBottom: spacing[6],
+    textAlign: 'center',
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary,
+  };
+
+  const errorStyles = {
+    padding: spacing[3],
+    marginBottom: spacing[4],
+    backgroundColor: colors.error.light + '20',
+    color: colors.error.dark,
+    borderRadius: borderRadius.base,
+    fontSize: typography.fontSize.sm,
+    border: `1px solid ${colors.error.light}`,
+  };
+
+  const linkStyles = {
+    marginTop: spacing[4],
+    textAlign: 'center',
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+  };
+
+  const linkAnchorStyles = {
+    color: colors.primary.base,
+    textDecoration: 'none',
+    fontWeight: typography.fontWeight.medium,
+  };
+
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      backgroundColor: '#f5f5f5'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Login</h2>
+    <div style={containerStyles}>
+      <Card
+        variant="elevated"
+        padding="lg"
+        style={{
+          width: '100%',
+          maxWidth: '400px'
+        }}
+      >
+        <h2 style={titleStyles}>Login</h2>
         
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '1rem'
-              }}
-            />
-          </div>
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '1rem'
-              }}
-            />
-          </div>
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
 
           {error && (
-            <div style={{
-              padding: '0.75rem',
-              marginBottom: '1rem',
-              backgroundColor: '#fee',
-              color: '#c33',
-              borderRadius: '4px',
-              fontSize: '0.875rem'
-            }}>
+            <div style={errorStyles}>
               {error}
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            fullWidth
+            loading={loading}
             disabled={loading}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              backgroundColor: loading ? '#ccc' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '1rem',
-              fontWeight: '500',
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
           >
             {loading ? 'Logging in...' : 'Login'}
-          </button>
+          </Button>
         </form>
 
-        <p style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.875rem' }}>
+        <p style={linkStyles}>
           Don't have an account?{' '}
           <a
             href="/signup"
-            style={{ color: '#007bff', textDecoration: 'none' }}
+            style={linkAnchorStyles}
             onClick={(e) => {
               e.preventDefault();
               navigate('/signup');
@@ -134,7 +138,7 @@ function Login() {
             Sign up
           </a>
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

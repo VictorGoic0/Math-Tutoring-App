@@ -34,7 +34,8 @@ export const signInUser = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
     return { user: userCredential.user, error: null };
   } catch (error) {
-    return { user: null, error: error.message };
+    // Return error object with code for better error handling
+    return { user: null, error: error };
   }
 };
 
@@ -49,7 +50,8 @@ export const signUpUser = async (email, password, displayName) => {
     }
     return { user: userCredential.user, error: null };
   } catch (error) {
-    return { user: null, error: error.message };
+    // Return error object with code for better error handling
+    return { user: null, error: error };
   }
 };
 
