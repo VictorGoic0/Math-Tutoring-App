@@ -5,15 +5,15 @@
 **Day:** 3
 
 **Tasks:**
-- [ ] Install Zustand for canvas state management
-- [ ] Create canvasStore with initial state (strokes, systemRenders, currentTool, color, isLocked)
-- [ ] Create Whiteboard component with Canvas element
-- [ ] Set up canvas context and sizing
-- [ ] Implement basic coordinate system
-- [ ] Integrate Zustand store for drawing state management
-- [ ] Add canvas to main layout (split view with chat)
-- [ ] Test canvas renders correctly
-- [ ] Make canvas responsive to window resizing
+- [x] Install Zustand for canvas state management
+- [x] Create canvasStore with initial state (strokes, systemRenders, currentTool, color, isLocked)
+- [x] Create Whiteboard component with Canvas element
+- [x] Set up canvas context and sizing
+- [x] Implement basic coordinate system
+- [x] Integrate Zustand store for drawing state management
+- [x] Add canvas to main layout (split view with chat)
+- [x] Test canvas renders correctly
+- [x] Make canvas responsive to window resizing
 
 **Acceptance Criteria:**
 - Canvas element renders in UI
