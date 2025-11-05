@@ -146,9 +146,14 @@ function Chat() {
             )
           );
         },
-        async (fullText) => {
+        async (fullText, toolCalls = []) => {
           setIsLoading(false);
           persistAIMessage(fullText, convId);
+          
+          // TODO: Process tool calls and send to canvas store (Task 9)
+          if (toolCalls.length > 0) {
+            console.log('Tool calls received:', toolCalls);
+          }
         },
         (error) => {
           setIsLoading(false);

@@ -46,7 +46,7 @@ frontend/src/App.jsx (update layout)
    - [ ] Both functions maintain same callback signature for compatibility
 4. [ ] Create LaTeX-to-Canvas rendering utility (`latexToCanvas.js`):
    - [ ] Use KaTeX (already installed) to render LaTeX to HTML string
-   - [ ] Convert KaTeX HTML output to canvas image (render to temporary element, capture via canvas)
+   - [ ] Convert KaTeX HTML output to canvas image (render to temporary element,c apture via canvas)
    - [ ] Handle async rendering (KaTeX rendering + image capture)
    - [ ] Return render data: { image: ImageData/HTMLImageElement, width, height, bounds }
    - [ ] Support escaping LaTeX special characters

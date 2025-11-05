@@ -2,6 +2,7 @@ const express = require('express');
 const { streamText } = require('ai');
 const { createOpenAI } = require('@ai-sdk/openai');
 const { buildMessagesWithSystemPrompt, analyzeConversationContext } = require('../services/promptService');
+const { z } = require('zod');
 
 const router = express.Router();
 
@@ -9,6 +10,46 @@ const router = express.Router();
 const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// Task 1: Define tool schemas for canvas rendering
+const canvasTools = {
+  render_equation: {
+    description: "Render a LaTeX equation on the canvas. Use this when introducing a new step, showing a worked example, or displaying an equation that should be visualized on the whiteboard.",
+    inputSchema: z.object({
+      latex: z.string().describe("LaTeX equation to render (e.g., 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}'). Use the same LaTeX format as in chat messages ($...$ not needed here)."),
+      x: z.number().optional().describe("X position on canvas (0-1000). Optional - if not provided, equations will auto-stack vertically."),
+      y: z.number().optional().describe("Y position on canvas (0-1000). Optional - if not provided, equations will auto-stack vertically."),
+    }),
+  },
+  render_label: {
+    description: "Render a text label or annotation on the canvas. Use this for step numbers, instructions, or contextual notes that help explain the visualizations.",
+    inputSchema: z.object({
+      text: z.string().describe("Label text to display (e.g., 'Step 1: Set up the equation')"),
+      x: z.number().optional().describe("X position on canvas (0-1000). Optional - if not provided, labels will auto-position."),
+      y: z.number().optional().describe("Y position on canvas (0-1000). Optional - if not provided, labels will auto-position."),
+      fontSize: z.number().optional().describe("Font size in pixels. Optional - defaults to 14."),
+    }),
+  },
+  render_diagram: {
+    description: "Render a geometric diagram or shape on the canvas. Use this for geometric problems, coordinate systems, graphs, or visual representations of mathematical concepts.",
+    inputSchema: z.object({
+      type: z.enum(['line', 'circle', 'rectangle', 'polygon', 'arrow']).describe("Type of diagram element to render"),
+      points: z.array(
+        z.object({
+          x: z.number(),
+          y: z.number(),
+        })
+      ).describe("Array of points defining the shape. For lines: start and end points. For circles: center and point on circumference. For rectangles: top-left and bottom-right. For polygons: all vertices. For arrows: start and end points."),
+      strokeColor: z.string().optional().describe("Stroke color (e.g., '#000000'). Optional - defaults to black."),
+      fillColor: z.string().optional().describe("Fill color (e.g., '#FF0000'). Optional - for shapes that should be filled."),
+      strokeWidth: z.number().optional().describe("Line width in pixels. Optional - defaults to 2."),
+    }),
+  },
+  clear_canvas: {
+    description: "Clear all previous step visualizations from the canvas. Use this at the start of a new problem or when starting a completely new step. This only clears system-rendered content, not user drawings.",
+    inputSchema: z.object({}),
+  },
+};
 
 // POST /chat - Handle chat messages with streaming
 router.post('/chat', async (req, res) => {
@@ -95,16 +136,33 @@ router.post('/chat', async (req, res) => {
     // console.log(`🤖 Using model: ${imageUrl ? 'gpt-4o (with vision)' : 'gpt-4-turbo (text-only)'}`);
 
 
-    // Stream the response from OpenAI using Vercel AI SDK with Socratic prompting
+    // Stream the response from OpenAI using Vercel AI SDK with Socratic prompting and tool calling
     const result = streamText({
       model: modelToUse,
       messages: messagesWithPrompt,
       temperature: 0.7,
+      tools: canvasTools,
     });
 
-    // Stream plain text response to client (v5: pipes to Express response)
-    // Note: Persistence handled by frontend state + history reload (simple & reliable)
-    result.pipeTextStreamToResponse(res);
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Use fullStream to get text deltas and tool calls
+    // Format as SSE (Server-Sent Events) for the frontend
+    try {
+      for await (const chunk of result.fullStream) {
+        // Send each chunk as SSE data
+        res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+      }
+      res.end();
+    } catch (streamError) {
+      console.error('Stream error:', streamError);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Streaming error' });
+      }
+    }
 
   } catch (error) {
     console.error('Chat API error:', error);
