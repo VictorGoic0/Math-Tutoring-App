@@ -38,6 +38,93 @@
 
 ## Current File Assignment
 - See this file for summary/project-wide context; all PR-specific detail is in:
-  - `tasks-core.md` - Core application features (PRs #1-18)
+  - `tasks-core.md` - Core application features (PRs #1-11)
   - `tasks-canvas.md` - Canvas/whiteboard features (PRs #1-7)
   - `tasks-post-mvp.md` - Post-MVP enhancements (PRs #1-8)
+
+## MVP PR Sequence
+
+### Week 1 (Days 1-5)
+
+**Day 1: Foundation**
+- PR #1: Project setup
+- PR #2: Firebase Authentication
+- PR #3: Basic Chat UI
+- PR #4: Socratic Prompting
+
+**Day 2: Input & Persistence**
+- PR #5: Firestore integration
+- PR #6: Image upload UI
+- PR #7: Vision integration
+- PR #8: Math rendering
+
+**Day 4: Polish**
+- PR #9: UI Polish & Design System
+
+**Day 5: Deployment & Documentation**
+- PR #10: Documentation
+- PR #11: Vercel deployment
+
+**Canvas/Whiteboard (separate track):**
+- See `tasks-canvas.md` for whiteboard PRs
+
+## Critical Path
+
+**Must Complete for MVP:**
+- PR #1 → #2 → #3 → #4 (Day 1: Chat foundation)
+- PR #5 → #6 → #7 → #8 (Day 2: Input system & rendering)
+- PR #9 (Day 4: UI polish)
+- PR #10 → #11 (Day 5: Documentation & deployment)
+
+**Canvas/Whiteboard (Parallel Track):**
+- See `tasks-canvas.md` for canvas development sequence
+
+## Notes on Prioritization
+
+**Why This Order:**
+
+1. **P0 First:** All core features must work before adding enhancements
+2. **Chat Before Canvas:** Need working AI conversation before visual features
+3. **Canvas Foundation Before Drawing:** Rendering must work before interaction
+4. **Drawing Before Voice:** Visual learning is more critical than audio
+5. **Testing Before Deployment:** Can't ship untested code
+6. **Voice Last:** Nice-to-have that can be dropped if timeline is tight
+
+**Decision Points:**
+
+- **End of Day 2:** Assess if core features are complete
+- **End of Day 4:** Assess if ready to deploy
+- **Day 5 Morning:** Make final call on any stretch features
+
+**Quality Gates:**
+
+- Don't move to next priority tier until current tier is polished
+- If running behind, cut lower priority features rather than ship buggy code
+- Post-MVP features are explicitly optional
+
+## PR Best Practices
+
+**Each PR Should:**
+- Have a clear, single focus
+- Include tests (manual testing checklist minimum)
+- Update relevant documentation
+- Have descriptive commit messages
+- Be small enough to review in 15-30 minutes
+- Pass all acceptance criteria before merging
+
+**Branch Naming Convention:**
+```
+feature/pr-01-project-setup
+feature/pr-02-chat-ui
+feature/pr-03-socratic-prompting
+...
+```
+
+**Commit Message Format:**
+```
+[PR-01] Initialize React + Vite project
+
+- Set up project structure
+- Configure environment variables
+- Add Firebase connection
+```
