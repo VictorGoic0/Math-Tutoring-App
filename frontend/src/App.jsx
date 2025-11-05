@@ -54,17 +54,32 @@ function App() {
 
   const appStyles = {
     height: '100vh',
+    maxHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
     fontFamily: typography.fontFamily.base,
     backgroundColor: colors.background.default,
+    overflow: 'hidden',
   };
 
   return (
-    <div style={appStyles}>
-      <Header />
+    <>
+      <style>{`
+        html, body {
+          height: 100%;
+          overflow: hidden;
+          margin: 0;
+          padding: 0;
+        }
+        #root {
+          height: 100%;
+          overflow: hidden;
+        }
+      `}</style>
+      <div style={appStyles}>
+        <Header />
 
-      <Routes>
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route
@@ -77,7 +92,8 @@ function App() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
+      </div>
+    </>
   );
 }
 

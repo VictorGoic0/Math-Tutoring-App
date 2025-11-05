@@ -275,17 +275,17 @@ function Chat() {
     width: '1200px',
     maxWidth: '100%',
     margin: '0 auto',
-    padding: spacing[6],
+    padding: `${spacing[2]} ${spacing[6]}`,
     boxSizing: 'border-box',
     overflow: 'hidden',
-    gap: spacing[4],
+    gap: spacing[2],
   };
 
   const headerStyles = {
     display: 'flex',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    marginBottom: spacing[4],
+    padding: `${spacing[1]} 0`,
     gap: spacing[2],
   };
 
@@ -325,7 +325,7 @@ function Chat() {
         </div>
       )}
       
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, minHeight: 0, maxHeight: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <MessageList messages={messages} isLoading={isLoading} />
       </div>
       
