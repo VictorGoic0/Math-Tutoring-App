@@ -104,7 +104,7 @@ function Whiteboard() {
   const containerStyles = {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.background.paper,
+    backgroundColor: colors.neutral.lightBase, // Slightly darker than chat background for visual distinction
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
