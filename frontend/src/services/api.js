@@ -133,8 +133,11 @@ export async function parseAIStreamText(response, onChunk, onComplete, onError) 
  * @param {Function} onError - Callback for errors: (error: Error) => void
  */
 export async function parseAIStreamRender(response, onChunk, onComplete, onError) {
+  console.log('🎬 parseAIStreamRender: Starting to parse data stream');
+  
   if (!response.ok) {
     const errorText = await response.text();
+    console.error('❌ parseAIStreamRender: Response not OK:', response.status, errorText);
     onError(new Error(`API error: ${response.status} - ${errorText}`));
     return;
   }
@@ -144,16 +147,25 @@ export async function parseAIStreamRender(response, onChunk, onComplete, onError
   let fullText = '';
   let toolCalls = [];
   let buffer = '';
+  let chunkCount = 0;
 
   try {
     while (true) {
       const { done, value } = await reader.read();
       
       if (done) {
+        console.log('✅ parseAIStreamRender: Stream complete', {
+          totalChunks: chunkCount,
+          textLength: fullText.length,
+          toolCallCount: toolCalls.length,
+          toolCalls: toolCalls.map(tc => ({ name: tc.toolName, hasArgs: !!tc.args }))
+        });
         onComplete(fullText, toolCalls);
         break;
       }
 
+      chunkCount++;
+      
       // Decode chunk and add to buffer
       buffer += decoder.decode(value, { stream: true });
       
@@ -176,6 +188,8 @@ export async function parseAIStreamRender(response, onChunk, onComplete, onError
           
           // Handle different event types
           if (event.type === 'text-delta' && event.text) {
+            console.log('📝 Text delta:', event.text.substring(0, 50) + (event.text.length > 50 ? '...' : ''));
+            
             // Accumulate text
             fullText += event.text;
             
@@ -185,26 +199,51 @@ export async function parseAIStreamRender(response, onChunk, onComplete, onError
             }
           } else if (event.type === 'tool-call') {
             // Accumulate tool call
+            // AI SDK uses 'input' or 'args' depending on version/format
+            const toolArgs = event.args || event.input;
+            
+            console.log('🔧 Tool call received:', {
+              toolName: event.toolName,
+              toolCallId: event.toolCallId,
+              argsKeys: toolArgs ? Object.keys(toolArgs) : [],
+              args: toolArgs
+            });
+            
             toolCalls.push({
               toolCallId: event.toolCallId,
               toolName: event.toolName,
-              args: event.args
+              args: toolArgs
             });
           } else if (event.type === 'tool-call-delta') {
+            console.log('🔧 Tool call delta:', event.toolCallId);
+            
             // Handle incremental tool call args (if streaming)
             const existingCall = toolCalls.find(tc => tc.toolCallId === event.toolCallId);
             if (existingCall) {
               // Merge args delta
-              existingCall.args = { ...existingCall.args, ...event.args };
+              const argsDelta = event.args || event.argsTextDelta;
+              existingCall.args = { ...existingCall.args, ...argsDelta };
             }
+          } else if (event.type === 'finish-step') {
+            console.log('🏁 Step finished:', {
+              finishReason: event.finishReason,
+              usage: event.usage,
+              hasToolCalls: toolCalls.length > 0,
+              textLength: fullText.length
+            });
+          } else if (event.type === 'start-step') {
+            console.log('🎬 New step starting');
+          } else {
+            console.log('ℹ️ Other event type:', event.type);
           }
           // Ignore other event types (text-start, text-end, finish, etc.)
         } catch (parseError) {
-          console.warn('Failed to parse SSE event:', jsonStr, parseError);
+          console.warn('⚠️ Failed to parse SSE event:', jsonStr, parseError);
         }
       }
     }
   } catch (error) {
+    console.error('❌ parseAIStreamRender: Error during parsing:', error);
     onError(error);
   }
 }

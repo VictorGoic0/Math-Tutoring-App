@@ -7,6 +7,8 @@ import { uploadImage, validateImageFile } from '../services/storageService';
 import { API_URL, parseAIStream } from '../services/api';
 import Button from './design-system/Button';
 import { colors, typography, spacing, borderRadius, shadows } from '../styles/tokens';
+import { useCanvasStore } from '../stores/canvasStore';
+import { resetAutoPosition } from '../utils/canvasRenderer';
 
 function Chat() {
   const { currentUser } = useAuth();
@@ -22,6 +24,9 @@ function Chat() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  // Canvas store actions
+  const { addSystemRender, clearSystemRenders } = useCanvasStore();
 
   useEffect(() => {
     async function fetchHistory() {
@@ -150,9 +155,9 @@ function Chat() {
           setIsLoading(false);
           persistAIMessage(fullText, convId);
           
-          // TODO: Process tool calls and send to canvas store (Task 9)
+          // Task 9: Process tool calls and send to canvas store
           if (toolCalls.length > 0) {
-            console.log('Tool calls received:', toolCalls);
+            processToolCalls(toolCalls);
           }
         },
         (error) => {
@@ -207,6 +212,81 @@ function Chat() {
     } catch (error) {
       // console.error('⚠️ Failed to persist AI message (non-fatal):', error);
     }
+  }
+
+  /**
+   * Process tool calls from AI stream and update canvas
+   * Tasks 8 & 9: Handle clear_canvas, render_equation, render_label, render_diagram
+   */
+  function processToolCalls(toolCalls) {
+    toolCalls.forEach((toolCall) => {
+      const { toolName, args } = toolCall;
+
+      // Skip if args are missing (incomplete tool call)
+      if (!args && toolName !== 'clear_canvas') {
+        console.warn('Tool call missing args:', toolCall);
+        return;
+      }
+
+      switch (toolName) {
+        case 'clear_canvas':
+          // Task 8: Clear system renders and reset auto-positioning
+          clearSystemRenders();
+          resetAutoPosition();
+          break;
+
+        case 'render_equation':
+          // Task 9: Add equation to canvas store
+          if (!args.latex) {
+            console.warn('render_equation missing latex:', args);
+            return;
+          }
+          addSystemRender({
+            id: `render-${Date.now()}-${Math.random()}`,
+            type: 'equation',
+            latex: args.latex,
+            x: args.x,
+            y: args.y,
+          });
+          break;
+
+        case 'render_label':
+          // Task 9: Add label to canvas store
+          if (!args.text) {
+            console.warn('render_label missing text:', args);
+            return;
+          }
+          addSystemRender({
+            id: `render-${Date.now()}-${Math.random()}`,
+            type: 'label',
+            text: args.text,
+            x: args.x,
+            y: args.y,
+            fontSize: args.fontSize,
+          });
+          break;
+
+        case 'render_diagram':
+          // Task 9: Add diagram to canvas store
+          if (!args.type || !args.points) {
+            console.warn('render_diagram missing type or points:', args);
+            return;
+          }
+          addSystemRender({
+            id: `render-${Date.now()}-${Math.random()}`,
+            type: 'diagram',
+            diagramType: args.type,
+            points: args.points,
+            strokeColor: args.strokeColor,
+            fillColor: args.fillColor,
+            strokeWidth: args.strokeWidth,
+          });
+          break;
+
+        default:
+          console.warn('Unknown tool call:', toolName);
+      }
+    });
   }
 
   const handleDeleteConversation = async () => {

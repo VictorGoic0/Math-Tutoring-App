@@ -1,5 +1,5 @@
 const express = require('express');
-const { streamText } = require('ai');
+const { streamText, stepCountIs } = require('ai');
 const { createOpenAI } = require('@ai-sdk/openai');
 const { buildMessagesWithSystemPrompt, analyzeConversationContext } = require('../services/promptService');
 const { z } = require('zod');
@@ -33,7 +33,7 @@ const canvasTools = {
   render_diagram: {
     description: "Render a geometric diagram or shape on the canvas. Use this for geometric problems, coordinate systems, graphs, or visual representations of mathematical concepts.",
     inputSchema: z.object({
-      type: z.enum(['line', 'circle', 'rectangle', 'polygon', 'arrow']).describe("Type of diagram element to render"),
+      type: z.enum(['line', 'circle', 'rectangle', 'polygon', 'arrow', 'parabola']).describe("Type of diagram element to render"),
       points: z.array(
         z.object({
           x: z.number(),
@@ -137,11 +137,13 @@ router.post('/chat', async (req, res) => {
 
 
     // Stream the response from OpenAI using Vercel AI SDK with Socratic prompting and tool calling
+    // maxToolRoundtrips allows the model to call tools AND then continue with text response
     const result = streamText({
       model: modelToUse,
       messages: messagesWithPrompt,
       temperature: 0.7,
       tools: canvasTools,
+      stopWhen: [stepCountIs(5)],
     });
 
     // Set SSE headers
@@ -153,10 +155,18 @@ router.post('/chat', async (req, res) => {
     // Format as SSE (Server-Sent Events) for the frontend
     try {
       for await (const chunk of result.fullStream) {
+        // Log tool calls and step finishes for debugging
+        if (chunk.type === 'tool-call') {
+          console.log('🔧 Tool call:', chunk.toolName, 'with', Object.keys(chunk.args || {}).length, 'args');
+        } else if (chunk.type === 'finish-step') {
+          console.log('✅ Step finished:', chunk.finishReason, '- Usage:', chunk.usage?.totalTokens, 'tokens');
+        }
+        
         // Send each chunk as SSE data
         res.write(`data: ${JSON.stringify(chunk)}\n\n`);
       }
       res.end();
+      console.log('🏁 Stream completed');
     } catch (streamError) {
       console.error('Stream error:', streamError);
       if (!res.headersSent) {

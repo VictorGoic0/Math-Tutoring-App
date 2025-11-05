@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCanvasStore } from '../stores/canvasStore';
 import { colors } from '../styles/tokens';
+import { renderToCanvas, resetAutoPosition } from '../utils/canvasRenderer';
 
 /**
  * Whiteboard Component
@@ -11,6 +12,7 @@ import { colors } from '../styles/tokens';
 function Whiteboard() {
   const canvasRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [isRendering, setIsRendering] = useState(false);
   
   const {
     strokes,
@@ -71,35 +73,53 @@ function Whiteboard() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, dimensions.width, dimensions.height);
+    async function redrawCanvas() {
+      if (isRendering) return; // Prevent concurrent renders
+      
+      setIsRendering(true);
 
-    // Draw system renders first (background layer)
-    systemRenders.forEach((render) => {
-      // TODO: Implement system render drawing in PR #2
-      // For now, this is a placeholder
-    });
+      try {
+        // Clear canvas
+        ctx.clearRect(0, 0, dimensions.width, dimensions.height);
 
-    // Draw user strokes on top
-    strokes.forEach((stroke) => {
-      if (stroke.points && stroke.points.length > 0) {
-        ctx.beginPath();
-        ctx.strokeStyle = stroke.color || '#000000';
-        ctx.lineWidth = stroke.width || 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        // Reset auto-positioning for new render cycle
+        resetAutoPosition();
 
-        const points = stroke.points;
-        ctx.moveTo(points[0].x, points[0].y);
-
-        for (let i = 1; i < points.length; i++) {
-          ctx.lineTo(points[i].x, points[i].y);
+        // Draw system renders first (background layer)
+        for (const render of systemRenders) {
+          try {
+            await renderToCanvas(ctx, render, dimensions.width, dimensions.height);
+          } catch (error) {
+            console.error('Failed to render system content:', render, error);
+          }
         }
 
-        ctx.stroke();
+        // Draw user strokes on top
+        strokes.forEach((stroke) => {
+          if (stroke.points && stroke.points.length > 0) {
+            ctx.beginPath();
+            ctx.strokeStyle = stroke.color || '#000000';
+            ctx.lineWidth = stroke.width || 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const points = stroke.points;
+            ctx.moveTo(points[0].x, points[0].y);
+
+            for (let i = 1; i < points.length; i++) {
+              ctx.lineTo(points[i].x, points[i].y);
+            }
+
+            ctx.stroke();
+          }
+        });
+      } finally {
+        setIsRendering(false);
       }
-    });
-  }, [strokes, systemRenders, dimensions]);
+    }
+
+    redrawCanvas();
+  }, [strokes, systemRenders, dimensions, isRendering]);
 
   const containerStyles = {
     width: '100%',
