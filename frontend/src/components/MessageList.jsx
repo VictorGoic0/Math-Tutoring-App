@@ -2,7 +2,59 @@ import { useEffect, useRef } from 'react';
 import MathDisplay from './MathDisplay';
 import { colors, typography, spacing, borderRadius, shadows, transitions } from '../styles/tokens';
 
-function MessageList({ messages }) {
+function TypingIndicator() {
+  const typingIndicatorStyles = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: spacing[2],
+    padding: `${spacing[2]} 0`,
+    color: colors.text.secondary,
+    fontSize: typography.fontSize.sm,
+    fontStyle: 'italic',
+  };
+
+  const dotStyles = {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    backgroundColor: colors.primary.base,
+    animation: 'typingDot 1.4s infinite ease-in-out',
+  };
+
+  return (
+    <>
+      <style>{`
+        @keyframes typingDot {
+          0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.7;
+          }
+          30% {
+            transform: translateY(-8px);
+            opacity: 1;
+          }
+        }
+        .typing-dot-1 {
+          animation-delay: 0s;
+        }
+        .typing-dot-2 {
+          animation-delay: 0.2s;
+        }
+        .typing-dot-3 {
+          animation-delay: 0.4s;
+        }
+      `}</style>
+      <div style={typingIndicatorStyles}>
+        <span>Tutor is thinking</span>
+        <span style={{ ...dotStyles }} className="typing-dot-1"></span>
+        <span style={{ ...dotStyles }} className="typing-dot-2"></span>
+        <span style={{ ...dotStyles }} className="typing-dot-3"></span>
+      </div>
+    </>
+  );
+}
+
+function MessageList({ messages, isLoading = false }) {
   const containerRef = useRef(null);
 
   // Auto-scroll to bottom when messages change
@@ -259,9 +311,11 @@ function MessageList({ messages }) {
             )}
             
             {/* Display text content with math rendering */}
-            {message.content && (
+            {message.content ? (
               <MathDisplay content={message.content} />
-            )}
+            ) : isLoading && message.role === 'assistant' && messages[messages.length - 1]?.id === message.id ? (
+              <TypingIndicator />
+            ) : null}
           </div>
         );
       })}

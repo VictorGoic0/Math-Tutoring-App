@@ -326,7 +326,7 @@ function Chat() {
       )}
       
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <MessageList messages={messages} />
+        <MessageList messages={messages} isLoading={isLoading} />
       </div>
       
       <div style={{ flexShrink: 0 }}>
