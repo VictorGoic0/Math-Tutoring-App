@@ -793,210 +793,120 @@ frontend/src/components/MathDisplay.jsx (MODIFIED - processes markdown on text p
 
 ---
 
-### PR #9: Canvas Component Foundation
-**Priority:** P0  
-**Day:** 3
 
-**Tasks:**
-- [ ] Create Whiteboard component with Canvas element
-- [ ] Set up canvas context and sizing
-- [ ] Implement basic coordinate system
-- [ ] Create drawing state management
-- [ ] Add canvas to main layout (split view with chat)
-- [ ] Test canvas renders correctly
-- [ ] Make canvas responsive to window resizing
 
-**Acceptance Criteria:**
-- Canvas element renders in UI
-- Canvas has proper dimensions and scaling
-- Layout splits screen between chat and whiteboard
-- Canvas clears properly
-- No visual glitches or rendering issues
+## Summary: MVP PR Sequence
 
-**Files Created/Modified:**
-```
-frontend/src/components/Whiteboard.jsx
-frontend/src/hooks/useCanvas.js
-frontend/src/App.jsx (update layout)
-```
+### Week 1 (Days 1-5)
 
----
+**Day 1: Foundation**
+- PR #1: Project setup
+- PR #2: Basic chat UI
+- PR #3: Socratic prompting
 
-### PR #10: Step Visualization Rendering on Canvas
-**Priority:** P0  
-**Day:** 3
+**Day 2: Input & Persistence**
+- PR #4: Firestore integration
+- PR #5: Image upload UI
+- PR #6: Image parsing (printed)
+- PR #7: Math rendering
 
-**Tasks:**
-- [ ] Create LaTeX-to-Canvas rendering utility
-- [ ] Parse AI responses for [RENDER: ...] instructions
-- [ ] Implement system layer rendering (equations, diagrams, labels)
-- [ ] Position elements clearly on canvas
-- [ ] Clear previous step when new step renders
-- [ ] Test rendering various equation types
-- [ ] Add visual distinction for system-rendered content
+**Day 3: Whiteboard Core**
+- PR #8: Canvas foundation
+- PR #9: Step visualization
+- PR #10: Drawing lock/unlock
+- PR #11: Drawing tools
+- PR #12: Canvas state management
 
-**Acceptance Criteria:**
-- System renders equations on canvas automatically
-- LaTeX equations display correctly on canvas
-- Labels and annotations render clearly
-- Each step clears previous step appropriately
-- Multiple equation types render correctly (fractions, exponents, etc.)
-- System-rendered content is visually distinct from user drawings
+**Day 4: Polish & Enhancements**
+- PR #13: Color picker & clear
+- PR #14: Problem testing & bugs
+- PR #15: UI polish
+- PR #19: Whiteboard enhancements (P1)
+- PR #20: Handwritten parsing (P1)
 
-**Files Created/Modified:**
-```
-frontend/src/utils/canvasRenderer.js
-frontend/src/utils/latexToCanvas.js
-frontend/src/components/Whiteboard.jsx (update)
-```
+**Day 5: Deployment & Documentation**
+- PR #16: Documentation
+- PR #17: Vercel deployment
+- PR #18: Demo video & QA
+- PR #21: Voice interface (P2) - only if time permits
 
 ---
 
-### PR #11: Drawing Lock/Unlock Mechanism
-**Priority:** P0  
-**Day:** 3
+## Critical Path
 
-**Tasks:**
-- [ ] Implement drawing locked/unlocked state
-- [ ] Show visual indicator when drawing is locked
-- [ ] Lock drawing by default at conversation start
-- [ ] Unlock drawing after system renders step visualization
-- [ ] Lock drawing when progressing to next step
-- [ ] Disable pointer events when locked
-- [ ] Test lock/unlock flow through multi-step problem
+**Must Complete for MVP:**
+- PR #1 → #2 → #3 (Day 1: Chat foundation)
+- PR #4 → #5 → #6 (Day 2: Input system)
+- PR #7 (Math rendering - can parallel with #4-6)
+- PR #8 → #9 → #10 → #11 → #12 (Day 3: Whiteboard)
+- PR #13 → #14 → #15 (Day 4: Testing & polish)
+- PR #16 → #17 → #18 (Day 5: Ship it)
 
-**Acceptance Criteria:**
-- Drawing starts locked
-- Unlocks after system renders visualization
-- Locks when moving to next step
-- Visual indicator clearly shows lock state
-- Pointer events disabled when locked
-- Flow works smoothly through entire problem
+**Optional if Time Permits:**
+- PR #19: Whiteboard enhancements
+- PR #20: Handwritten support
+- PR #21: Voice interface
 
-**Files Created/Modified:**
-```
-frontend/src/hooks/useDrawingLock.js
-frontend/src/components/Whiteboard.jsx (update)
-frontend/src/components/LockIndicator.jsx
-```
+**Not in MVP (Stretch Goals):**
+- Animation for step visualization
+- Animated avatar
+- Difficulty modes
+- Problem generation
+- Image cleanup with TTL
 
 ---
 
-### PR #12: Basic Drawing Tools (Pen & Eraser)
-**Priority:** P0  
-**Day:** 3
+## Notes on Prioritization
 
-**Tasks:**
-- [ ] Implement pen tool for freehand drawing
-- [ ] Implement eraser tool
-- [ ] Add drawing tool selector UI
-- [ ] Handle pointer events (down, move, up)
-- [ ] Draw smooth lines between points
-- [ ] Separate user layer from system layer
-- [ ] Ensure only user layer is affected by eraser
-- [ ] Test drawing performance and smoothness
+**Why This Order:**
 
-**Acceptance Criteria:**
-- Pen tool draws smooth lines
-- Eraser removes user drawings only (not system visualizations)
-- Tool selector UI is clear and functional
-- Drawing feels responsive (60fps)
-- Multiple strokes can be drawn
-- Eraser has appropriate size
+1. **P0 First:** All core features must work before adding enhancements
+2. **Chat Before Canvas:** Need working AI conversation before visual features
+3. **Canvas Foundation Before Drawing:** Rendering must work before interaction
+4. **Drawing Before Voice:** Visual learning is more critical than audio
+5. **Testing Before Deployment:** Can't ship untested code
+6. **Voice Last:** Nice-to-have that can be dropped if timeline is tight
 
-**Files Created/Modified:**
-```
-frontend/src/components/DrawingTools.jsx
-frontend/src/hooks/useDrawingTools.js
-frontend/src/utils/drawingEngine.js
-```
+**Decision Points:**
+
+- **End of Day 3:** Assess if whiteboard is on track. If behind, skip PR #19.
+- **End of Day 4:** Assess if ready to deploy. If behind, skip PR #20 and #21.
+- **Day 5 Morning:** Make final call on voice interface (PR #21) based on overall status.
+
+**Quality Gates:**
+
+- Don't move to next priority tier until current tier is polished
+- If running behind, cut lower priority features rather than ship buggy code
+- Voice (P2) is explicitly optional - only add if P0 is perfect
 
 ---
 
-### PR #13: Collaborative Drawing State Management
-**Priority:** P0  
-**Day:** 3-4
+## PR Best Practices
 
-**Tasks:**
-- [ ] Save canvas state (system layer + user layer) to Firestore
-- [ ] Load canvas state when retrieving conversation
-- [ ] Sync canvas state across real-time updates
-- [ ] Serialize/deserialize canvas drawings
-- [ ] Implement canvas state per message/step
-- [ ] Test drawing persistence across page refresh
+**Each PR Should:**
+- [ ] Have a clear, single focus
+- [ ] Include tests (manual testing checklist minimum)
+- [ ] Update relevant documentation
+- [ ] Have descriptive commit messages
+- [ ] Be small enough to review in 15-30 minutes
+- [ ] Pass all acceptance criteria before merging
 
-**Acceptance Criteria:**
-- Canvas state saves to Firestore on each step
-- Canvas state loads correctly when conversation reopens
-- Both system and user layers persist
-- Real-time updates sync canvas between hypothetical multiple users (foundation for collaborative)
-- No data loss on page refresh
-
-**Files Created/Modified:**
+**Branch Naming Convention:**
 ```
-frontend/src/hooks/useCanvasState.js
-backend/services/canvasService.js
+feature/pr-01-project-setup
+feature/pr-02-chat-ui
+feature/pr-03-socratic-prompting
+...
 ```
 
----
-
-### PR #14: Color Picker & Clear Button
-**Priority:** P0  
-**Day:** 4
-
-**Tasks:**
-- [ ] Add color picker UI for pen tool
-- [ ] Implement color selection logic
-- [ ] Add clear button for user layer
-- [ ] Confirm clear action with user
-- [ ] Ensure clear only affects user drawings (not system visualizations)
-- [ ] Test with multiple colors
-
-**Acceptance Criteria:**
-- Color picker displays available colors
-- Selected color applies to pen tool
-- Clear button removes all user drawings
-- Confirmation dialog prevents accidental clears
-- System visualizations remain after clear
-- Multiple colors can be used in same drawing
-
-**Files Created/Modified:**
+**Commit Message Format:**
 ```
-frontend/src/components/ColorPicker.jsx
-frontend/src/components/DrawingTools.jsx (update)
+[PR-01] Initialize React + Vite project
+
+- Set up project structure
+- Configure environment variables
+- Add Firebase connection
 ```
-
----
-
-### PR #15: Problem Type Testing & Bug Fixes
-**Priority:** P0  
-**Day:** 4
-
-**Tasks:**
-- [ ] Test with simple arithmetic problem
-- [ ] Test with linear equation
-- [ ] Test with geometry problem
-- [ ] Test with word problem
-- [ ] Test with multi-step problem
-- [ ] Document each test walkthrough with screenshots
-- [ ] Fix bugs discovered during testing
-- [ ] Refine Socratic prompting based on test results
-
-**Acceptance Criteria:**
-- Successfully guides through 5+ problem types
-- No direct answers given in any test
-- Whiteboard visualizations clear for each problem type
-- Drawing lock/unlock works consistently
-- All critical bugs fixed
-- Test walkthroughs documented in EXAMPLES.md
-
-**Files Created/Modified:**
-```
-docs/EXAMPLES.md
-(Various bug fixes across components)
-```
-
----
 
 ### PR #16: UI Polish & Design System Integration
 **Priority:** P0  
@@ -1084,7 +994,6 @@ function MyComponent() {
   return <div style={{ ...containerStyles, ...dynamicStyles }}>...</div>;
 }
 ```
-
 ---
 
 ### PR #17: Documentation & Setup Instructions
@@ -1116,7 +1025,6 @@ ARCHITECTURE.md (NEW - system architecture documentation referencing architectur
 ```
 
 ---
-
 ### PR #18: Deployment to Vercel
 **Priority:** P0  
 **Day:** 5
@@ -1310,257 +1218,5 @@ frontend/src/hooks/useAuth.js (MODIFIED - Updated JSDoc)
 - **Backend Variables Stay Server-Side:** Variables without `VITE_` prefix (like `OPENAI_API_KEY`) are only available in serverless functions, never in browser
 - **Separate Projects:** Each project has its own environment variables, preventing accidental exposure
 
----
 
-### PR #19: Demo Video & Final QA
-**Priority:** P0  
-**Day:** 5
-
-**Tasks:**
-- [ ] Record 5-minute demo video
-  - [ ] Introduction (30s)
-  - [ ] Text input demo (1m)
-  - [ ] Image upload demo (1m)
-  - [ ] Socratic dialogue demo (1.5m)
-  - [ ] Whiteboard demo (1m)
-  - [ ] Conclusion (30s)
-- [ ] Final QA pass on production
-- [ ] Test all 5 problem types in production
-- [ ] Fix any last-minute issues
-- [ ] Update documentation with production URL
-
-**Acceptance Criteria:**
-- Demo video recorded and uploaded
-- All features demonstrated in video
-- Production app passes final QA
-- Documentation includes production URL
-- All deliverables complete
-
-**Files Created/Modified:**
-```
-docs/DEMO_VIDEO.md (link to video)
-README.md (update with production URL)
-```
-
----
-
-## Priority 1 (P1) - High-Value Features (Post-P0)
-
-These PRs enhance the core experience but require P0 foundation to be complete first.
-
----
-
-### PR #19: Interactive Whiteboard Enhancement
-**Priority:** P1  
-**Day:** 3-4 (after PR #13)
-
-**Tasks:**
-- [ ] Add pan and zoom functionality
-- [ ] Implement touch support for tablets
-- [ ] Add undo/redo for drawings
-- [ ] Improve drawing smoothness (line smoothing algorithm)
-- [ ] Add highlighter tool (semi-transparent)
-- [ ] Add shape tools (line, circle, rectangle) - optional
-- [ ] Test on different devices
-
-**Acceptance Criteria:**
-- Pan and zoom work smoothly
-- Touch drawing works on tablets
-- Undo/redo work correctly (up to 20 steps)
-- Drawing feels very smooth
-- Highlighter tool works with transparency
-- All tools tested on desktop and tablet
-
-**Files Created/Modified:**
-```
-frontend/src/hooks/useCanvasZoom.js
-frontend/src/utils/lineSmoothing.js
-frontend/src/hooks/useDrawingHistory.js
-```
-
----
-
-### PR #20: Advanced Image Parsing (Handwritten)
-**Priority:** P1  
-**Day:** 2-3 (after PR #6)
-
-**Tasks:**
-- [ ] Test Vision API with handwritten math problems
-- [ ] Improve prompt for better handwriting recognition
-- [ ] Add confidence scores for parsed text
-- [ ] Allow user to correct parsed text before starting
-- [ ] Test with various handwriting styles
-- [ ] Document handwriting recognition limitations
-
-**Acceptance Criteria:**
-- Handwritten problems parse with >70% accuracy
-- User can edit parsed text before confirming
-- Clear messaging when confidence is low
-- Documentation notes which handwriting styles work best
-
-**Files Created/Modified:**
-```
-backend/services/visionService.js (update)
-frontend/src/components/ParsedProblemConfirmation.jsx
-```
-
----
-
-## Priority 2 (P2) - Voice Interface (Post-P0 & P1)
-
-This PR should only be started after all P0 features are complete and polished.
-
----
-
-### PR #21: Voice Interface (TTS + STT)
-**Priority:** P2  
-**Day:** 4-5 (only after whiteboard + step viz are polished)
-
-**Tasks:**
-- [ ] Install Web Speech API (browser native)
-- [ ] Implement Text-to-Speech for tutor responses
-- [ ] Implement Speech-to-Text for student input
-- [ ] Add microphone button UI
-- [ ] Add speaker toggle button UI
-- [ ] Implement voice activity indicator (waveform or pulsing)
-- [ ] Handle browser compatibility (feature detection)
-- [ ] Add error handling for voice failures
-- [ ] Test on multiple browsers
-- [ ] Fallback to text-only if voice not supported
-
-**Acceptance Criteria:**
-- TTS reads tutor responses aloud
-- STT captures student speech and converts to text
-- Microphone button starts/stops listening
-- Speaker button enables/disables TTS
-- Visual feedback shows when voice is active
-- Works on Chrome, Firefox, Safari, Edge
-- Graceful fallback when voice not supported
-- Error messages help user troubleshoot
-
-**Files Created/Modified:**
-```
-frontend/src/components/VoiceControls.jsx
-frontend/src/hooks/useTextToSpeech.js
-frontend/src/hooks/useSpeechToText.js
-frontend/src/utils/voiceFeatureDetection.js
-```
-
----
-
-## Summary: MVP PR Sequence
-
-### Week 1 (Days 1-5)
-
-**Day 1: Foundation**
-- PR #1: Project setup
-- PR #2: Basic chat UI
-- PR #3: Socratic prompting
-
-**Day 2: Input & Persistence**
-- PR #4: Firestore integration
-- PR #5: Image upload UI
-- PR #6: Image parsing (printed)
-- PR #7: Math rendering
-
-**Day 3: Whiteboard Core**
-- PR #8: Canvas foundation
-- PR #9: Step visualization
-- PR #10: Drawing lock/unlock
-- PR #11: Drawing tools
-- PR #12: Canvas state management
-
-**Day 4: Polish & Enhancements**
-- PR #13: Color picker & clear
-- PR #14: Problem testing & bugs
-- PR #15: UI polish
-- PR #19: Whiteboard enhancements (P1)
-- PR #20: Handwritten parsing (P1)
-
-**Day 5: Deployment & Documentation**
-- PR #16: Documentation
-- PR #17: Vercel deployment
-- PR #18: Demo video & QA
-- PR #21: Voice interface (P2) - only if time permits
-
----
-
-## Critical Path
-
-**Must Complete for MVP:**
-- PR #1 → #2 → #3 (Day 1: Chat foundation)
-- PR #4 → #5 → #6 (Day 2: Input system)
-- PR #7 (Math rendering - can parallel with #4-6)
-- PR #8 → #9 → #10 → #11 → #12 (Day 3: Whiteboard)
-- PR #13 → #14 → #15 (Day 4: Testing & polish)
-- PR #16 → #17 → #18 (Day 5: Ship it)
-
-**Optional if Time Permits:**
-- PR #19: Whiteboard enhancements
-- PR #20: Handwritten support
-- PR #21: Voice interface
-
-**Not in MVP (Stretch Goals):**
-- Animation for step visualization
-- Animated avatar
-- Difficulty modes
-- Problem generation
-- Image cleanup with TTL
-
----
-
-## Notes on Prioritization
-
-**Why This Order:**
-
-1. **P0 First:** All core features must work before adding enhancements
-2. **Chat Before Canvas:** Need working AI conversation before visual features
-3. **Canvas Foundation Before Drawing:** Rendering must work before interaction
-4. **Drawing Before Voice:** Visual learning is more critical than audio
-5. **Testing Before Deployment:** Can't ship untested code
-6. **Voice Last:** Nice-to-have that can be dropped if timeline is tight
-
-**Decision Points:**
-
-- **End of Day 3:** Assess if whiteboard is on track. If behind, skip PR #19.
-- **End of Day 4:** Assess if ready to deploy. If behind, skip PR #20 and #21.
-- **Day 5 Morning:** Make final call on voice interface (PR #21) based on overall status.
-
-**Quality Gates:**
-
-- Don't move to next priority tier until current tier is polished
-- If running behind, cut lower priority features rather than ship buggy code
-- Voice (P2) is explicitly optional - only add if P0 is perfect
-
----
-
-## PR Best Practices
-
-**Each PR Should:**
-- [ ] Have a clear, single focus
-- [ ] Include tests (manual testing checklist minimum)
-- [ ] Update relevant documentation
-- [ ] Have descriptive commit messages
-- [ ] Be small enough to review in 15-30 minutes
-- [ ] Pass all acceptance criteria before merging
-
-**Branch Naming Convention:**
-```
-feature/pr-01-project-setup
-feature/pr-02-chat-ui
-feature/pr-03-socratic-prompting
-...
-```
-
-**Commit Message Format:**
-```
-[PR-01] Initialize React + Vite project
-
-- Set up project structure
-- Configure environment variables
-- Add Firebase connection
-```
-
----
-
-*End of PR Breakdown*
+---*End of PR Breakdown*
