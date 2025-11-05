@@ -271,10 +271,8 @@ function Chat() {
   const containerStyles = {
     display: 'flex',
     flexDirection: 'column',
-    height: 'calc(100vh - 80px)',
-    width: '1200px',
-    maxWidth: '100%',
-    margin: '0 auto',
+    height: '100%',
+    width: '100%',
     padding: `${spacing[2]} ${spacing[6]}`,
     boxSizing: 'border-box',
     overflow: 'hidden',

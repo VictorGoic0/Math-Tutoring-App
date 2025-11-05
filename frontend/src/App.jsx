@@ -1,11 +1,55 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Chat from './components/Chat';
+import Whiteboard from './components/Whiteboard';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import { useAuth } from './hooks/useAuth';
-import { colors, typography } from './styles/tokens';
+import { colors, typography, spacing } from './styles/tokens';
+
+/**
+ * Chat and Whiteboard Split Layout
+ * 
+ * Displays Chat and Whiteboard side by side in a split view.
+ */
+function ChatWhiteboardLayout() {
+  const layoutStyles = {
+    flex: 1,
+    display: 'flex',
+    height: 'calc(100vh - 80px)',
+    overflow: 'hidden',
+    gap: 0,
+  };
+
+  const whiteboardContainerStyles = {
+    flex: '1 1 50%',
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    borderRight: `1px solid ${colors.divider}`,
+  };
+
+  const chatContainerStyles = {
+    flex: '1 1 50%',
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  };
+
+  return (
+    <div style={layoutStyles}>
+      <div style={whiteboardContainerStyles}>
+        <Whiteboard />
+      </div>
+      <div style={chatContainerStyles}>
+        <Chat />
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const { loading } = useAuth();
@@ -86,7 +130,7 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <Chat />
+              <ChatWhiteboardLayout />
             </ProtectedRoute>
           }
         />
