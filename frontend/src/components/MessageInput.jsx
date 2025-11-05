@@ -40,6 +40,7 @@ function MessageInput({
     borderRadius: borderRadius.base,
     border: `1px solid ${colors.divider}`,
     boxShadow: shadows.sm,
+    animation: `slideIn ${transitions.duration.medium} ${transitions.easing.easeOut}`,
   };
 
   const previewImageStyles = {
@@ -75,7 +76,20 @@ function MessageInput({
   };
 
   return (
-    <div style={containerStyles}>
+    <>
+      <style>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <div style={containerStyles}>
       {/* Image Preview */}
       {imagePreviewUrl && (
         <div style={previewStyles}>
@@ -174,6 +188,7 @@ function MessageInput({
         </Button>
       </form>
     </div>
+    </>
   );
 }
 

@@ -344,13 +344,16 @@ function Chat() {
       
       {error && (
         <div style={{
-          color: 'red',
-          padding: '0.5rem',
-          marginTop: '0.5rem',
-          backgroundColor: '#fee',
-          borderRadius: '4px'
+          color: colors.error.dark,
+          padding: spacing[3],
+          marginTop: spacing[2],
+          backgroundColor: colors.error.light + '20',
+          borderRadius: borderRadius.base,
+          border: `1px solid ${colors.error.light}`,
+          fontSize: typography.fontSize.sm,
+          boxShadow: shadows.sm,
         }}>
-          Error: {error}
+          <strong>Error:</strong> {error}
         </div>
       )}
     </div>

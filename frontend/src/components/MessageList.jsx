@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import MathDisplay from './MathDisplay';
-import { colors, typography, spacing, borderRadius, shadows } from '../styles/tokens';
+import { colors, typography, spacing, borderRadius, shadows, transitions } from '../styles/tokens';
 
 function MessageList({ messages }) {
   const containerRef = useRef(null);
@@ -73,6 +73,8 @@ function MessageList({ messages }) {
     border: `1px solid ${colors.divider}`,
     borderRadius: borderRadius.base,
     fontStyle: 'italic',
+    cursor: 'pointer',
+    transition: `all ${transitions.duration.short} ${transitions.easing.easeInOut}`,
   };
 
   const containerStyles = {
@@ -83,6 +85,7 @@ function MessageList({ messages }) {
     borderRadius: borderRadius.lg,
     backgroundColor: colors.background.default,
     boxShadow: shadows.sm,
+    scrollBehavior: 'smooth',
   };
 
   if (messages.length === 0) {
@@ -102,13 +105,61 @@ function MessageList({ messages }) {
             Ask me any question or upload a problem image!
           </p>
           <div style={emptyStateExamplesStyles}>
-            <div style={exampleItemStyles}>
+            <div 
+              style={exampleItemStyles}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.primary.lightest;
+                e.currentTarget.style.borderColor = colors.primary.light;
+                e.currentTarget.style.color = colors.primary.dark;
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = shadows.md;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colors.background.paper;
+                e.currentTarget.style.borderColor = colors.divider;
+                e.currentTarget.style.color = colors.text.secondary;
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
               "How do I solve 2x + 5 = 13?"
             </div>
-            <div style={exampleItemStyles}>
+            <div 
+              style={exampleItemStyles}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.primary.lightest;
+                e.currentTarget.style.borderColor = colors.primary.light;
+                e.currentTarget.style.color = colors.primary.dark;
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = shadows.md;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colors.background.paper;
+                e.currentTarget.style.borderColor = colors.divider;
+                e.currentTarget.style.color = colors.text.secondary;
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
               "Explain the quadratic formula"
             </div>
-            <div style={exampleItemStyles}>
+            <div 
+              style={exampleItemStyles}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.primary.lightest;
+                e.currentTarget.style.borderColor = colors.primary.light;
+                e.currentTarget.style.color = colors.primary.dark;
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = shadows.md;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colors.background.paper;
+                e.currentTarget.style.borderColor = colors.divider;
+                e.currentTarget.style.color = colors.text.secondary;
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
               Upload an image of your math problem
             </div>
           </div>
@@ -118,7 +169,39 @@ function MessageList({ messages }) {
   }
 
   return (
-    <div ref={containerRef} style={containerStyles}>
+    <>
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        /* Custom scrollbar styling */
+        div::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        div::-webkit-scrollbar-track {
+          background: ${colors.background.default};
+          border-radius: ${borderRadius.base};
+        }
+        
+        div::-webkit-scrollbar-thumb {
+          background: ${colors.neutral.mediumLight};
+          border-radius: ${borderRadius.base};
+        }
+        
+        div::-webkit-scrollbar-thumb:hover {
+          background: ${colors.neutral.mediumDark};
+        }
+      `}</style>
+      <div ref={containerRef} style={containerStyles}>
       {messages.map((message) => {
         const isUser = message.role === 'user';
         const messageStyles = {
@@ -128,6 +211,8 @@ function MessageList({ messages }) {
           borderLeft: `4px solid ${isUser ? colors.primary.base : colors.success.main}`,
           borderRadius: borderRadius.base,
           boxShadow: shadows.sm,
+          transition: `transform ${transitions.duration.short} ${transitions.easing.easeOut}, box-shadow ${transitions.duration.short} ${transitions.easing.easeOut}`,
+          animation: `fadeIn ${transitions.duration.medium} ${transitions.easing.easeOut}`,
         };
 
         const labelStyles = {
@@ -158,8 +243,17 @@ function MessageList({ messages }) {
                     cursor: 'pointer',
                     border: `1px solid ${colors.divider}`,
                     boxShadow: shadows.sm,
+                    transition: `transform ${transitions.duration.short} ${transitions.easing.easeInOut}, box-shadow ${transitions.duration.short} ${transitions.easing.easeInOut}`,
                   }}
                   onClick={() => window.open(message.imageUrl, '_blank')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                    e.currentTarget.style.boxShadow = shadows.md;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = shadows.sm;
+                  }}
                 />
               </div>
             )}
@@ -171,7 +265,8 @@ function MessageList({ messages }) {
           </div>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 }
 

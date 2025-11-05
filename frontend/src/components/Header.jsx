@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { signOutUser } from '../utils/firebase';
 import Button from './design-system/Button';
-import { colors, typography, spacing, shadows } from '../styles/tokens';
+import { colors, typography, spacing, shadows, transitions } from '../styles/tokens';
 
 function Header() {
   const { currentUser } = useAuth();
@@ -43,6 +43,7 @@ function Header() {
     width: '40px',
     height: '40px',
     objectFit: 'contain',
+    transition: `transform ${transitions.duration.short} ${transitions.easing.easeInOut}`,
   };
 
   const appNameStyles = {
@@ -72,6 +73,12 @@ function Header() {
           src="/math-mentor-logo-svg.svg" 
           alt="MathMentor AI Logo" 
           style={logoImageStyles}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+          }}
         />
         <div style={logoStyles}>
           <h1 style={appNameStyles}>MathMentor AI</h1>
