@@ -1,4 +1,4 @@
-# Canvas & Whiteboard Tasks
+# Canvas &amp; Whiteboard Tasks
 
 ### PR #1: Canvas Component Foundation
 **Priority:** P0  
@@ -445,115 +445,108 @@ frontend/src/App.jsx (added LockIndicator, isLocked state from store)
 - Steps are linked to messages via messageId for correlation
 - Step data structure is designed to be persisted to Firestore in future PR
 
-### PR #4: Basic Drawing Tools (Pen & Eraser)
+### PR #4: Step Navigation with Arrow Keys
 **Priority:** P0  
 **Day:** 3
 
+**Phase 1: Navigation UI and Controls**
+
 **Tasks:**
-1. [ ] Implement pen tool for freehand drawing (update strokes in canvasStore)
-2. [ ] Implement eraser tool (remove strokes from canvasStore)
-3. [ ] Add drawing tool selector UI
-4. [ ] Handle pointer events (down, move, up)
-5. [ ] Draw smooth lines between points
-6. [ ] Separate user layer from system layer in store
-7. [ ] Ensure only user layer is affected by eraser
-8. [ ] Test drawing performance and smoothness
+1. [ ] Implement navigation actions in canvasStore (increment/decrement currentStepIndex, loadStep)
+2. [ ] Add left/right arrow buttons to Whiteboard component UI
+3. [ ] Handle keyboard events for left/right arrows (add event listener in Whiteboard or globally)
+4. [ ] When navigating, update canvas with systemRenders from selected step
+5. [ ] Disable navigation buttons when at first or last step
+6. [ ] Add visual indicators for current step (e.g., step number display)
+7. [ ] Test navigation through multi-step conversations
 
 **Acceptance Criteria:**
-- Pen tool draws smooth lines
-- Eraser removes user drawings only (not system visualizations)
-- Tool selector UI is clear and functional
-- Drawing feels responsive (60fps)
-- Multiple strokes can be drawn
-- Eraser has appropriate size
+- Arrow keys and buttons allow navigating between AI-generated steps
+- Canvas updates to show renders from selected step
+- Navigation disabled at bounds
+- Smooth transitions between steps
+- Preserves any user strokes or handles them appropriately
+
+**Phase 2: Firestore Persistence for Steps**
+
+**Tasks:**
+1. [ ] Add `steps` property to conversation document structure in Firestore (array of step objects)
+2. [ ] Create `saveStepsToFirestore` function in chatService.js (background save after step creation)
+3. [ ] Integrate step persistence in Chat.jsx (call saveStepsToFirestore after createStep)
+4. [ ] Update `loadConversationHistory` to fetch steps array from conversation document
+5. [ ] Add `loadStepsFromFirestore` action in canvasStore (loads steps array into local state)
+6. [ ] On page refresh, load steps from Firestore and set currentStepIndex to last step
+7. [ ] Render systemRenders from selected step when loading from Firestore
+8. [ ] Handle empty steps array gracefully (default to empty state)
+9. [ ] Test persistence across page refreshes
+
+**Acceptance Criteria:**
+- Steps are saved to Firestore conversation document after each step creation
+- On page refresh, steps load from Firestore into canvasStore
+- User defaults to viewing the last step (most recent visualization)
+- Canvas renders correctly with persisted step data
+- No data loss on page refresh
+- Background saves don't block UI
 
 **Files Created/Modified:**
 ```
-frontend/src/components/DrawingTools.jsx
-frontend/src/hooks/useDrawingTools.js  // Integrate with canvasStore
-frontend/src/utils/drawingEngine.js
+frontend/src/stores/canvasStore.js (add navigation actions, loadStepsFromFirestore action)
+frontend/src/components/Whiteboard.jsx (add buttons and keyboard handler)
+frontend/src/components/Chat.jsx (integrate step persistence, load steps on mount)
+frontend/src/services/chatService.js (add saveStepsToFirestore, update loadConversationHistory)
 ```
 
-### PR #5: Collaborative Drawing State Management
+### PR #5: Enhanced Graph Visualizations
 **Priority:** P0  
 **Day:** 3-4
 
 **Tasks:**
-1. [ ] Implement saveToFirestore action in canvasStore (serialize strokes and systemRenders to JSON)
-2. [ ] Implement loadFromFirestore action in canvasStore (load and set state from Firestore)
-3. [ ] Add Firestore integration for canvas state persistence (subcollection: /conversations/{id}/canvasStates)
-4. [ ] Load canvas state when retrieving conversation
-5. [ ] Sync canvas state on changes (debounced auto-save)
-6. [ ] Implement canvas state per message/step (store snapshots)
-7. [ ] Test drawing persistence across page refresh
+1. [ ] Update render_diagram tool schema to support graph elements (axes, grid, scale)
+2. [ ] Add logic in promptService to detect linear equations and instruct AI to use graph mode
+3. [ ] Implement graph background rendering in canvasRenderer (axes, optional grid)
+4. [ ] Add grid visibility toggle based on shape types (e.g., visible for lines, parabolas)
+5. [ ] Ensure AI understands shapes are placed on graph coordinates
+6. [ ] Update auto-positioning to respect graph layout
+7. [ ] Test with linear equation examples (e.g., y = mx + b rendering as graph with line)
 
 **Acceptance Criteria:**
-- Canvas state saves to Firestore on each step
-- Canvas state loads correctly when conversation reopens
-- Both system and user layers persist
-- Real-time updates sync canvas between hypothetical multiple users (foundation for collaborative)
-- No data loss on page refresh
+- Linear equations automatically render on graph canvas
+- Grid visible only for relevant shapes (lines, parabolas, etc.)
+- Shapes positioned correctly on graph coordinates
+- AI consistently uses graph mode for appropriate problems
+- Visual distinction maintained for graph elements
 
 **Files Created/Modified:**
 ```
-frontend/src/stores/canvasStore.js  // Update with persistence actions
-frontend/src/services/chatService.js  // Update to include canvas state in conversation
+api/services/promptService.js (update AI instructions for graphs)
+api/routes/chat.js (update tool schema if needed)
+frontend/src/utils/canvasRenderer.js (add graph rendering)
+frontend/src/stores/canvasStore.js (add graph state if needed)
 ```
 
-### PR #6: Color Picker & Clear Button
+### PR #6: Diagram Rendering Fixes and Consistency
 **Priority:** P0  
 **Day:** 4
 
 **Tasks:**
-1. [ ] Add color picker UI for pen tool
-2. [ ] Implement color selection logic (update color in canvasStore)
-3. [ ] Add clear button for user layer (clear strokes in canvasStore)
-4. [ ] Confirm clear action with user
-5. [ ] Ensure clear only affects user drawings (not system visualizations)
-6. [ ] Test with multiple colors
+1. [ ] Review and document current inconsistencies in shape rendering
+2. [ ] Standardize styling parameters (stroke width, colors, arrowheads)
+3. [ ] Fix specific bugs (e.g., parabola curves, polygon closures, circle radius calculation)
+4. [ ] Add validation for tool call arguments (e.g., minimum points per shape)
+5. [ ] Implement consistent rendering for all diagram types (line, circle, rectangle, polygon, arrow, parabola)
+6. [ ] Add error handling for invalid diagram configurations
+7. [ ] Test rendering of each shape type with variations
 
 **Acceptance Criteria:**
-- Color picker displays available colors
-- Selected color applies to pen tool
-- Clear button removes all user drawings
-- Confirmation dialog prevents accidental clears
-- System visualizations remain after clear
-- Multiple colors can be used in same drawing
+- All shapes render consistently and correctly
+- No visual glitches (e.g., misaligned arrows, jagged lines)
+- Consistent appearance across different diagram types
+- Handles edge cases (e.g., zero-radius circle, single-point lines)
+- Improved reliability in AI-generated diagrams
 
 **Files Created/Modified:**
 ```
-frontend/src/components/ColorPicker.jsx
-frontend/src/components/DrawingTools.jsx (update)
+frontend/src/utils/canvasRenderer.js (fix rendering logic)
+api/routes/chat.js (add argument validation)
+frontend/src/components/Chat.jsx (handle invalid tool calls)
 ```
-
----
-
-### PR #7: Problem Type Testing & Bug Fixes
-**Priority:** P0  
-**Day:** 4
-
-**Tasks:**
-1. [ ] Test with simple arithmetic problem
-2. [ ] Test with linear equation
-3. [ ] Test with geometry problem
-4. [ ] Test with word problem
-5. [ ] Test with multi-step problem
-6. [ ] Document each test walkthrough with screenshots
-7. [ ] Fix bugs discovered during testing
-8. [ ] Refine Socratic prompting based on test results
-
-**Acceptance Criteria:**
-- Successfully guides through 5+ problem types
-- No direct answers given in any test
-- Whiteboard visualizations clear for each problem type
-- Drawing lock/unlock works consistently
-- All critical bugs fixed
-- Test walkthroughs documented in EXAMPLES.md
-
-**Files Created/Modified:**
-```
-docs/EXAMPLES.md
-(Various bug fixes across components)
-```
-
----
