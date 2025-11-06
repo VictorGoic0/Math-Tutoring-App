@@ -28,7 +28,6 @@ function Chat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [conversationId, setConversationId] = useState(null);
   
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -36,13 +35,17 @@ function Chat() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  // Canvas store actions
+  // Canvas store - conversationId is now source of truth
+  const conversationId = useCanvasStore(state => state.conversationId);
+  const setConversationId = useCanvasStore(state => state.setConversationId);
   const addRenderToCurrentStep = useCanvasStore(state => state.addRenderToCurrentStep);
   const addClearCanvasStep = useCanvasStore(state => state.addClearCanvasStep);
   const unlockAfterRender = useCanvasStore(state => state.unlockAfterRender);
   const lockForNextStep = useCanvasStore(state => state.lockForNextStep);
   const clearAll = useCanvasStore(state => state.clearAll);
+  const loadStepsFromFirestore = useCanvasStore(state => state.loadStepsFromFirestore);
 
+  // Load conversation history
   useEffect(() => {
     async function fetchHistory() {
       if (!currentUser) {
@@ -51,12 +54,21 @@ function Chat() {
       }
 
       try {
-        const { conversationId: loadedConvId, messages: loadedMessages } = await loadConversationHistory(currentUser.uid);
-        setConversationId(loadedConvId);
+        const { conversationId: loadedConvId, messages: loadedMessages, steps: loadedSteps } = await loadConversationHistory(currentUser.uid);
+        
+        // Set conversationId in canvas store (source of truth)
+        if (loadedConvId) {
+          setConversationId(loadedConvId);
+        }
         
         if (loadedMessages.length > 0) {
           setMessages(loadedMessages);
           // console.log(`📥 Loaded ${loadedMessages.length} messages from history`);
+        }
+        
+        // Load steps into canvas - will only render if canvas is ready
+        if (loadedSteps && loadedSteps.length > 0) {
+          await loadStepsFromFirestore(loadedSteps);
         }
         
         setIsLoadingHistory(false);
@@ -67,7 +79,7 @@ function Chat() {
     }
 
     fetchHistory();
-  }, [currentUser]);
+  }, [currentUser, setConversationId, loadStepsFromFirestore]);
 
   const handleImageSelect = (file) => {
     const validation = validateImageFile(file);
@@ -211,7 +223,7 @@ function Chat() {
       let convId = conversationId;
       if (!convId) {
         convId = await createConversation(currentUser.uid, content || 'Image message');
-        setConversationId(convId);
+        setConversationId(convId); // Canvas store is source of truth
         // console.log(`📝 Created conversation: ${convId}`);
       }
       

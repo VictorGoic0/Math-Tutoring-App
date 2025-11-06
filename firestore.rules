@@ -19,6 +19,12 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow read, write: if request.auth != null;
       }
+      
+      // Steps subcollection
+      // Any authenticated user can read/write steps in any conversation
+      match /steps/{stepId} {
+        allow read, write: if request.auth != null;
+      }
     }
   }
 }

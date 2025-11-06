@@ -452,20 +452,27 @@ frontend/src/App.jsx (added LockIndicator, isLocked state from store)
 **Phase 1: Navigation UI and Controls**
 
 **Tasks:**
-1. [ ] Implement navigation actions in canvasStore (increment/decrement currentStepIndex, loadStep)
-2. [ ] Add left/right arrow buttons to Whiteboard component UI
-3. [ ] Handle keyboard events for left/right arrows (add event listener in Whiteboard or globally)
-4. [ ] When navigating, update canvas with systemRenders from selected step
-5. [ ] Disable navigation buttons when at first or last step
-6. [ ] Add visual indicators for current step (e.g., step number display)
-7. [ ] Test navigation through multi-step conversations
+1. [x] Implement navigation actions in canvasStore (goToStep, goToNextStep, goToPreviousStep)
+2. [x] Add left/right arrow buttons to Whiteboard component UI
+3. [x] Handle keyboard events for left/right arrows (global event listener with preventDefault/stopPropagation)
+4. [x] When navigating, update canvas with systemRenders from selected step
+5. [x] Disable navigation buttons when at first or last step
+6. [x] Refactor step architecture (steps as arrays, currentStepIndex starts at 0, clearCanvas as step type)
+7. [x] Add StepType enum for render types (EQUATION, LABEL, DIAGRAM, CLEAR_CANVAS)
+8. [x] Add AIToolName enum for tool calls (CLEAR_CANVAS, RENDER_EQUATION, RENDER_LABEL, RENDER_DIAGRAM)
+9. [x] Update all render functions to use new step architecture (addRenderToCurrentStep, addClearCanvasStep)
+10. [x] Track messageId to detect new AI requests and create new steps
 
 **Acceptance Criteria:**
-- Arrow keys and buttons allow navigating between AI-generated steps
-- Canvas updates to show renders from selected step
-- Navigation disabled at bounds
-- Smooth transitions between steps
-- Preserves any user strokes or handles them appropriately
+- ✅ Arrow keys and buttons allow navigating between AI-generated steps
+- ✅ Canvas updates to show renders from selected step
+- ✅ Navigation disabled at bounds (buttons disabled + keyboard shortcuts blocked)
+- ✅ Smooth transitions between steps (systemRenders mirrors steps[currentStepIndex])
+- ✅ clearCanvas steps preserved in history for navigation
+- ✅ Steps start at index 0 (not -1)
+- ✅ All renders from single AI request go into same step
+- ✅ Each new AI request creates new step
+- ⏳ Test navigation through multi-step conversations (pending user testing)
 
 **Phase 2: Firestore Persistence for Steps**
 

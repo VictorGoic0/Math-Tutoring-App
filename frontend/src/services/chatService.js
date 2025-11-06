@@ -4,7 +4,7 @@
  */
 
 import { firebaseFireStore } from '../utils/firebase';
-import { collection, addDoc, doc, getDocs, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, doc, getDocs, deleteDoc, getDoc, updateDoc, query, where, orderBy, limit } from 'firebase/firestore';
 
 /**
  * Load conversation history for the authenticated user
@@ -36,6 +36,7 @@ export async function loadConversationHistory(userId, messageLimit = 100) {
     
     const conversation = conversationsSnapshot.docs[0];
     const conversationId = conversation.id;
+    const conversationData = conversation.data();
     
     // Get messages from conversation subcollection
     const messagesRef = collection(
@@ -65,9 +66,13 @@ export async function loadConversationHistory(userId, messageLimit = 100) {
       };
     });
     
+    // Load steps from subcollection
+    const loadedSteps = conversationId ? await loadStepsFromFirestore(conversationId) : [];
+    
     return {
       conversationId,
-      messages
+      messages,
+      steps: loadedSteps
     };
   } catch (error) {
     console.error('Error loading conversation history:', error);
@@ -95,6 +100,7 @@ export async function createConversation(userId, firstMessage = '') {
       updatedAt: Date.now(),
       messageCount: 0,
       lastMessage: ''
+      // No steps property needed - using subcollection
     });
     
     // console.log(`✅ Created conversation: ${conversationRef.id}`);
@@ -174,6 +180,108 @@ export async function deleteConversation(conversationId) {
   } catch (error) {
     console.error('Error deleting conversation:', error);
     throw error; // Re-throw so caller knows it failed
+  }
+}
+
+/**
+ * Save canvas steps to Firestore as a subcollection
+ * Called in background after each step creation
+ * 
+ * @param {string} conversationId - Conversation ID
+ * @param {Array} steps - Array of step arrays (each step is an array of render objects)
+ * @returns {Promise<void>}
+ */
+export async function saveStepsToFirestore(conversationId, steps) {
+  try {
+    if (!conversationId) {
+      console.warn('⚠️ No conversationId provided, skipping step save');
+      return;
+    }
+
+    console.log(`💾 Saving ${steps.length} steps to Firestore subcollection`);
+
+    // Save each step as a separate document in a subcollection
+    // This avoids nested array issues and is more scalable
+    const stepsCollectionRef = collection(
+      firebaseFireStore,
+      'conversations',
+      conversationId,
+      'steps'
+    );
+
+    // Delete all existing steps first (simpler than updating)
+    const existingSteps = await getDocs(stepsCollectionRef);
+    const deletePromises = existingSteps.docs.map(doc => deleteDoc(doc.ref));
+    await Promise.all(deletePromises);
+
+    // Add new steps
+    // Clean undefined values from renders (Firestore doesn't support undefined)
+    const addPromises = steps.map((stepRenders, index) => {
+      const cleanedRenders = stepRenders.map(render => {
+        // Remove undefined properties
+        const cleaned = {};
+        Object.keys(render).forEach(key => {
+          if (render[key] !== undefined) {
+            cleaned[key] = render[key];
+          }
+        });
+        return cleaned;
+      });
+      
+      return addDoc(stepsCollectionRef, {
+        stepIndex: index,
+        renders: cleanedRenders,
+        timestamp: Date.now()
+      });
+    });
+    await Promise.all(addPromises);
+    
+    console.log(`✅ Successfully saved ${steps.length} steps to Firestore`);
+  } catch (error) {
+    console.error('❌ Error saving steps to Firestore:', error);
+    // Don't throw - we don't want to break the app if save fails
+  }
+}
+
+/**
+ * Load canvas steps from Firestore subcollection
+ * Called on initial page load
+ * 
+ * @param {string} conversationId - Conversation ID
+ * @returns {Promise<Array>} Array of step arrays
+ */
+export async function loadStepsFromFirestore(conversationId) {
+  try {
+    if (!conversationId) {
+      return [];
+    }
+
+    // Load steps from subcollection
+    const stepsCollectionRef = collection(
+      firebaseFireStore,
+      'conversations',
+      conversationId,
+      'steps'
+    );
+    
+    const stepsQuery = query(stepsCollectionRef, orderBy('stepIndex', 'asc'));
+    const stepsSnapshot = await getDocs(stepsQuery);
+    
+    if (stepsSnapshot.empty) {
+      return [];
+    }
+    
+    // Convert back to array of arrays
+    const steps = stepsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return data.renders || [];
+    });
+    
+    console.log(`📂 Loaded ${steps.length} steps from Firestore`);
+    return steps;
+  } catch (error) {
+    console.error('Error loading steps from Firestore:', error);
+    return [];
   }
 }
 

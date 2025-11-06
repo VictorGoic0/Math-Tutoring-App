@@ -35,6 +35,7 @@ export const useCanvasStore = create((set, get) => ({
   steps: [],
   currentStepIndex: 0, // Start at 0, not -1
   lastMessageId: null, // Track AI message IDs to detect new requests
+  conversationId: null, // For Firestore persistence
   
   // Current drawing tool ('pen' | 'eraser')
   currentTool: 'pen',
@@ -81,6 +82,10 @@ export const useCanvasStore = create((set, get) => ({
       });
       
       console.log('➕ Added render to NEW step', updatedSteps.length - 1, ':', render.type);
+      console.log('📊 Current steps in store:', updatedSteps.length, 'steps');
+      
+      // Trigger Firestore save in background
+      get()._persistSteps();
     } else if (state.steps.length === 0) {
       // Auto-create step 0 if steps is empty
       console.log('🆕 Auto-creating step 0');
@@ -95,6 +100,10 @@ export const useCanvasStore = create((set, get) => ({
       });
       
       console.log('➕ Added render to step 0:', render.type);
+      console.log('📊 Current steps in store:', 1, 'step');
+      
+      // Trigger Firestore save in background
+      get()._persistSteps();
     } else {
       // Add to current step
       const updatedSteps = [...state.steps];
@@ -111,6 +120,10 @@ export const useCanvasStore = create((set, get) => ({
       });
       
       console.log('➕ Added render to step', state.currentStepIndex, ':', render.type, 'Total in step:', updatedSteps[state.currentStepIndex].length);
+      console.log('📊 Current steps in store:', updatedSteps.length, 'steps');
+      
+      // Trigger Firestore save in background
+      get()._persistSteps();
     }
   },
   
@@ -141,6 +154,9 @@ export const useCanvasStore = create((set, get) => ({
     });
     
     console.log('🧹 Created clearCanvas step', updatedSteps.length - 1);
+    
+    // Trigger Firestore save in background
+    get()._persistSteps();
   },
   
   // Legacy function - for clearing systemRenders without affecting steps
@@ -233,5 +249,48 @@ export const useCanvasStore = create((set, get) => ({
     lastMessageId: null,
     shouldShowCanvas: false,
   }),
+  
+  // Load steps from Firestore (called on initial load)
+  loadStepsFromFirestore: async (steps) => {
+    if (!steps || steps.length === 0) {
+      console.log('📂 No steps to load from Firestore');
+      return;
+    }
+    
+    console.log(`📂 Loading ${steps.length} steps from Firestore`);
+    
+    // Set to last step by default
+    const lastStepIndex = steps.length - 1;
+    
+    set({
+      steps,
+      currentStepIndex: lastStepIndex,
+      systemRenders: [...steps[lastStepIndex]],
+      shouldShowCanvas: true,
+    });
+    
+    console.log(`📍 Loaded to step ${lastStepIndex} (last step)`);
+  },
+  
+  // Set conversationId for Firestore persistence
+  setConversationId: (conversationId) => {
+    set({ conversationId });
+  },
+  
+  // Internal: Persist steps to Firestore (called automatically)
+  _persistSteps: async () => {
+    const state = get();
+    console.log('💾 _persistSteps called. ConversationId:', state.conversationId, 'Steps count:', state.steps.length);
+    
+    if (!state.conversationId) {
+      // No conversation yet, can't persist
+      console.warn('⚠️ Cannot persist: no conversationId');
+      return;
+    }
+    
+    // Dynamic import to avoid circular dependency
+    const { saveStepsToFirestore } = await import('../services/chatService');
+    await saveStepsToFirestore(state.conversationId, state.steps);
+  },
 }));
 
