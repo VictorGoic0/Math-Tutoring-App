@@ -2,11 +2,11 @@
 
 ## Overall Status
 
-**MVP Completion:** ~60% (Core chat features complete, whiteboard/voice pending)
+**MVP Completion:** ~75% (Core chat features complete, canvas visualization complete, lock/unlock complete, drawing tools pending)
 
-**Completed PRs:** 8 out of 19 P0 PRs
+**Completed PRs:** 11 out of 19 P0 PRs  
 **In Progress:** 0
-**Pending:** 11 PRs (mostly whiteboard and voice features)
+**Pending:** 8 PRs (drawing tools, canvas persistence, testing, voice features)
 
 ## Completed Features
 
@@ -92,55 +92,68 @@
 - Frontend queries Firestore directly
 - All routes working in production
 
+### ✅ PR #1 (Canvas): Canvas Component Foundation
+- Whiteboard component with Canvas element created
+- Canvas context and sizing configured
+- Basic coordinate system implemented
+- Zustand store created for canvas state management
+- Canvas added to main layout (split view with chat)
+- Canvas responsive to window resizing
+
+### ✅ PR #2 (Canvas): Step Visualization Rendering on Canvas
+- Tool schemas defined with Zod (render_equation, render_label, render_diagram, clear_canvas)
+- Backend streaming with Vercel AI SDK v5 (manual SSE via fullStream)
+- Frontend SSE parser for tool calls (parseAIStreamRender)
+- LaTeX-to-Canvas rendering utility (KaTeX + styled canvas text rendering)
+- Canvas renderer for equations, labels, diagrams (including parabolas)
+- System layer rendering in Whiteboard component
+- Auto-positioning with manual coordinate override support
+- Clear canvas functionality
+- Tool call extraction and canvas store integration
+- Canvas hide/show toggle with smooth animations (eye icon, 65/35 split)
+- Enhanced visual distinction (blue equations, gray labels, dark blue diagrams)
+- Few-shot prompting for AI tool calling behavior
+
+### ✅ PR #3 (Canvas): Drawing Lock/Unlock Mechanism
+- Lock/unlock state in canvasStore (isLocked: true by default)
+- LockIndicator component (low-profile icon, matches eye icon style, shows lock/unlock icon)
+- Auto-unlock after system renders (unlockAfterRender)
+- Lock when progressing to next step (lockForNextStep on clear_canvas)
+- Pointer events disabled when locked (cursor: not-allowed, touchAction: none)
+- Step tracking foundation (steps array, createStep, currentStepIndex, messageId linking)
+- Canvas visibility controlled by store (shouldShowCanvas event-driven)
+- Canvas preserved when hidden (always mounted, uses visibility CSS)
+- Fallback "Done!" message when AI calls tools without text
+- Canvas clears on conversation delete
+
 ## In Progress
 
 **None currently**
 
 ## Pending Features
 
-### ⏳ PR #9: Canvas Component Foundation
-- [ ] Create Whiteboard component with Canvas element
-- [ ] Set up canvas context and sizing
-- [ ] Implement basic coordinate system
-- [ ] Create drawing state management
-- [ ] Add canvas to main layout (split view with chat)
-
-### ⏳ PR #10: Step Visualization Rendering on Canvas
-- [ ] Create LaTeX-to-Canvas rendering utility
-- [ ] Parse AI responses for [RENDER: ...] instructions
-- [ ] Implement system layer rendering
-- [ ] Position elements clearly on canvas
-- [ ] Clear previous step when new step renders
-
-### ⏳ PR #11: Drawing Lock/Unlock Mechanism
-- [ ] Implement drawing locked/unlocked state
-- [ ] Show visual indicator when drawing is locked
-- [ ] Lock drawing by default at conversation start
-- [ ] Unlock drawing after system renders step visualization
-- [ ] Lock drawing when progressing to next step
-
-### ⏳ PR #12: Basic Drawing Tools (Pen & Eraser)
+### ⏳ PR #4 (Canvas): Basic Drawing Tools (Pen & Eraser)
 - [ ] Implement pen tool for freehand drawing
 - [ ] Implement eraser tool
 - [ ] Add drawing tool selector UI
 - [ ] Handle pointer events (down, move, up)
 - [ ] Draw smooth lines between points
 
-### ⏳ PR #13: Collaborative Drawing State Management
+### ⏳ PR #5 (Canvas): Canvas State Management
 - [ ] Save canvas state (system layer + user layer) to Firestore
 - [ ] Load canvas state when retrieving conversation
 - [ ] Sync canvas state across real-time updates
 - [ ] Serialize/deserialize canvas drawings
 - [ ] Implement canvas state per message/step
 
-### ⏳ PR #14: Color Picker & Clear Button
+### ⏳ PR #6 (Canvas): Color Picker & Clear Button
 - [ ] Add color picker UI for pen tool
 - [ ] Implement color selection logic
 - [ ] Add clear button for user layer
 - [ ] Confirm clear action with user
 - [ ] Ensure clear only affects user drawings
 
-### ⏳ PR #15: Problem Type Testing & Bug Fixes
+### ⏳ PR #7 (Canvas): Problem Type Testing & Bug Fixes
 - [ ] Test with simple arithmetic problem
 - [ ] Test with linear equation
 - [ ] Test with geometry problem
@@ -206,19 +219,20 @@ All reported issues have been resolved:
 - ✅ 100% of UI polish complete
 
 ### Remaining
-- ⏳ 0% of whiteboard features complete
+- ✅ 60% of whiteboard features complete (foundation, visualization, lock/unlock done)
+- ⏳ 0% of drawing tools complete
+- ⏳ 0% of canvas persistence complete
 - ⏳ 0% of voice interface complete
 - ⏳ 0% of problem type testing complete
 
 ## Next Milestones
 
-1. **Whiteboard Foundation (PR #9):** Target: 1-2 days
-2. **Step Visualization (PR #10):** Target: 1 day
-3. **Drawing Tools (PRs #11-12):** Target: 1-2 days
-4. **Canvas State Management (PR #13):** Target: 1 day
-5. **Final Polish & Testing (PRs #14-15):** Target: 1-2 days
+1. **Drawing Tools (PR #4):** Target: 1 day - ✅ Next up
+2. **Canvas State Management (PR #5):** Target: 1 day
+3. **Color Picker & Clear (PR #6):** Target: 0.5 days
+4. **Problem Type Testing (PR #7):** Target: 1 day
 
-**Total Estimated Time:** 5-8 days for remaining whiteboard features
+**Total Estimated Time:** 2.5-3 days for remaining canvas features
 
 ## Blockers
 

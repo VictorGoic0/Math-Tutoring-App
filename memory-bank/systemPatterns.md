@@ -125,6 +125,65 @@ Firebase (Firestore + Storage)
 - `frontend/src/components/MathDisplay.jsx` - Intelligent math rendering
 - `frontend/src/utils/markdownParser.jsx` - Markdown parsing
 
+### 9. AI Tool Calling for Canvas Rendering
+
+**Pattern:** AI uses structured tools to render visualizations on canvas
+
+**Implementation:**
+- Backend defines tool schemas with Zod validation
+- Vercel AI SDK v5 `streamText` with `tools` parameter
+- Manual SSE streaming via `fullStream` (Express compatibility)
+- Frontend parser extracts tool calls from SSE data stream
+- Tool calls dispatched to canvas store for rendering
+
+**Tool Types:**
+- `render_equation`: LaTeX equations with auto-positioning
+- `render_label`: Text annotations with styling
+- `render_diagram`: Geometric shapes (lines, circles, rectangles, polygons, arrows, parabolas)
+- `clear_canvas`: Clear previous step visualizations
+
+**Files:**
+- `api/routes/chat.js` - Tool schemas, SSE streaming
+- `api/services/promptService.js` - Tool usage instructions with few-shot examples
+- `frontend/src/services/api.js` - SSE parser (`parseAIStreamRender`)
+- `frontend/src/components/Chat.jsx` - Tool call extraction and canvas store updates
+
+### 10. Canvas Rendering Architecture
+
+**Pattern:** Dual-layer canvas (system renders + user drawings) with visual distinction
+
+**Implementation:**
+- Zustand store (`canvasStore`) manages system renders and user strokes
+- System layer renders first (background), user strokes on top
+- Visual distinction via colors and styling:
+  - System equations: Blue (#2563EB) with light blue background
+  - System labels: Gray (#64748B) with white background + border
+  - System diagrams: Dark blue (#1E40AF) with 90% opacity
+  - User strokes: Black (default)
+- Auto-positioning for system renders (vertical stacking, 50px margins)
+- Manual coordinate override supported via tool arguments
+
+**Files:**
+- `frontend/src/stores/canvasStore.js` - Canvas state management (Zustand)
+- `frontend/src/components/Whiteboard.jsx` - Canvas rendering with useEffect
+- `frontend/src/utils/canvasRenderer.js` - Render different types (equations, labels, diagrams)
+- `frontend/src/utils/latexToCanvas.js` - KaTeX to canvas with styled text rendering
+
+### 11. Canvas UI with Hide/Show Toggle
+
+**Pattern:** Canvas hidden by default, auto-shows when AI draws, smooth animations
+
+**Implementation:**
+- Canvas visibility controlled by local state in App.jsx
+- Watches `systemRenders` from canvasStore - auto-shows when length > 0
+- Smooth animations: 0.3s `cubic-bezier(0.4, 0.0, 0.2, 1)` for flex changes
+- `willChange: 'flex'` CSS hint prevents layout thrashing
+- Fixed positioning for toggle button to prevent jitter
+- Layout: 65% canvas / 35% chat when visible, chat centered at 50% max-width when hidden
+
+**Files:**
+- `frontend/src/App.jsx` - Canvas visibility, toggle button, responsive layout
+
 ## Component Relationships
 
 ### Chat Component Hierarchy

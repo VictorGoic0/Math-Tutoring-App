@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Chat from './components/Chat';
 import Whiteboard from './components/Whiteboard';
+import LockIndicator from './components/LockIndicator';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -17,15 +18,31 @@ import { colors, typography, spacing } from './styles/tokens';
  * Canvas can be hidden/shown with smooth animations.
  */
 function ChatWhiteboardLayout() {
-  const [isCanvasVisible, setIsCanvasVisible] = useState(false); // Hidden by default
-  const systemRenders = useCanvasStore(state => state.systemRenders);
+  const [isCanvasVisible, setIsCanvasVisible] = useState(false);
+  const [hasManuallyHidden, setHasManuallyHidden] = useState(false);
+  
+  const shouldShowCanvas = useCanvasStore(state => state.shouldShowCanvas);
+  const setShouldShowCanvas = useCanvasStore(state => state.setShouldShowCanvas);
+  const isLocked = useCanvasStore(state => state.isLocked);
 
-  // Auto-show canvas when drawings begin
+  // Listen to store's shouldShowCanvas event (but respect manual hide)
   useEffect(() => {
-    if (systemRenders.length > 0 && !isCanvasVisible) {
+    if (shouldShowCanvas && !hasManuallyHidden) {
       setIsCanvasVisible(true);
     }
-  }, [systemRenders.length, isCanvasVisible]);
+  }, [shouldShowCanvas, hasManuallyHidden]);
+  
+  const handleHideCanvas = () => {
+    setIsCanvasVisible(false);
+    setHasManuallyHidden(true);
+    setShouldShowCanvas(false); // Update store
+  };
+  
+  const handleShowCanvas = () => {
+    setIsCanvasVisible(true);
+    setHasManuallyHidden(false);
+    setShouldShowCanvas(true); // Update store
+  };
 
   const layoutStyles = {
     flex: 1,
@@ -47,6 +64,7 @@ function ChatWhiteboardLayout() {
     opacity: isCanvasVisible ? 1 : 0,
     position: 'relative',
     willChange: 'flex, opacity',
+    visibility: isCanvasVisible ? 'visible' : 'hidden', // Keep in DOM but hide
   };
 
   const chatContainerStyles = {
@@ -107,7 +125,7 @@ function ChatWhiteboardLayout() {
       {isCanvasVisible && (
         <button
           style={toggleButtonStyles}
-          onClick={() => setIsCanvasVisible(false)}
+          onClick={handleHideCanvas}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = colors.neutral.lighter;
             e.currentTarget.style.borderColor = colors.text.secondary;
@@ -130,7 +148,7 @@ function ChatWhiteboardLayout() {
       {!isCanvasVisible && (
         <button
           style={showButtonStyles}
-          onClick={() => setIsCanvasVisible(true)}
+          onClick={handleShowCanvas}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = colors.neutral.lighter;
             e.currentTarget.style.borderColor = colors.text.secondary;
@@ -150,7 +168,8 @@ function ChatWhiteboardLayout() {
       )}
 
       <div style={whiteboardContainerStyles}>
-        {isCanvasVisible && <Whiteboard />}
+        <LockIndicator isLocked={isLocked} />
+        <Whiteboard />
       </div>
       <div style={chatContainerStyles}>
         <Chat />

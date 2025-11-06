@@ -77,13 +77,24 @@ async function renderEquation(ctx, renderData, canvasWidth) {
   try {
     // Render LaTeX to element
     const latexRender = await latexToCanvas(latex, {
-      color: '#2563EB', // Blue for equations
+      color: '#2563EB', // Blue for equations (distinct from user strokes)
       fontSize: 24,
     });
 
     // Determine position (manual or auto)
     const posX = x !== undefined ? x : HORIZONTAL_MARGIN;
     const posY = y !== undefined ? y : getNextAutoPositionY(latexRender.height);
+
+    // Draw subtle background with light blue tint for visibility
+    ctx.save();
+    ctx.fillStyle = 'rgba(219, 234, 254, 0.3)'; // Very light blue background
+    ctx.fillRect(
+      posX - 8,
+      posY - 6,
+      latexRender.width + 16,
+      latexRender.height + 12
+    );
+    ctx.restore();
 
     // Draw to canvas
     await drawLatexToCanvas(
@@ -122,7 +133,7 @@ function renderLabel(ctx, renderData, canvasWidth) {
   // Set text styling
   ctx.save();
   ctx.font = `${fontSize}px Arial, sans-serif`;
-  ctx.fillStyle = '#64748B'; // Gray for labels
+  ctx.fillStyle = '#64748B'; // Gray for labels (distinct from user strokes)
   ctx.textBaseline = 'top';
 
   // Measure text
@@ -134,9 +145,14 @@ function renderLabel(ctx, renderData, canvasWidth) {
   const posX = x !== undefined ? x : HORIZONTAL_MARGIN;
   const posY = y !== undefined ? y : getNextAutoPositionY(textHeight);
 
-  // Draw subtle background
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-  ctx.fillRect(posX - 4, posY - 2, textWidth + 8, textHeight + 4);
+  // Draw subtle background with border for clear distinction
+  ctx.fillStyle = 'rgba(248, 250, 252, 0.9)'; // Very light gray/white
+  ctx.fillRect(posX - 6, posY - 3, textWidth + 12, textHeight + 6);
+  
+  // Draw subtle border
+  ctx.strokeStyle = 'rgba(226, 232, 240, 0.8)'; // Light gray border
+  ctx.lineWidth = 1;
+  ctx.strokeRect(posX - 6, posY - 3, textWidth + 12, textHeight + 6);
 
   // Draw text
   ctx.fillStyle = '#64748B';
@@ -163,9 +179,9 @@ function renderDiagram(ctx, renderData) {
   const {
     diagramType,
     points,
-    strokeColor = '#000000',
+    strokeColor = '#1E40AF', // Default to dark blue for system diagrams (distinct from black user strokes)
     fillColor,
-    strokeWidth = 2,
+    strokeWidth = 2.5, // Slightly thicker for visibility
   } = renderData;
 
   if (!points || points.length === 0) {
@@ -178,6 +194,7 @@ function renderDiagram(ctx, renderData) {
   ctx.lineWidth = strokeWidth;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  ctx.globalAlpha = 0.9; // Slight transparency for visual distinction
 
   if (fillColor) {
     ctx.fillStyle = fillColor;

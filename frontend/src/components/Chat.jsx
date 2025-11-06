@@ -26,7 +26,14 @@ function Chat() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Canvas store actions
-  const { addSystemRender, clearSystemRenders } = useCanvasStore();
+  const { 
+    addSystemRender, 
+    clearSystemRenders, 
+    createStep, 
+    unlockAfterRender,
+    lockForNextStep,
+    clearAll 
+  } = useCanvasStore();
 
   useEffect(() => {
     async function fetchHistory() {
@@ -153,11 +160,27 @@ function Chat() {
         },
         async (fullText, toolCalls = []) => {
           setIsLoading(false);
-          persistAIMessage(fullText, convId);
+          
+          // If tools were called but no text was sent, add a fallback message
+          let finalText = fullText;
+          if (toolCalls.length > 0 && (!fullText || fullText.trim().length === 0)) {
+            finalText = "Done! I've updated the canvas.";
+            // Update the message in UI with fallback text
+            setMessages(prev => 
+              prev.map(msg => 
+                msg.id === aiMessageId 
+                  ? { ...msg, content: finalText }
+                  : msg
+              )
+            );
+          }
+          
+          persistAIMessage(finalText, convId);
           
           // Task 9: Process tool calls and send to canvas store
+          // PR #3: Pass aiMessageId for step tracking
           if (toolCalls.length > 0) {
-            processToolCalls(toolCalls);
+            processToolCalls(toolCalls, aiMessageId);
           }
         },
         (error) => {
@@ -217,8 +240,9 @@ function Chat() {
   /**
    * Process tool calls from AI stream and update canvas
    * Tasks 8 & 9: Handle clear_canvas, render_equation, render_label, render_diagram
+   * PR #3: Handle lock/unlock and step tracking
    */
-  function processToolCalls(toolCalls) {
+  function processToolCalls(toolCalls, aiMessageId) {
     toolCalls.forEach((toolCall) => {
       const { toolName, args } = toolCall;
 
@@ -233,6 +257,11 @@ function Chat() {
           // Task 8: Clear system renders and reset auto-positioning
           clearSystemRenders();
           resetAutoPosition();
+          // PR #3: Lock drawing and create new step
+          lockForNextStep();
+          if (aiMessageId) {
+            createStep(aiMessageId);
+          }
           break;
 
         case 'render_equation':
@@ -287,11 +316,18 @@ function Chat() {
           console.warn('Unknown tool call:', toolName);
       }
     });
+    
+    // PR #3: Unlock drawing after all renders are complete
+    // Small delay to ensure renders have been processed
+    setTimeout(() => {
+      unlockAfterRender();
+    }, 100);
   }
 
   const handleDeleteConversation = async () => {
     if (!conversationId) {
       setMessages([]);
+      clearAll(); // Clear canvas when no conversation
       return;
     }
 
@@ -300,6 +336,9 @@ function Chat() {
     setMessages([]);
     const convIdToDelete = conversationId;
     setConversationId(null);
+    
+    // Clear canvas when conversation is deleted
+    clearAll();
 
     try {
       await deleteConversation(convIdToDelete);

@@ -32,6 +32,7 @@ function Whiteboard() {
         const width = rect.width;
         const height = rect.height;
         
+        console.log('📐 Canvas dimensions:', { width, height });
         setDimensions({ width, height });
         
         const dpr = window.devicePixelRatio || 1;

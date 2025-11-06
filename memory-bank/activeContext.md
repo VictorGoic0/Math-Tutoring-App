@@ -2,12 +2,18 @@
 
 ## Current Work Focus
 
-**Recent Completion:** PR #16 (UI Polish & Design System Integration) - ✅ COMPLETE
+**Recent Completion:** PR #3 (Drawing Lock/Unlock Mechanism) - ✅ COMPLETE
 
 **Latest Changes:**
-- Reduced spacing between header and message list
-- Decreased space around delete button
-- Improved overall visual polish with design tokens
+- Implemented lock/unlock state with visual indicator (low-profile lock icon)
+- Canvas starts locked, auto-unlocks after system renders
+- Locks again when progressing to next step (clear_canvas)
+- Added step tracking foundation (steps array, createStep, currentStepIndex)
+- Fixed canvas hide/show to preserve drawings (keep mounted, use visibility CSS)
+- Added fallback "Done!" message when AI calls tools without text
+- Canvas clears when conversation is deleted
+
+**Next Priority:** PR #4 (Basic Drawing Tools - Pen & Eraser)
 
 ## Recent Decisions
 
@@ -58,41 +64,31 @@
 
 ### Immediate (Next Session)
 
-1. **Whiteboard Foundation (PR #9):**
-   - Create Whiteboard component with Canvas element
-   - Set up canvas context and sizing
-   - Implement basic coordinate system
-   - Add canvas to main layout (split view with chat)
-
-2. **Step Visualization (PR #10):**
-   - Create LaTeX-to-Canvas rendering utility
-   - Parse AI responses for [RENDER: ...] instructions
-   - Implement system layer rendering
-   - Position elements clearly on canvas
-
-### Short Term
-
-3. **Drawing Lock/Unlock (PR #11):**
-   - Implement locked/unlocked state
-   - Show visual indicator when locked
-   - Lock by default, unlock after system renders visualization
-
-4. **Drawing Tools (PR #12):**
+1. **Drawing Tools (PR #4):**
    - Implement pen tool for freehand drawing
    - Implement eraser tool
    - Add drawing tool selector UI
+   - Handle pointer events (down, move, up)
+   - Draw smooth lines between points
 
-### Medium Term
+### Short Term
 
-5. **Canvas State Management (PR #13):**
+2. **Canvas State Management (PR #5):**
    - Save canvas state to Firestore
    - Load canvas state when retrieving conversation
    - Serialize/deserialize canvas drawings
 
-6. **Color Picker & Clear (PR #14):**
+3. **Color Picker & Clear (PR #6):**
    - Add color picker UI for pen tool
    - Add clear button for user layer
    - Ensure clear only affects user drawings
+
+### Medium Term
+
+4. **Problem Type Testing (PR #7):**
+   - Test with various math problem types
+   - Verify whiteboard rendering works correctly
+   - Fix bugs discovered during testing
 
 ## Active Considerations
 
@@ -155,10 +151,14 @@ All blockers have been resolved:
 - Core chat features complete and working
 - UI polished with design system
 - Deployed to Vercel (separate frontend/backend projects)
-- Whiteboard features not yet started
+- Canvas foundation complete (PR #1)
+- Canvas step visualization complete (PR #2)
+- Drawing lock/unlock complete (PR #3)
+- Drawing tools not yet implemented
 - Voice interface not yet started
 
 **Next Priority:**
-- Start whiteboard foundation (PR #9)
-- Focus on canvas component and basic layout
+- Implement pen tool for freehand drawing (PR #4)
+- Implement eraser tool (PR #4)
+- Add drawing tool selector UI (PR #4)
 
