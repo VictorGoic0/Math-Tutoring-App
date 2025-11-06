@@ -1,3 +1,56 @@
+# Post-MVP Features
+
+## PR #0: LaTeX Rendering Improvements & Scroll Fix
+**Priority:** Post-MVP (Polish)  
+**Day:** 1
+
+**Problem:**
+- LaTeX content flashes raw symbols before rendering (FOUC - Flash of Unstyled Content)
+- Auto-scroll is flickery due to content height changes during LaTeX rendering
+- Messages don't scroll fully to bottom on page refresh
+
+**Tasks:**
+- [ ] Add rendering state tracking to MathDisplay component
+- [ ] Implement opacity-based hide/show for LaTeX content
+- [ ] Add skeleton/shimmer placeholder for LaTeX blocks while rendering
+- [ ] Smooth fade-in transition when LaTeX finishes rendering
+- [ ] Update MessageList scroll logic to wait for LaTeX rendering completion
+- [ ] Add callback from MathDisplay to notify parent when rendering is complete
+- [ ] Track rendering state of all LaTeX in current viewport
+- [ ] Only trigger final scroll once all visible LaTeX is rendered
+- [ ] Add fallback display if LaTeX rendering fails
+- [ ] Test with messages containing mixed text and LaTeX
+- [ ] Test with messages containing multiple LaTeX blocks
+- [ ] Test on page refresh with conversation history
+
+**Acceptance Criteria:**
+- No visible flash of raw LaTeX symbols on load or refresh
+- Smooth fade-in of LaTeX content (200ms transition)
+- Skeleton/shimmer shows while LaTeX is rendering
+- Auto-scroll works perfectly - always shows last message fully
+- No flickering during scroll
+- Handles mixed content (text + LaTeX) gracefully
+- Works with streaming AI responses
+- Fallback displays properly if LaTeX fails to render
+
+**Technical Approach:**
+- Use opacity: 0 → 1 transition in MathDisplay
+- Add `isRendered` state in MathDisplay component
+- Use KaTeX callback to set isRendered to true
+- Show skeleton placeholder while opacity is 0
+- Emit rendering complete event to MessageList
+- MessageList tracks pending LaTeX renders
+- Final scroll only triggers when all LaTeX complete
+
+**Files Created/Modified:**
+```
+frontend/src/components/MathDisplay.jsx  // Add rendering state, opacity control, skeleton
+frontend/src/components/MessageList.jsx  // Track LaTeX rendering completion, improved scroll
+frontend/src/components/design-system/Skeleton.jsx  // New skeleton component for loading states
+```
+
+---
+
 # Post-MVP Canvas Features
 
 ## PR #1: Undo/Redo for Whiteboard
