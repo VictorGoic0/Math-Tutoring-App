@@ -11,7 +11,15 @@ import { renderToCanvas, resetAutoPosition } from '../utils/canvasRenderer';
  */
 function Whiteboard() {
   const canvasRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  
+  // Calculate initial dimensions based on viewport
+  // Assumes canvas is 65% width and full height minus header (80px)
+  const initialDimensions = {
+    width: Math.floor(window.innerWidth * 0.65),
+    height: Math.floor(window.innerHeight - 80)
+  };
+  
+  const [dimensions, setDimensions] = useState(initialDimensions);
   const [isRendering, setIsRendering] = useState(false);
   
   // Use explicit selectors to ensure reactivity
@@ -37,7 +45,14 @@ function Whiteboard() {
         const width = rect.width;
         const height = rect.height;
         
-        console.log('📐 Canvas dimensions:', { width, height });
+        console.log('📐 Canvas dimensions from getBoundingClientRect:', { width, height });
+        
+        // Don't update if width is 0 (container not visible yet) - keep initial dimensions
+        if (width === 0 || height === 0) {
+          console.log('⚠️ Container has 0 dimensions, keeping initial dimensions');
+          return;
+        }
+        
         setDimensions({ width, height });
         
         const dpr = window.devicePixelRatio || 1;
@@ -73,11 +88,10 @@ function Whiteboard() {
 
   // Global keyboard listeners for arrow keys
   useEffect(() => {
-    console.log('⌨️ Setting up arrow key listeners. Steps available:', steps.length);
+    // console.log('⌨️ Setting up arrow key listeners. Steps available:', steps.length);
     
     const handleKeyDown = (e) => {
-      console.log('⌨️ Key pressed:', e.key, 'Steps:', steps.length, 'Current index:', currentStepIndex);
-      
+      // console.log('⌨️ Key pressed:', e.key, 'Steps:', steps.length, 'Current index:', currentStepIndex);
       // Only handle arrow keys if we have steps to navigate
       if (steps.length === 0) {
         console.log('⌨️ No steps available, ignoring arrow key');
@@ -92,14 +106,14 @@ function Whiteboard() {
       }
 
       if (e.key === 'ArrowLeft') {
-        console.log('⬅️ Left arrow pressed, going to previous step');
         e.preventDefault();
         e.stopPropagation();
+        console.log('⬅️ Left arrow pressed, going to previous step');
         goToPreviousStep();
       } else if (e.key === 'ArrowRight') {
-        console.log('➡️ Right arrow pressed, going to next step');
         e.preventDefault();
         e.stopPropagation();
+        console.log('➡️ Right arrow pressed, going to next step');
         goToNextStep();
       }
     };
@@ -116,8 +130,9 @@ function Whiteboard() {
   // Redraw canvas when state changes
   useEffect(() => {
     const canvas = canvasRef.current;
+    console.log(dimensions, "<--- dimensions in redraw");
     if (!canvas || dimensions.width === 0 || dimensions.height === 0) {
-      console.log('⏸️ Canvas not ready for rendering:', { canvas: !!canvas, dimensions });
+      console.log('⏸️ Canvas not ready for rendering:', { canvas: !!canvas, dimensions, initialDimensions });
       return;
     }
 
