@@ -5,15 +5,15 @@
 **Day:** 3
 
 **Tasks:**
-- [x] Install Zustand for canvas state management
-- [x] Create canvasStore with initial state (strokes, systemRenders, currentTool, color, isLocked)
-- [x] Create Whiteboard component with Canvas element
-- [x] Set up canvas context and sizing
-- [x] Implement basic coordinate system
-- [x] Integrate Zustand store for drawing state management
-- [x] Add canvas to main layout (split view with chat)
-- [x] Test canvas renders correctly
-- [x] Make canvas responsive to window resizing
+1. [x] Install Zustand for canvas state management
+2. [x] Create canvasStore with initial state (strokes, systemRenders, currentTool, color, isLocked)
+3. [x] Create Whiteboard component with Canvas element
+4. [x] Set up canvas context and sizing
+5. [x] Implement basic coordinate system
+6. [x] Integrate Zustand store for drawing state management
+7. [x] Add canvas to main layout (split view with chat)
+8. [x] Test canvas renders correctly
+9. [x] Make canvas responsive to window resizing
 
 **Acceptance Criteria:**
 - Canvas element renders in UI
@@ -373,13 +373,13 @@ frontend/src/App.jsx (added canvas hide/show toggle with smooth animations, resp
 **Day:** 3
 
 **Tasks:**
-- [x] Implement drawing locked/unlocked state in canvasStore
-- [x] Show visual indicator when drawing is locked (LockIndicator component)
-- [x] Lock drawing by default at conversation start (isLocked: true)
-- [x] Unlock drawing after system renders step visualization (unlockAfterRender)
-- [x] Lock drawing when progressing to next step (lockForNextStep on clear_canvas)
-- [x] Disable pointer events when locked (cursor: 'not-allowed', touchAction: 'none')
-- [x] Implement step tracking foundation (steps array, createStep, updateCurrentStepRenders)
+1. [x] Implement drawing locked/unlocked state in canvasStore
+2. [x] Show visual indicator when drawing is locked (LockIndicator component)
+3. [x] Lock drawing by default at conversation start (isLocked: true)
+4. [x] Unlock drawing after system renders step visualization (unlockAfterRender)
+5. [x] Lock drawing when progressing to next step (lockForNextStep on clear_canvas)
+6. [x] Disable pointer events when locked (cursor: 'not-allowed', touchAction: 'none')
+7. [x] Implement step tracking foundation (steps array, createStep, updateCurrentStepRenders)
 
 **Acceptance Criteria:**
 - ✅ Drawing starts locked (isLocked: true by default)
@@ -402,12 +402,16 @@ frontend/src/App.jsx (added LockIndicator, isLocked state from store)
 **Step Tracking Foundation (for future navigation):**
 
 **Tasks:**
-- [x] Add step tracking state to canvasStore (steps array, currentStepIndex)
-- [x] Create step data structure: { stepNumber, messageId, systemRenders, timestamp, userStrokesSnapshot }
-- [x] When clear_canvas tool is called, create new step snapshot
-- [x] Store step snapshots in canvasStore.steps array
-- [x] Update currentStepIndex when new step is created
-- [x] Ensure step data is serializable for future persistence
+1. [x] Add step tracking state to canvasStore (steps array, currentStepIndex)
+2. [x] Create step data structure: { stepNumber, messageId, systemRenders, timestamp, userStrokesSnapshot }
+3. [x] When clear_canvas tool is called, create new step snapshot
+4. [x] Store step snapshots in canvasStore.steps array
+5. [x] Update currentStepIndex when new step is created
+6. [x] Ensure step data is serializable for future persistence
+7. [x] Canvas visibility controlled by store (shouldShowCanvas event-driven)
+8. [x] Canvas preserved when hidden (always mounted, uses visibility CSS)
+9. [x] Fallback "Done!" message when AI calls tools without text
+10. [x] Canvas clears on conversation delete
 - [ ] Update step's systemRenders as renders are added (needs refactor - currently using global systemRenders)
 - [ ] Snapshot user strokes per step (pending - needs drawing tools from PR #4)
 
@@ -446,14 +450,14 @@ frontend/src/App.jsx (added LockIndicator, isLocked state from store)
 **Day:** 3
 
 **Tasks:**
-- [ ] Implement pen tool for freehand drawing (update strokes in canvasStore)
-- [ ] Implement eraser tool (remove strokes from canvasStore)
-- [ ] Add drawing tool selector UI
-- [ ] Handle pointer events (down, move, up)
-- [ ] Draw smooth lines between points
-- [ ] Separate user layer from system layer in store
-- [ ] Ensure only user layer is affected by eraser
-- [ ] Test drawing performance and smoothness
+1. [ ] Implement pen tool for freehand drawing (update strokes in canvasStore)
+2. [ ] Implement eraser tool (remove strokes from canvasStore)
+3. [ ] Add drawing tool selector UI
+4. [ ] Handle pointer events (down, move, up)
+5. [ ] Draw smooth lines between points
+6. [ ] Separate user layer from system layer in store
+7. [ ] Ensure only user layer is affected by eraser
+8. [ ] Test drawing performance and smoothness
 
 **Acceptance Criteria:**
 - Pen tool draws smooth lines
@@ -475,13 +479,13 @@ frontend/src/utils/drawingEngine.js
 **Day:** 3-4
 
 **Tasks:**
-- [ ] Implement saveToFirestore action in canvasStore (serialize strokes and systemRenders to JSON)
-- [ ] Implement loadFromFirestore action in canvasStore (load and set state from Firestore)
-- [ ] Add Firestore integration for canvas state persistence (subcollection: /conversations/{id}/canvasStates)
-- [ ] Load canvas state when retrieving conversation
-- [ ] Sync canvas state on changes (debounced auto-save)
-- [ ] Implement canvas state per message/step (store snapshots)
-- [ ] Test drawing persistence across page refresh
+1. [ ] Implement saveToFirestore action in canvasStore (serialize strokes and systemRenders to JSON)
+2. [ ] Implement loadFromFirestore action in canvasStore (load and set state from Firestore)
+3. [ ] Add Firestore integration for canvas state persistence (subcollection: /conversations/{id}/canvasStates)
+4. [ ] Load canvas state when retrieving conversation
+5. [ ] Sync canvas state on changes (debounced auto-save)
+6. [ ] Implement canvas state per message/step (store snapshots)
+7. [ ] Test drawing persistence across page refresh
 
 **Acceptance Criteria:**
 - Canvas state saves to Firestore on each step
@@ -501,12 +505,12 @@ frontend/src/services/chatService.js  // Update to include canvas state in conve
 **Day:** 4
 
 **Tasks:**
-- [ ] Add color picker UI for pen tool
-- [ ] Implement color selection logic (update color in canvasStore)
-- [ ] Add clear button for user layer (clear strokes in canvasStore)
-- [ ] Confirm clear action with user
-- [ ] Ensure clear only affects user drawings (not system visualizations)
-- [ ] Test with multiple colors
+1. [ ] Add color picker UI for pen tool
+2. [ ] Implement color selection logic (update color in canvasStore)
+3. [ ] Add clear button for user layer (clear strokes in canvasStore)
+4. [ ] Confirm clear action with user
+5. [ ] Ensure clear only affects user drawings (not system visualizations)
+6. [ ] Test with multiple colors
 
 **Acceptance Criteria:**
 - Color picker displays available colors
@@ -529,14 +533,14 @@ frontend/src/components/DrawingTools.jsx (update)
 **Day:** 4
 
 **Tasks:**
-- [ ] Test with simple arithmetic problem
-- [ ] Test with linear equation
-- [ ] Test with geometry problem
-- [ ] Test with word problem
-- [ ] Test with multi-step problem
-- [ ] Document each test walkthrough with screenshots
-- [ ] Fix bugs discovered during testing
-- [ ] Refine Socratic prompting based on test results
+1. [ ] Test with simple arithmetic problem
+2. [ ] Test with linear equation
+3. [ ] Test with geometry problem
+4. [ ] Test with word problem
+5. [ ] Test with multi-step problem
+6. [ ] Document each test walkthrough with screenshots
+7. [ ] Fix bugs discovered during testing
+8. [ ] Refine Socratic prompting based on test results
 
 **Acceptance Criteria:**
 - Successfully guides through 5+ problem types
