@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Chat from './components/Chat';
 import Whiteboard from './components/Whiteboard';
 import Login from './components/Login';
@@ -6,43 +7,150 @@ import SignUp from './components/SignUp';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import { useAuth } from './hooks/useAuth';
+import { useCanvasStore } from './stores/canvasStore';
 import { colors, typography, spacing } from './styles/tokens';
 
 /**
  * Chat and Whiteboard Split Layout
  * 
  * Displays Chat and Whiteboard side by side in a split view.
+ * Canvas can be hidden/shown with smooth animations.
  */
 function ChatWhiteboardLayout() {
+  const [isCanvasVisible, setIsCanvasVisible] = useState(false); // Hidden by default
+  const systemRenders = useCanvasStore(state => state.systemRenders);
+
+  // Auto-show canvas when drawings begin
+  useEffect(() => {
+    if (systemRenders.length > 0 && !isCanvasVisible) {
+      setIsCanvasVisible(true);
+    }
+  }, [systemRenders.length, isCanvasVisible]);
+
   const layoutStyles = {
     flex: 1,
     display: 'flex',
     height: 'calc(100vh - 80px)',
     overflow: 'hidden',
     gap: 0,
+    position: 'relative',
   };
 
   const whiteboardContainerStyles = {
-    flex: '1 1 50%',
+    flex: isCanvasVisible ? '1 1 65%' : '0 0 0',
     minWidth: 0,
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    borderRight: `1px solid ${colors.divider}`,
+    borderRight: isCanvasVisible ? `1px solid ${colors.divider}` : 'none',
+    transition: 'flex 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.3s ease-in-out',
+    opacity: isCanvasVisible ? 1 : 0,
+    position: 'relative',
+    willChange: 'flex, opacity',
   };
 
   const chatContainerStyles = {
-    flex: '1 1 50%',
+    flex: isCanvasVisible ? '1 1 35%' : '1 1 100%',
     minWidth: 0,
+    maxWidth: '50%',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
+    transition: 'flex 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+    margin: isCanvasVisible ? '0' : '0 auto',
+    willChange: 'flex',
+  };
+
+  const toggleButtonStyles = {
+    position: 'fixed',
+    top: '120px',
+    left: spacing[3],
+    zIndex: 10,
+    padding: spacing[2],
+    backgroundColor: 'transparent',
+    border: `1.5px solid ${colors.divider}`,
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '18px',
+    color: colors.text.secondary,
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '36px',
+    height: '36px',
+  };
+
+  const showButtonStyles = {
+    position: 'fixed',
+    top: '120px',
+    left: spacing[3],
+    zIndex: 10,
+    padding: spacing[2],
+    backgroundColor: 'transparent',
+    border: `1.5px solid ${colors.divider}`,
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '18px',
+    color: colors.text.secondary,
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '36px',
+    height: '36px',
   };
 
   return (
     <div style={layoutStyles}>
+      {/* Hide button (shows when canvas is visible) */}
+      {isCanvasVisible && (
+        <button
+          style={toggleButtonStyles}
+          onClick={() => setIsCanvasVisible(false)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = colors.neutral.lighter;
+            e.currentTarget.style.borderColor = colors.text.secondary;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.borderColor = colors.divider;
+          }}
+          title="Hide Canvas"
+        >
+          {/* Eye slash icon (hidden) */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+        </button>
+      )}
+
+      {/* Show button (shows when canvas is hidden) */}
+      {!isCanvasVisible && (
+        <button
+          style={showButtonStyles}
+          onClick={() => setIsCanvasVisible(true)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = colors.neutral.lighter;
+            e.currentTarget.style.borderColor = colors.text.secondary;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.borderColor = colors.divider;
+          }}
+          title="Show Canvas"
+        >
+          {/* Eye icon (visible) */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+      )}
+
       <div style={whiteboardContainerStyles}>
-        <Whiteboard />
+        {isCanvasVisible && <Whiteboard />}
       </div>
       <div style={chatContainerStyles}>
         <Chat />
