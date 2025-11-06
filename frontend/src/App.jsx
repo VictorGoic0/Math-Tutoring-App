@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Chat from './components/Chat';
 import Whiteboard from './components/Whiteboard';
-import LockIndicator from './components/LockIndicator';
+// import LockIndicator from './components/LockIndicator'; // Hidden for now - no longer relevant
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -23,7 +23,7 @@ function ChatWhiteboardLayout() {
   
   const shouldShowCanvas = useCanvasStore(state => state.shouldShowCanvas);
   const setShouldShowCanvas = useCanvasStore(state => state.setShouldShowCanvas);
-  const isLocked = useCanvasStore(state => state.isLocked);
+  // const isLocked = useCanvasStore(state => state.isLocked); // No longer needed - lock indicator hidden
 
   // Listen to store's shouldShowCanvas event (but respect manual hide)
   useEffect(() => {
@@ -168,7 +168,7 @@ function ChatWhiteboardLayout() {
       )}
 
       <div style={whiteboardContainerStyles}>
-        <LockIndicator isLocked={isLocked} />
+        {/* <LockIndicator isLocked={isLocked} /> */}
         <Whiteboard />
       </div>
       <div style={chatContainerStyles}>

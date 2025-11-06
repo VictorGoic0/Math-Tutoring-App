@@ -7,8 +7,19 @@ import { uploadImage, validateImageFile } from '../services/storageService';
 import { API_URL, parseAIStream } from '../services/api';
 import Button from './design-system/Button';
 import { colors, typography, spacing, borderRadius, shadows } from '../styles/tokens';
-import { useCanvasStore } from '../stores/canvasStore';
+import { useCanvasStore, StepType } from '../stores/canvasStore';
 import { resetAutoPosition } from '../utils/canvasRenderer';
+
+/**
+ * AI Tool Names Enum
+ * Defines all possible tool calls that the AI can make
+ */
+export const AIToolName = {
+  CLEAR_CANVAS: 'clear_canvas',
+  RENDER_EQUATION: 'render_equation',
+  RENDER_LABEL: 'render_label',
+  RENDER_DIAGRAM: 'render_diagram',
+};
 
 function Chat() {
   const { currentUser } = useAuth();
@@ -26,14 +37,11 @@ function Chat() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Canvas store actions
-  const { 
-    addSystemRender, 
-    clearSystemRenders, 
-    createStep, 
-    unlockAfterRender,
-    lockForNextStep,
-    clearAll 
-  } = useCanvasStore();
+  const addRenderToCurrentStep = useCanvasStore(state => state.addRenderToCurrentStep);
+  const addClearCanvasStep = useCanvasStore(state => state.addClearCanvasStep);
+  const unlockAfterRender = useCanvasStore(state => state.unlockAfterRender);
+  const lockForNextStep = useCanvasStore(state => state.lockForNextStep);
+  const clearAll = useCanvasStore(state => state.clearAll);
 
   useEffect(() => {
     async function fetchHistory() {
@@ -247,69 +255,67 @@ function Chat() {
       const { toolName, args } = toolCall;
 
       // Skip if args are missing (incomplete tool call)
-      if (!args && toolName !== 'clear_canvas') {
+      if (!args && toolName !== AIToolName.CLEAR_CANVAS) {
         console.warn('Tool call missing args:', toolCall);
         return;
       }
 
       switch (toolName) {
-        case 'clear_canvas':
-          // Task 8: Clear system renders and reset auto-positioning
-          clearSystemRenders();
+        case AIToolName.CLEAR_CANVAS:
+          // Create clearCanvas step
           resetAutoPosition();
-          // PR #3: Lock drawing and create new step
           lockForNextStep();
           if (aiMessageId) {
-            createStep(aiMessageId);
+            addClearCanvasStep(aiMessageId);
           }
           break;
 
-        case 'render_equation':
-          // Task 9: Add equation to canvas store
+        case AIToolName.RENDER_EQUATION:
+          // Add equation to current step
           if (!args.latex) {
             console.warn('render_equation missing latex:', args);
             return;
           }
-          addSystemRender({
+          addRenderToCurrentStep({
             id: `render-${Date.now()}-${Math.random()}`,
-            type: 'equation',
+            type: StepType.EQUATION,
             latex: args.latex,
             x: args.x,
             y: args.y,
-          });
+          }, aiMessageId);
           break;
 
-        case 'render_label':
-          // Task 9: Add label to canvas store
+        case AIToolName.RENDER_LABEL:
+          // Add label to current step
           if (!args.text) {
             console.warn('render_label missing text:', args);
             return;
           }
-          addSystemRender({
+          addRenderToCurrentStep({
             id: `render-${Date.now()}-${Math.random()}`,
-            type: 'label',
+            type: StepType.LABEL,
             text: args.text,
             x: args.x,
             y: args.y,
             fontSize: args.fontSize,
-          });
+          }, aiMessageId);
           break;
 
-        case 'render_diagram':
-          // Task 9: Add diagram to canvas store
+        case AIToolName.RENDER_DIAGRAM:
+          // Add diagram to current step
           if (!args.type || !args.points) {
             console.warn('render_diagram missing type or points:', args);
             return;
           }
-          addSystemRender({
+          addRenderToCurrentStep({
             id: `render-${Date.now()}-${Math.random()}`,
-            type: 'diagram',
+            type: StepType.DIAGRAM,
             diagramType: args.type,
             points: args.points,
             strokeColor: args.strokeColor,
             fillColor: args.fillColor,
             strokeWidth: args.strokeWidth,
-          });
+          }, aiMessageId);
           break;
 
         default:
@@ -317,7 +323,7 @@ function Chat() {
       }
     });
     
-    // PR #3: Unlock drawing after all renders are complete
+    // Unlock drawing after all renders are complete
     // Small delay to ensure renders have been processed
     setTimeout(() => {
       unlockAfterRender();

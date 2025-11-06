@@ -1,4 +1,5 @@
 import { latexToCanvas, drawLatexToCanvas } from './latexToCanvas';
+import { StepType } from '../stores/canvasStore';
 
 /**
  * Canvas Renderer Utility
@@ -47,14 +48,21 @@ function getNextAutoPositionY(renderHeight) {
 export async function renderToCanvas(ctx, renderData, canvasWidth, canvasHeight) {
   const { type } = renderData;
 
+  // Handle clearCanvas type - it clears the canvas but doesn't render anything
+  if (type === StepType.CLEAR_CANVAS) {
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    resetAutoPosition();
+    return { x: 0, y: 0, width: 0, height: 0 };
+  }
+
   switch (type) {
-    case 'equation':
+    case StepType.EQUATION:
       return await renderEquation(ctx, renderData, canvasWidth);
     
-    case 'label':
+    case StepType.LABEL:
       return renderLabel(ctx, renderData, canvasWidth);
     
-    case 'diagram':
+    case StepType.DIAGRAM:
       return renderDiagram(ctx, renderData);
     
     default:

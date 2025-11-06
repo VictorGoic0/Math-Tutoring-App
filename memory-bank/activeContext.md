@@ -13,7 +13,13 @@
 - Added fallback "Done!" message when AI calls tools without text
 - Canvas clears when conversation is deleted
 
-**Next Priority:** PR #4 (Basic Drawing Tools - Pen & Eraser)
+**Next Priority:** PR #4 Phase 1 (Step Navigation with Arrow Keys)
+
+**Current Task:**
+- Implementing step navigation UI with left/right arrow buttons
+- Adding global keyboard listeners for left/right arrow keys
+- Updating canvas to render systemRenders from selected step
+- Phase 2 (Firestore persistence) will follow after Phase 1 completion
 
 ## Recent Decisions
 
@@ -62,26 +68,33 @@
 
 ## Next Steps
 
-### Immediate (Next Session)
+### Immediate (Current Session)
 
-1. **Drawing Tools (PR #4):**
-   - Implement pen tool for freehand drawing
-   - Implement eraser tool
-   - Add drawing tool selector UI
-   - Handle pointer events (down, move, up)
-   - Draw smooth lines between points
+1. **Step Navigation (PR #4 Phase 1):**
+   - Add navigation actions to canvasStore (goToStep, goToNextStep, goToPreviousStep)
+   - Add left/right arrow buttons to Whiteboard component
+   - Implement global keyboard listeners for arrow keys (preventDefault/stopPropagation)
+   - Update canvas rendering to show systemRenders from selected step
+   - Disable navigation buttons at bounds
 
 ### Short Term
 
-2. **Canvas State Management (PR #5):**
-   - Save canvas state to Firestore
-   - Load canvas state when retrieving conversation
-   - Serialize/deserialize canvas drawings
+2. **Step Persistence (PR #4 Phase 2):**
+   - Add steps property to conversation document in Firestore
+   - Save steps to Firestore after each step creation (background)
+   - Load steps on page refresh and default to last step
+   - Render systemRenders from persisted step data
 
-3. **Color Picker & Clear (PR #6):**
-   - Add color picker UI for pen tool
-   - Add clear button for user layer
-   - Ensure clear only affects user drawings
+3. **Enhanced Graph Visualizations (PR #5):**
+   - Auto-detect linear equations and switch to graph mode
+   - Add graph background rendering (axes, grid)
+   - Ensure AI understands shapes are on graph coordinates
+   - Grid visibility based on shape types
+
+4. **Diagram Rendering Fixes (PR #6):**
+   - Fix inconsistencies in shape rendering
+   - Standardize styling parameters
+   - Handle edge cases and validation
 
 ### Medium Term
 
@@ -154,11 +167,12 @@ All blockers have been resolved:
 - Canvas foundation complete (PR #1)
 - Canvas step visualization complete (PR #2)
 - Drawing lock/unlock complete (PR #3)
-- Drawing tools not yet implemented
+- Step navigation (PR #4 Phase 1) in progress
 - Voice interface not yet started
 
 **Next Priority:**
-- Implement pen tool for freehand drawing (PR #4)
-- Implement eraser tool (PR #4)
-- Add drawing tool selector UI (PR #4)
+- Complete step navigation UI and keyboard controls (PR #4 Phase 1)
+- Implement Firestore persistence for steps (PR #4 Phase 2)
+- Enhanced graph visualizations (PR #5)
+- Diagram rendering fixes (PR #6)
 

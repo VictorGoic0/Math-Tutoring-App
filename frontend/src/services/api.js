@@ -133,7 +133,7 @@ export async function parseAIStreamText(response, onChunk, onComplete, onError) 
  * @param {Function} onError - Callback for errors: (error: Error) => void
  */
 export async function parseAIStreamRender(response, onChunk, onComplete, onError) {
-  console.log('🎬 parseAIStreamRender: Starting to parse data stream');
+  // console.log('🎬 parseAIStreamRender: Starting to parse data stream');
   
   if (!response.ok) {
     const errorText = await response.text();
@@ -154,12 +154,12 @@ export async function parseAIStreamRender(response, onChunk, onComplete, onError
       const { done, value } = await reader.read();
       
       if (done) {
-        console.log('✅ parseAIStreamRender: Stream complete', {
-          totalChunks: chunkCount,
-          textLength: fullText.length,
-          toolCallCount: toolCalls.length,
-          toolCalls: toolCalls.map(tc => ({ name: tc.toolName, hasArgs: !!tc.args }))
-        });
+        // console.log('✅ parseAIStreamRender: Stream complete', {
+        //   totalChunks: chunkCount,
+        //   textLength: fullText.length,
+        //   toolCallCount: toolCalls.length,
+        //   toolCalls: toolCalls.map(tc => ({ name: tc.toolName, hasArgs: !!tc.args }))
+        // });
         onComplete(fullText, toolCalls);
         break;
       }
@@ -188,7 +188,7 @@ export async function parseAIStreamRender(response, onChunk, onComplete, onError
           
           // Handle different event types
           if (event.type === 'text-delta' && event.text) {
-            console.log('📝 Text delta:', event.text.substring(0, 50) + (event.text.length > 50 ? '...' : ''));
+            // console.log('📝 Text delta:', event.text.substring(0, 50) + (event.text.length > 50 ? '...' : ''));
             
             // Accumulate text
             fullText += event.text;
@@ -202,12 +202,12 @@ export async function parseAIStreamRender(response, onChunk, onComplete, onError
             // AI SDK uses 'input' or 'args' depending on version/format
             const toolArgs = event.args || event.input;
             
-            console.log('🔧 Tool call received:', {
-              toolName: event.toolName,
-              toolCallId: event.toolCallId,
-              argsKeys: toolArgs ? Object.keys(toolArgs) : [],
-              args: toolArgs
-            });
+            // console.log('🔧 Tool call received:', {
+            //   toolName: event.toolName,
+            //   toolCallId: event.toolCallId,
+            //   argsKeys: toolArgs ? Object.keys(toolArgs) : [],
+            //   args: toolArgs
+            // });
             
             toolCalls.push({
               toolCallId: event.toolCallId,
@@ -215,7 +215,7 @@ export async function parseAIStreamRender(response, onChunk, onComplete, onError
               args: toolArgs
             });
           } else if (event.type === 'tool-call-delta') {
-            console.log('🔧 Tool call delta:', event.toolCallId);
+            // console.log('🔧 Tool call delta:', event.toolCallId);
             
             // Handle incremental tool call args (if streaming)
             const existingCall = toolCalls.find(tc => tc.toolCallId === event.toolCallId);

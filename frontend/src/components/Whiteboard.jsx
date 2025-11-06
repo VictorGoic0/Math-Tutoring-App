@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCanvasStore } from '../stores/canvasStore';
-import { colors } from '../styles/tokens';
+import { colors, spacing, borderRadius, shadows } from '../styles/tokens';
 import { renderToCanvas, resetAutoPosition } from '../utils/canvasRenderer';
 
 /**
@@ -14,11 +14,16 @@ function Whiteboard() {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isRendering, setIsRendering] = useState(false);
   
-  const {
-    strokes,
-    systemRenders,
-    isLocked,
-  } = useCanvasStore();
+  // Use explicit selectors to ensure reactivity
+  // Using systemRenders.length as a dependency to force re-render when array changes
+  const systemRenders = useCanvasStore(state => state.systemRenders);
+  const systemRendersLength = useCanvasStore(state => state.systemRenders.length);
+  const strokes = useCanvasStore(state => state.strokes);
+  const isLocked = useCanvasStore(state => state.isLocked);
+  const steps = useCanvasStore(state => state.steps);
+  const currentStepIndex = useCanvasStore(state => state.currentStepIndex);
+  const goToNextStep = useCanvasStore(state => state.goToNextStep);
+  const goToPreviousStep = useCanvasStore(state => state.goToPreviousStep);
 
   // Initialize canvas and handle resizing
   useEffect(() => {
@@ -66,17 +71,69 @@ function Whiteboard() {
     };
   }, []);
 
+  // Global keyboard listeners for arrow keys
+  useEffect(() => {
+    console.log('⌨️ Setting up arrow key listeners. Steps available:', steps.length);
+    
+    const handleKeyDown = (e) => {
+      console.log('⌨️ Key pressed:', e.key, 'Steps:', steps.length, 'Current index:', currentStepIndex);
+      
+      // Only handle arrow keys if we have steps to navigate
+      if (steps.length === 0) {
+        console.log('⌨️ No steps available, ignoring arrow key');
+        return;
+      }
+      
+      // Only handle if not typing in an input/textarea
+      const target = e.target;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        console.log('⌨️ Typing in input field, ignoring arrow key');
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        console.log('⬅️ Left arrow pressed, going to previous step');
+        e.preventDefault();
+        e.stopPropagation();
+        goToPreviousStep();
+      } else if (e.key === 'ArrowRight') {
+        console.log('➡️ Right arrow pressed, going to next step');
+        e.preventDefault();
+        e.stopPropagation();
+        goToNextStep();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    console.log('⌨️ Arrow key listeners attached');
+    
+    return () => {
+      console.log('⌨️ Removing arrow key listeners');
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [steps.length, currentStepIndex, goToNextStep, goToPreviousStep]);
+
   // Redraw canvas when state changes
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || dimensions.width === 0 || dimensions.height === 0) return;
+    if (!canvas || dimensions.width === 0 || dimensions.height === 0) {
+      console.log('⏸️ Canvas not ready for rendering:', { canvas: !!canvas, dimensions });
+      return;
+    }
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Prevent concurrent renders - if already rendering, skip this update
+    // The effect will run again when isRendering becomes false
+    if (isRendering) {
+      console.log('⏸️ Already rendering, skipping...');
+      return;
+    }
+
+    console.log('🎨 Redrawing canvas with', systemRenders.length, 'system renders');
+
     async function redrawCanvas() {
-      if (isRendering) return; // Prevent concurrent renders
-      
       setIsRendering(true);
 
       try {
@@ -120,7 +177,7 @@ function Whiteboard() {
     }
 
     redrawCanvas();
-  }, [strokes, systemRenders, dimensions, isRendering]);
+  }, [strokes, systemRenders, systemRendersLength, dimensions.width, dimensions.height, isRendering]);
 
   const containerStyles = {
     width: '100%',
@@ -141,12 +198,118 @@ function Whiteboard() {
     touchAction: isLocked ? 'none' : 'auto',
   };
 
+  // Navigation button styles
+  const navButtonStyles = {
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    backgroundColor: colors.background.paper,
+    border: `1px solid ${colors.divider}`,
+    borderRadius: borderRadius.base,
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    boxShadow: shadows.md,
+    zIndex: 10,
+    transition: 'all 0.2s ease',
+    fontSize: '20px',
+    color: colors.text.primary,
+  };
+
+  const navButtonHoverStyles = {
+    backgroundColor: colors.action.hover,
+    boxShadow: shadows.lg,
+  };
+
+  const navButtonDisabledStyles = {
+    opacity: 0.4,
+    cursor: 'not-allowed',
+  };
+
+  const canGoPrevious = currentStepIndex > 0;
+  const canGoNext = currentStepIndex < steps.length - 1;
+
+  // Log button visibility for debugging
+  useEffect(() => {
+    console.log('🔘 Button visibility check:', { 
+      stepsLength: steps.length, 
+      willShow: steps.length > 1, 
+      currentStepIndex,
+      canGoPrevious,
+      canGoNext
+    });
+  }, [steps.length, currentStepIndex, canGoPrevious, canGoNext]);
+
+  const handlePrevious = () => {
+    if (canGoPrevious) {
+      goToPreviousStep();
+    }
+  };
+
+  const handleNext = () => {
+    if (canGoNext) {
+      goToNextStep();
+    }
+  };
+
   return (
     <div style={containerStyles}>
       <canvas
         ref={canvasRef}
         style={canvasStyles}
       />
+      
+      {/* Navigation buttons - only show if we have multiple steps */}
+      {steps.length > 1 && (
+        <>
+          <button
+            onClick={handlePrevious}
+            disabled={!canGoPrevious}
+            style={{
+              ...navButtonStyles,
+              left: spacing[4],
+              ...(!canGoPrevious ? navButtonDisabledStyles : {}),
+            }}
+            onMouseEnter={(e) => {
+              if (canGoPrevious) {
+                Object.assign(e.target.style, navButtonHoverStyles);
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = navButtonStyles.backgroundColor;
+              e.target.style.boxShadow = navButtonStyles.boxShadow;
+            }}
+            aria-label="Previous step"
+          >
+            ←
+          </button>
+          
+          <button
+            onClick={handleNext}
+            disabled={!canGoNext}
+            style={{
+              ...navButtonStyles,
+              right: spacing[4],
+              ...(!canGoNext ? navButtonDisabledStyles : {}),
+            }}
+            onMouseEnter={(e) => {
+              if (canGoNext) {
+                Object.assign(e.target.style, navButtonHoverStyles);
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = navButtonStyles.backgroundColor;
+              e.target.style.boxShadow = navButtonStyles.boxShadow;
+            }}
+            aria-label="Next step"
+          >
+            →
+          </button>
+        </>
+      )}
     </div>
   );
 }

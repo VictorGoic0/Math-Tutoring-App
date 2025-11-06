@@ -128,30 +128,36 @@
 
 ## In Progress
 
-**None currently**
+### ⏳ PR #4 (Canvas) Phase 1: Step Navigation with Arrow Keys
+- [ ] Navigation actions in canvasStore (goToStep, goToNextStep, goToPreviousStep)
+- [ ] Left/right arrow buttons in Whiteboard component
+- [ ] Global keyboard listeners for arrow keys
+- [ ] Canvas renders systemRenders from selected step
+- [ ] Navigation buttons disabled at bounds
 
 ## Pending Features
 
-### ⏳ PR #4 (Canvas): Basic Drawing Tools (Pen & Eraser)
-- [ ] Implement pen tool for freehand drawing
-- [ ] Implement eraser tool
-- [ ] Add drawing tool selector UI
-- [ ] Handle pointer events (down, move, up)
-- [ ] Draw smooth lines between points
+### ⏳ PR #4 (Canvas) Phase 2: Firestore Persistence for Steps
+- [ ] Add steps property to conversation document
+- [ ] Save steps to Firestore after each step creation
+- [ ] Load steps on page refresh and default to last step
+- [ ] Render systemRenders from persisted step data
 
-### ⏳ PR #5 (Canvas): Canvas State Management
-- [ ] Save canvas state (system layer + user layer) to Firestore
-- [ ] Load canvas state when retrieving conversation
-- [ ] Sync canvas state across real-time updates
-- [ ] Serialize/deserialize canvas drawings
-- [ ] Implement canvas state per message/step
+### ⏳ PR #5 (Canvas): Enhanced Graph Visualizations
+- [ ] Update render_diagram tool schema to support graph elements
+- [ ] Add logic to detect linear equations and switch to graph mode
+- [ ] Implement graph background rendering (axes, grid)
+- [ ] Add grid visibility toggle based on shape types
+- [ ] Ensure AI understands shapes are on graph coordinates
+- [ ] Update auto-positioning to respect graph layout
 
-### ⏳ PR #6 (Canvas): Color Picker & Clear Button
-- [ ] Add color picker UI for pen tool
-- [ ] Implement color selection logic
-- [ ] Add clear button for user layer
-- [ ] Confirm clear action with user
-- [ ] Ensure clear only affects user drawings
+### ⏳ PR #6 (Canvas): Diagram Rendering Fixes and Consistency
+- [ ] Review and document current inconsistencies
+- [ ] Standardize styling parameters (stroke width, colors, arrowheads)
+- [ ] Fix specific bugs (parabola curves, polygon closures, circle radius)
+- [ ] Add validation for tool call arguments
+- [ ] Implement consistent rendering for all diagram types
+- [ ] Add error handling for invalid configurations
 
 ### ⏳ PR #7 (Canvas): Problem Type Testing & Bug Fixes
 - [ ] Test with simple arithmetic problem
@@ -219,20 +225,23 @@ All reported issues have been resolved:
 - ✅ 100% of UI polish complete
 
 ### Remaining
-- ✅ 60% of whiteboard features complete (foundation, visualization, lock/unlock done)
-- ⏳ 0% of drawing tools complete
-- ⏳ 0% of canvas persistence complete
+- ✅ 70% of whiteboard features complete (foundation, visualization, lock/unlock, step tracking done)
+- ⏳ Step navigation in progress (PR #4 Phase 1)
+- ⏳ 0% of step persistence complete (PR #4 Phase 2)
+- ⏳ 0% of graph visualizations complete (PR #5)
+- ⏳ 0% of diagram fixes complete (PR #6)
 - ⏳ 0% of voice interface complete
 - ⏳ 0% of problem type testing complete
 
 ## Next Milestones
 
-1. **Drawing Tools (PR #4):** Target: 1 day - ✅ Next up
-2. **Canvas State Management (PR #5):** Target: 1 day
-3. **Color Picker & Clear (PR #6):** Target: 0.5 days
-4. **Problem Type Testing (PR #7):** Target: 1 day
+1. **Step Navigation (PR #4 Phase 1):** Target: 0.5 days - ✅ In progress
+2. **Step Persistence (PR #4 Phase 2):** Target: 0.5 days
+3. **Enhanced Graph Visualizations (PR #5):** Target: 1 day
+4. **Diagram Rendering Fixes (PR #6):** Target: 0.5 days
+5. **Problem Type Testing (PR #7):** Target: 1 day
 
-**Total Estimated Time:** 2.5-3 days for remaining canvas features
+**Total Estimated Time:** 3.5 days for remaining canvas features
 
 ## Blockers
 
