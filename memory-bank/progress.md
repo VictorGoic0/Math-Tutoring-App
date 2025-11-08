@@ -2,11 +2,11 @@
 
 ## Overall Status
 
-**MVP Completion:** ~75% (Core chat features complete, canvas visualization complete, lock/unlock complete, drawing tools pending)
+**MVP Completion:** ~65% (Core chat features complete, new graph rendering system designed, ready for implementation)
 
-**Completed PRs:** 11 out of 19 P0 PRs  
-**In Progress:** 0
-**Pending:** 8 PRs (drawing tools, canvas persistence, testing, voice features)
+**Completed PRs:** 11 P0 PRs (chat/auth/vision complete)  
+**In Progress:** Graph Rendering System TDD v2.0 (design complete, implementation starting)
+**Pending:** 10 MVP PRs + 5 post-MVP PRs for new graph system (see tasks-3.md)
 
 ## Completed Features
 
@@ -114,59 +114,55 @@
 - Enhanced visual distinction (blue equations, gray labels, dark blue diagrams)
 - Few-shot prompting for AI tool calling behavior
 
-### ✅ PR #3 (Canvas): Drawing Lock/Unlock Mechanism
-- Lock/unlock state in canvasStore (isLocked: true by default)
-- LockIndicator component (low-profile icon, matches eye icon style, shows lock/unlock icon)
-- Auto-unlock after system renders (unlockAfterRender)
-- Lock when progressing to next step (lockForNextStep on clear_canvas)
-- Pointer events disabled when locked (cursor: not-allowed, touchAction: none)
-- Step tracking foundation (steps array, createStep, currentStepIndex, messageId linking)
-- Canvas visibility controlled by store (shouldShowCanvas event-driven)
-- Canvas preserved when hidden (always mounted, uses visibility CSS)
-- Fallback "Done!" message when AI calls tools without text
-- Canvas clears on conversation delete
+### ✅ Graph Rendering System TDD v2.0
+- Complete technical design document created (Graph-Revamp-TDD.md)
+- 5 simplified tool definitions (linear, quadratic, circle, square, triangle)
+- Fixed coordinate bounds (-10 to +10, no zoom/pan)
+- Zustand state management architecture
+- LLM provides equations/coordinates only (no styling)
+- Frontend controls all rendering (blue color, 2px line width)
+- System prompt with coordinate bounds information
+- Complete implementation guide with code examples
+- Task breakdown created (tasks-3.md with 10 MVP + 5 post-MVP PRs)
+- 3-5 day MVP timeline
 
 ## In Progress
 
-### ⏳ PR #4 (Canvas) Phase 1: Step Navigation with Arrow Keys
-- [ ] Navigation actions in canvasStore (goToStep, goToNextStep, goToPreviousStep)
-- [ ] Left/right arrow buttons in Whiteboard component
-- [ ] Global keyboard listeners for arrow keys
-- [ ] Canvas renders systemRenders from selected step
-- [ ] Navigation buttons disabled at bounds
+### ⏳ Graph Rendering System Implementation (tasks-3.md)
+**Status:** Design complete, ready to implement
+
+**Next Steps:**
+1. PR #1: Install zustand/mathjs, create canvasStore
+2. PR #2: Coordinate transforms, grid renderer
+3. PR #3: GraphCanvas component with Zustand
+4. PR #4-5: Shape renderers (functions + shapes)
+5. PR #6-8: Tool schemas, system prompt, integration
+6. PR #9-10: Error handling, testing, documentation
 
 ## Pending Features
 
-### ⏳ PR #4 (Canvas) Phase 2: Firestore Persistence for Steps
-- [ ] Add steps property to conversation document
-- [ ] Save steps to Firestore after each step creation
-- [ ] Load steps on page refresh and default to last step
-- [ ] Render systemRenders from persisted step data
+### Note: Old Canvas System (tasks-1.md, tasks-2.md) Being Replaced
+The previous canvas implementation is being superseded by the new Graph Rendering System (tasks-3.md). Old PRs #4-7 are no longer relevant.
 
-### ⏳ PR #5 (Canvas): Enhanced Graph Visualizations
-- [ ] Update render_diagram tool schema to support graph elements
-- [ ] Add logic to detect linear equations and switch to graph mode
-- [ ] Implement graph background rendering (axes, grid)
-- [ ] Add grid visibility toggle based on shape types
-- [ ] Ensure AI understands shapes are on graph coordinates
-- [ ] Update auto-positioning to respect graph layout
+### ⏳ New System - See tasks-3.md for Complete Breakdown
+**10 MVP PRs:**
+1. State Management & Infrastructure Setup
+2. Coordinate System & Grid Rendering
+3. Core Canvas Component
+4. Shape Renderers Part 1 (Functions)
+5. Shape Renderers Part 2 (Shapes)
+6. OpenAI Tool Definitions & System Prompt
+7. Chat Integration & Tool Call Parser
+8. Canvas Controls & UI Integration
+9. Error Handling & Edge Cases
+10. Testing & Documentation
 
-### ⏳ PR #6 (Canvas): Diagram Rendering Fixes and Consistency
-- [ ] Review and document current inconsistencies
-- [ ] Standardize styling parameters (stroke width, colors, arrowheads)
-- [ ] Fix specific bugs (parabola curves, polygon closures, circle radius)
-- [ ] Add validation for tool call arguments
-- [ ] Implement consistent rendering for all diagram types
-- [ ] Add error handling for invalid configurations
-
-### ⏳ PR #7 (Canvas): Problem Type Testing & Bug Fixes
-- [ ] Test with simple arithmetic problem
-- [ ] Test with linear equation
-- [ ] Test with geometry problem
-- [ ] Test with word problem
-- [ ] Test with multi-step problem
-- [ ] Document each test walkthrough
-- [ ] Fix bugs discovered during testing
+**5 Post-MVP PRs:**
+11. User Drawing Layer
+12. Zoom & Pan Controls
+13. Advanced Function Features
+14. Additional Shapes & Tools
+15. Export & Sharing
 
 ### ⏳ PR #19: Demo Video & Final QA
 - [ ] Record 5-minute demo video
@@ -235,13 +231,18 @@ All reported issues have been resolved:
 
 ## Next Milestones
 
-1. **Step Navigation (PR #4 Phase 1):** Target: 0.5 days - ✅ In progress
-2. **Step Persistence (PR #4 Phase 2):** Target: 0.5 days
-3. **Enhanced Graph Visualizations (PR #5):** Target: 1 day
-4. **Diagram Rendering Fixes (PR #6):** Target: 0.5 days
-5. **Problem Type Testing (PR #7):** Target: 1 day
+### Graph Rendering System (tasks-3.md)
+1. **PR #1-2 (Setup & Infrastructure):** Target: 1 day
+2. **PR #3-5 (Core Rendering):** Target: 1-2 days
+3. **PR #6-8 (Integration):** Target: 1 day
+4. **PR #9-10 (Polish & Testing):** Target: 0.5-1 day
 
-**Total Estimated Time:** 3.5 days for remaining canvas features
+**Total Estimated Time:** 3.5-5 days for MVP graph system
+
+### Future Features
+5. **Post-MVP Enhancements (PRs #11-15):** Target: 5-7 days
+6. **Demo Video & Final QA:** Target: 0.5 days
+7. **Voice Interface (Optional):** Target: 2-3 days
 
 ## Blockers
 

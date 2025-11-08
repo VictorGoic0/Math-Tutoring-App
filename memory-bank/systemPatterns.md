@@ -148,26 +148,58 @@ Firebase (Firestore + Storage)
 - `frontend/src/services/api.js` - SSE parser (`parseAIStreamRender`)
 - `frontend/src/components/Chat.jsx` - Tool call extraction and canvas store updates
 
-### 10. Canvas Rendering Architecture
+### 10. Graph Rendering System Architecture (New - v2.0)
 
-**Pattern:** Dual-layer canvas (system renders + user drawings) with visual distinction
+**Pattern:** Three-layer canvas with fixed coordinate bounds and frontend-controlled rendering
 
-**Implementation:**
-- Zustand store (`canvasStore`) manages system renders and user strokes
-- System layer renders first (background), user strokes on top
-- Visual distinction via colors and styling:
-  - System equations: Blue (#2563EB) with light blue background
-  - System labels: Gray (#64748B) with white background + border
-  - System diagrams: Dark blue (#1E40AF) with 90% opacity
-  - User strokes: Black (default)
-- Auto-positioning for system renders (vertical stacking, 50px margins)
-- Manual coordinate override supported via tool arguments
+**Key Design Principles:**
+- **LLM provides minimal data:** Equations or coordinates only, NO styling parameters
+- **Frontend controls everything:** Colors, line widths, labels, all rendering logic
+- **Fixed coordinate bounds:** -10 to +10 on both axes (standard 4-quadrant plane)
+- **Zustand for state:** Centralized store for all canvas state
+- **Deterministic rendering:** Same equation/coordinates always render identically
+
+**Tool Set (5 tools):**
+1. `draw_linear_function` - Equation string only (e.g., "2*x + 3")
+2. `draw_quadratic_function` - Equation string only (e.g., "x^2 - 4")
+3. `draw_circle` - Center coordinates + radius
+4. `draw_square` - Four corner coordinates
+5. `draw_triangle` - Three vertex coordinates
+
+**Architecture:**
+```
+Layer 1: Grid (static background, -10 to +10)
+Layer 2: System Renders (AI equations/shapes, blue #2563eb)
+Layer 3: User Strokes (future - student drawings)
+```
+
+**State Management:**
+```javascript
+canvasStore: {
+  bounds: { xMin: -10, xMax: 10, yMin: -10, yMax: 10, width, height },
+  systemRenders: [{ type, params, id, timestamp }],
+  userStrokes: [],
+  actions: { addSystemRender, clearSystemRenders, clearAllCanvas }
+}
+```
+
+**Rendering Constants (Frontend):**
+- System color: `#2563eb` (blue)
+- System line width: `2px`
+- User color: `#10b981` (green, future)
+- User line width: `2px`
 
 **Files:**
-- `frontend/src/stores/canvasStore.js` - Canvas state management (Zustand)
-- `frontend/src/components/Whiteboard.jsx` - Canvas rendering with useEffect
-- `frontend/src/utils/canvasRenderer.js` - Render different types (equations, labels, diagrams)
-- `frontend/src/utils/latexToCanvas.js` - KaTeX to canvas with styled text rendering
+- `frontend/src/stores/canvasStore.js` - Zustand store with fixed bounds
+- `frontend/src/components/GraphCanvas.jsx` - Canvas component
+- `frontend/src/utils/coordinateTransform.js` - worldToCanvas/canvasToWorld
+- `frontend/src/utils/gridRenderer.js` - Grid with axes and labels
+- `frontend/src/utils/shapeRenderer.js` - All shape rendering functions
+- `frontend/src/hooks/useChatToolCalls.js` - Tool call parser
+
+**Documentation:**
+- `Graph-Revamp-TDD.md` - Complete technical design (v2.0)
+- `tasks-3.md` - Implementation task breakdown (10 MVP + 5 post-MVP PRs)
 
 ### 11. Canvas UI with Hide/Show Toggle
 
