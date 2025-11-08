@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import MathDisplay from './MathDisplay';
 import { colors, typography, spacing, borderRadius, shadows, transitions } from '../styles/tokens';
 
@@ -56,14 +56,6 @@ function TypingIndicator() {
 
 function MessageList({ messages, isLoading = false }) {
   const containerRef = useRef(null);
-  const bottomRef = useRef(null);
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
 
   const emptyStateStyles = {
     height: '100%',
@@ -320,7 +312,6 @@ function MessageList({ messages, isLoading = false }) {
           </div>
         );
       })}
-      <div ref={bottomRef} style={{ height: 0 }} />
       </div>
     </>
   );
