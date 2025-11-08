@@ -477,23 +477,23 @@ frontend/src/App.jsx (added LockIndicator, isLocked state from store)
 **Phase 2: Firestore Persistence for Steps**
 
 **Tasks:**
-1. [ ] Add `steps` property to conversation document structure in Firestore (array of step objects)
-2. [ ] Create `saveStepsToFirestore` function in chatService.js (background save after step creation)
-3. [ ] Integrate step persistence in Chat.jsx (call saveStepsToFirestore after createStep)
-4. [ ] Update `loadConversationHistory` to fetch steps array from conversation document
-5. [ ] Add `loadStepsFromFirestore` action in canvasStore (loads steps array into local state)
-6. [ ] On page refresh, load steps from Firestore and set currentStepIndex to last step
-7. [ ] Render systemRenders from selected step when loading from Firestore
-8. [ ] Handle empty steps array gracefully (default to empty state)
-9. [ ] Test persistence across page refreshes
+1. [x] Add `steps` property to conversation document structure in Firestore (array of step objects)
+2. [x] Create `saveStepsToFirestore` function in chatService.js (background save after step creation)
+3. [x] Integrate step persistence in Chat.jsx (call saveStepsToFirestore after createStep)
+4. [x] Update `loadConversationHistory` to fetch steps array from conversation document
+5. [x] Add `loadStepsFromFirestore` action in canvasStore (loads steps array into local state)
+6. [x] On page refresh, load steps from Firestore and set currentStepIndex to last step
+7. [x] Render systemRenders from selected step when loading from Firestore
+8. [x] Handle empty steps array gracefully (default to empty state)
+9. [x] Test persistence across page refreshes
 
 **Acceptance Criteria:**
-- Steps are saved to Firestore conversation document after each step creation
-- On page refresh, steps load from Firestore into canvasStore
-- User defaults to viewing the last step (most recent visualization)
-- Canvas renders correctly with persisted step data
-- No data loss on page refresh
-- Background saves don't block UI
+- ✅ Steps are saved to Firestore conversation document after each step creation
+- ✅ On page refresh, steps load from Firestore into canvasStore
+- ✅ User defaults to viewing the last step (most recent visualization)
+- ✅ Canvas renders correctly with persisted step data
+- ✅ No data loss on page refresh
+- ✅ Background saves don't block UI
 
 **Files Created/Modified:**
 ```
@@ -501,59 +501,4 @@ frontend/src/stores/canvasStore.js (add navigation actions, loadStepsFromFiresto
 frontend/src/components/Whiteboard.jsx (add buttons and keyboard handler)
 frontend/src/components/Chat.jsx (integrate step persistence, load steps on mount)
 frontend/src/services/chatService.js (add saveStepsToFirestore, update loadConversationHistory)
-```
-
-### PR #5: Enhanced Graph Visualizations
-**Priority:** P0  
-**Day:** 3-4
-
-**Tasks:**
-1. [ ] Update render_diagram tool schema to support graph elements (axes, grid, scale)
-2. [ ] Add logic in promptService to detect linear equations and instruct AI to use graph mode
-3. [ ] Implement graph background rendering in canvasRenderer (axes, optional grid)
-4. [ ] Add grid visibility toggle based on shape types (e.g., visible for lines, parabolas)
-5. [ ] Ensure AI understands shapes are placed on graph coordinates
-6. [ ] Update auto-positioning to respect graph layout
-7. [ ] Test with linear equation examples (e.g., y = mx + b rendering as graph with line)
-
-**Acceptance Criteria:**
-- Linear equations automatically render on graph canvas
-- Grid visible only for relevant shapes (lines, parabolas, etc.)
-- Shapes positioned correctly on graph coordinates
-- AI consistently uses graph mode for appropriate problems
-- Visual distinction maintained for graph elements
-
-**Files Created/Modified:**
-```
-api/services/promptService.js (update AI instructions for graphs)
-api/routes/chat.js (update tool schema if needed)
-frontend/src/utils/canvasRenderer.js (add graph rendering)
-frontend/src/stores/canvasStore.js (add graph state if needed)
-```
-
-### PR #6: Diagram Rendering Fixes and Consistency
-**Priority:** P0  
-**Day:** 4
-
-**Tasks:**
-1. [ ] Review and document current inconsistencies in shape rendering
-2. [ ] Standardize styling parameters (stroke width, colors, arrowheads)
-3. [ ] Fix specific bugs (e.g., parabola curves, polygon closures, circle radius calculation)
-4. [ ] Add validation for tool call arguments (e.g., minimum points per shape)
-5. [ ] Implement consistent rendering for all diagram types (line, circle, rectangle, polygon, arrow, parabola)
-6. [ ] Add error handling for invalid diagram configurations
-7. [ ] Test rendering of each shape type with variations
-
-**Acceptance Criteria:**
-- All shapes render consistently and correctly
-- No visual glitches (e.g., misaligned arrows, jagged lines)
-- Consistent appearance across different diagram types
-- Handles edge cases (e.g., zero-radius circle, single-point lines)
-- Improved reliability in AI-generated diagrams
-
-**Files Created/Modified:**
-```
-frontend/src/utils/canvasRenderer.js (fix rendering logic)
-api/routes/chat.js (add argument validation)
-frontend/src/components/Chat.jsx (handle invalid tool calls)
 ```
