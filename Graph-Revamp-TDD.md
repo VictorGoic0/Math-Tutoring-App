@@ -1,7 +1,7 @@
 # MathTutor AI - Canvas Graph Rendering System
 ## Technical Design Document (TDD)
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Date:** November 8, 2025  
 **Author:** Technical Architecture  
 **Status:** Ready for Implementation
@@ -13,11 +13,12 @@
 2. [System Architecture](#system-architecture)
 3. [Tool Definitions (OpenAI Function Calling)](#tool-definitions)
 4. [Frontend Components](#frontend-components)
-5. [Math Rendering Engine](#math-rendering-engine)
-6. [Coordinate System & Transformations](#coordinate-system--transformations)
-7. [Implementation Guide](#implementation-guide)
-8. [Task Breakdown](#task-breakdown)
-9. [Code Examples](#code-examples)
+5. [State Management (Zustand)](#state-management)
+6. [Math Rendering Engine](#math-rendering-engine)
+7. [Coordinate System & Transformations](#coordinate-system--transformations)
+8. [Implementation Guide](#implementation-guide)
+9. [Task Breakdown](#task-breakdown)
+10. [Code Examples](#code-examples)
 
 ---
 
@@ -25,21 +26,25 @@
 
 ### Objectives
 - Replace unreliable LLM-drawn graphics with deterministic, programmatic rendering
-- Implement structured tool calls for specific graph types (linear, parabola, circle, rectangle, polygon)
-- Use frontend math.js for equation evaluation and Canvas API for rendering
-- Maintain collaborative whiteboard with persistent grid and user drawing layers
+- Implement minimal tool calls for equations (linear, quadratic) and shapes (circle, square, triangle)
+- LLM provides ONLY equations/coordinates; frontend handles ALL rendering logic
+- Use Zustand for centralized state management
+- Fixed bounds (-10 to +10) for MVP - no zoom/pan complexity
 
 ### Key Design Decisions
-1. **Frontend-only math evaluation** - No backend API for coordinate calculation
-2. **Explicit tool calls per shape type** - Reduces hallucinations, increases reliability
-3. **Three-layer canvas architecture** - Grid (static) → System Renders (AI) → User Drawings
-4. **math.js for equation parsing** - Handles arbitrary mathematical expressions safely
+1. **LLM Simplicity** - LLM only outputs equations or coordinate points, nothing else
+2. **Frontend-controlled styling** - All colors, line widths, rendering decisions made by frontend
+3. **Fixed coordinate bounds** - Standard 4-quadrant grid (-10 to +10) for MVP
+4. **Zustand state management** - Centralized store for all canvas state
+5. **Three-layer canvas architecture** - Grid (static) → System Renders (AI) → User Drawings
+6. **math.js for equation parsing** - Handles arbitrary mathematical expressions safely
 
 ### Success Metrics
 - ✅ 100% accurate coordinate plotting for all supported equation types
 - ✅ Zero latency for graph rendering (no API calls)
 - ✅ Deterministic shape drawing (circle always renders as circle)
-- ✅ Persistent grid with proper axis labels and scaling
+- ✅ LLM tool calls are minimal and consistent
+- ✅ Persistent grid with fixed bounds (-10 to +10)
 
 ---
 
@@ -100,21 +105,31 @@
 - **Math Library:** math.js v12+ (frontend only)
 - **Canvas:** HTML5 Canvas API (2D context)
 - **AI Integration:** OpenAI API via Vercel AI SDK
-- **State Management:** React useState/useReducer + Canvas refs
+- **State Management:** Zustand (centralized store)
+
+### Coordinate System
+- **Fixed Bounds:** -10 to +10 on both X and Y axes (4-quadrant Cartesian plane)
+- **No zoom/pan for MVP** - Simplified scope
+- **Canvas size:** Responsive, but coordinate space remains fixed
 
 ---
 
 ## Tool Definitions
 
 ### Design Philosophy
-Each tool call is **specific, explicit, and deterministic**. Instead of a generic "draw" tool, we have:
-- `draw_linear_function` - For lines (y = mx + b)
-- `draw_quadratic_function` - For parabolas (y = ax² + bx + c)
-- `draw_circle` - For circles (center + radius)
-- `draw_rectangle` - For rectangles (corner coords)
-- `draw_polygon` - For arbitrary polygons (list of points)
+LLM provides **ONLY the minimal data needed** - equations or coordinate points. All rendering logic, styling, colors, and calculations happen on the frontend.
 
-This prevents the LLM from making ambiguous requests and ensures frontend knows exactly how to render.
+**Tool Set:**
+- `draw_linear_function` - Equation only (e.g., "2*x + 3")
+- `draw_quadratic_function` - Equation only (e.g., "x^2 - 4")
+- `draw_circle` - Center point + radius
+- `draw_square` - Four corner coordinates
+- `draw_triangle` - Three vertex coordinates
+
+**LLM communicates bounds in prompt:**
+- System prompt informs LLM that coordinate plane is **-10 to +10 on both axes**
+- LLM should provide coordinates within these bounds
+- Frontend will clip/warn if coordinates are out of bounds
 
 ---
 
@@ -122,33 +137,21 @@ This prevents the LLM from making ambiguous requests and ensures frontend knows 
 
 **Purpose:** Draw a straight line given a linear equation
 
+**LLM provides:** Equation string only  
+**Frontend decides:** Color (blue for system), line width (2px), all rendering logic
+
 ```json
 {
   "type": "function",
   "function": {
     "name": "draw_linear_function",
-    "description": "Draw a linear function (straight line) on the coordinate plane. Use for equations like y = 2x + 3, y = -0.5x + 1, etc.",
+    "description": "Draw a linear function (straight line) on the coordinate plane. The plane spans from -10 to +10 on both axes. Provide ONLY the equation in terms of x. Examples: '2*x + 3', '-0.5*x + 1', 'x/2 - 4'. Do NOT specify colors, labels, or rendering options.",
     "parameters": {
       "type": "object",
       "properties": {
         "equation": {
           "type": "string",
-          "description": "Linear equation in terms of x. Examples: '2*x + 3', '-0.5*x + 1', 'x/2 - 4'"
-        },
-        "color": {
-          "type": "string",
-          "enum": ["blue", "red", "green", "purple", "orange"],
-          "default": "blue",
-          "description": "Line color"
-        },
-        "label": {
-          "type": "string",
-          "description": "Optional label to display near the line (e.g., 'y = 2x + 3')"
-        },
-        "showSlope": {
-          "type": "boolean",
-          "default": false,
-          "description": "Whether to show slope triangle visualization"
+          "description": "Linear equation in terms of x. Use standard math.js syntax. Examples: '2*x + 3', '-x/2 + 5', '0.5*x - 1'"
         }
       },
       "required": ["equation"]
@@ -162,46 +165,35 @@ This prevents the LLM from making ambiguous requests and ensures frontend knows 
 {
   "name": "draw_linear_function",
   "arguments": {
-    "equation": "2*x + 3",
-    "color": "blue",
-    "label": "y = 2x + 3",
-    "showSlope": true
+    "equation": "2*x + 3"
   }
 }
 ```
 
 **Frontend Rendering Logic:**
 ```javascript
-function renderLinearFunction(ctx, { equation, color, label, showSlope }, bounds) {
+// Frontend constants (not from LLM)
+const SYSTEM_COLOR = '#2563eb'; // Blue
+const SYSTEM_LINE_WIDTH = 2;
+
+function renderLinearFunction(ctx, { equation }, bounds) {
   const expr = compile(equation);
   
-  // Calculate endpoints
-  const x1 = bounds.xMin;
+  // Calculate endpoints using fixed bounds
+  const x1 = bounds.xMin; // -10
   const y1 = expr.evaluate({ x: x1 });
-  const x2 = bounds.xMax;
+  const x2 = bounds.xMax; // +10
   const y2 = expr.evaluate({ x: x2 });
   
-  // Draw line
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+  // Draw line with frontend-controlled styling
+  ctx.strokeStyle = SYSTEM_COLOR;
+  ctx.lineWidth = SYSTEM_LINE_WIDTH;
   ctx.beginPath();
   const [cx1, cy1] = worldToCanvas(x1, y1, bounds);
   const [cx2, cy2] = worldToCanvas(x2, y2, bounds);
   ctx.moveTo(cx1, cy1);
   ctx.lineTo(cx2, cy2);
   ctx.stroke();
-  
-  // Optional: Draw label
-  if (label) {
-    ctx.fillStyle = color;
-    ctx.font = '14px Arial';
-    ctx.fillText(label, cx2 - 80, cy2 - 10);
-  }
-  
-  // Optional: Draw slope triangle
-  if (showSlope) {
-    drawSlopeTriangle(ctx, x1, y1, x2, y2, bounds);
-  }
 }
 ```
 
@@ -211,37 +203,21 @@ function renderLinearFunction(ctx, { equation, color, label, showSlope }, bounds
 
 **Purpose:** Draw a parabola given a quadratic equation
 
+**LLM provides:** Equation string only  
+**Frontend decides:** Color (blue for system), line width (2px), whether to show vertex/roots, all rendering logic
+
 ```json
 {
   "type": "function",
   "function": {
     "name": "draw_quadratic_function",
-    "description": "Draw a quadratic function (parabola) on the coordinate plane. Use for equations like y = x^2, y = -2x^2 + 3x - 1, etc.",
+    "description": "Draw a quadratic function (parabola) on the coordinate plane. The plane spans from -10 to +10 on both axes. Provide ONLY the equation in terms of x. Examples: 'x^2', '-2*x^2 + 3*x - 1', '0.5*x^2 - 4'. Do NOT specify colors, labels, or rendering options.",
     "parameters": {
       "type": "object",
       "properties": {
         "equation": {
           "type": "string",
-          "description": "Quadratic equation in terms of x. Examples: 'x^2', '-2*x^2 + 3*x - 1', '0.5*x^2 - 4'"
-        },
-        "color": {
-          "type": "string",
-          "enum": ["blue", "red", "green", "purple", "orange"],
-          "default": "blue"
-        },
-        "label": {
-          "type": "string",
-          "description": "Optional label for the parabola"
-        },
-        "showVertex": {
-          "type": "boolean",
-          "default": true,
-          "description": "Whether to mark and label the vertex"
-        },
-        "showRoots": {
-          "type": "boolean",
-          "default": false,
-          "description": "Whether to mark x-intercepts (roots)"
+          "description": "Quadratic equation in terms of x. Use standard math.js syntax with ^ for exponents. Examples: 'x^2', '-x^2 + 4', '0.5*x^2 - 3*x + 2'"
         }
       },
       "required": ["equation"]
@@ -255,24 +231,24 @@ function renderLinearFunction(ctx, { equation, color, label, showSlope }, bounds
 {
   "name": "draw_quadratic_function",
   "arguments": {
-    "equation": "x^2 - 4*x + 3",
-    "color": "red",
-    "label": "y = x² - 4x + 3",
-    "showVertex": true,
-    "showRoots": true
+    "equation": "x^2 - 4*x + 3"
   }
 }
 ```
 
 **Frontend Rendering Logic:**
 ```javascript
-function renderQuadraticFunction(ctx, { equation, color, label, showVertex, showRoots }, bounds) {
+// Frontend constants
+const SYSTEM_COLOR = '#2563eb'; // Blue
+const SYSTEM_LINE_WIDTH = 2;
+
+function renderQuadraticFunction(ctx, { equation }, bounds) {
   const expr = compile(equation);
   const step = (bounds.xMax - bounds.xMin) / (bounds.width * 2); // High resolution
   
-  // Plot parabola
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+  // Plot parabola with frontend-controlled styling
+  ctx.strokeStyle = SYSTEM_COLOR;
+  ctx.lineWidth = SYSTEM_LINE_WIDTH;
   ctx.beginPath();
   
   let started = false;
@@ -294,50 +270,6 @@ function renderQuadraticFunction(ctx, { equation, color, label, showVertex, show
     }
   }
   ctx.stroke();
-  
-  // Calculate and mark vertex (using calculus or algebraic method)
-  if (showVertex) {
-    const vertex = findVertex(equation);
-    drawPoint(ctx, vertex.x, vertex.y, color, `Vertex (${vertex.x.toFixed(1)}, ${vertex.y.toFixed(1)})`, bounds);
-  }
-  
-  // Calculate and mark roots
-  if (showRoots) {
-    const roots = findRoots(equation);
-    roots.forEach(root => {
-      drawPoint(ctx, root, 0, color, `x = ${root.toFixed(2)}`, bounds);
-    });
-  }
-  
-  // Label
-  if (label) {
-    const vertex = findVertex(equation);
-    const [cx, cy] = worldToCanvas(vertex.x, vertex.y, bounds);
-    ctx.fillStyle = color;
-    ctx.font = '14px Arial';
-    ctx.fillText(label, cx + 10, cy - 20);
-  }
-}
-
-function findVertex(equation) {
-  // Parse equation to extract coefficients: ax^2 + bx + c
-  // Vertex x = -b/(2a), then calculate y
-  // Simplified implementation:
-  const expr = compile(equation);
-  
-  // Numerical approximation: find minimum/maximum
-  let vertexX = 0;
-  let vertexY = expr.evaluate({ x: 0 });
-  
-  for (let x = -10; x <= 10; x += 0.1) {
-    const y = expr.evaluate({ x });
-    if (Math.abs(y) < Math.abs(vertexY)) {
-      vertexX = x;
-      vertexY = y;
-    }
-  }
-  
-  return { x: vertexX, y: vertexY };
 }
 ```
 
@@ -347,40 +279,29 @@ function findVertex(equation) {
 
 **Purpose:** Draw a circle with specified center and radius
 
+**LLM provides:** Center coordinates (x, y) and radius  
+**Frontend decides:** Color (blue for system), line width (2px), whether to fill, all rendering logic
+
 ```json
 {
   "type": "function",
   "function": {
     "name": "draw_circle",
-    "description": "Draw a circle on the coordinate plane with given center and radius.",
+    "description": "Draw a circle on the coordinate plane. The plane spans from -10 to +10 on both axes. Provide center coordinates and radius ONLY. Do NOT specify colors, fill, labels, or rendering options.",
     "parameters": {
       "type": "object",
       "properties": {
         "centerX": {
           "type": "number",
-          "description": "X-coordinate of circle center"
+          "description": "X-coordinate of circle center (between -10 and 10)"
         },
         "centerY": {
           "type": "number",
-          "description": "Y-coordinate of circle center"
+          "description": "Y-coordinate of circle center (between -10 and 10)"
         },
         "radius": {
           "type": "number",
           "description": "Radius of the circle in coordinate units"
-        },
-        "color": {
-          "type": "string",
-          "enum": ["blue", "red", "green", "purple", "orange"],
-          "default": "blue"
-        },
-        "fill": {
-          "type": "boolean",
-          "default": false,
-          "description": "Whether to fill the circle"
-        },
-        "label": {
-          "type": "string",
-          "description": "Optional label for the circle"
         }
       },
       "required": ["centerX", "centerY", "radius"]
@@ -396,96 +317,90 @@ function findVertex(equation) {
   "arguments": {
     "centerX": 2,
     "centerY": 3,
-    "radius": 4,
-    "color": "green",
-    "fill": false,
-    "label": "Circle: r=4"
+    "radius": 4
   }
 }
 ```
 
 **Frontend Rendering Logic:**
 ```javascript
-function renderCircle(ctx, { centerX, centerY, radius, color, fill, label }, bounds) {
+// Frontend constants
+const SYSTEM_COLOR = '#2563eb'; // Blue
+const SYSTEM_LINE_WIDTH = 2;
+
+function renderCircle(ctx, { centerX, centerY, radius }, bounds) {
   const [cx, cy] = worldToCanvas(centerX, centerY, bounds);
   
   // Convert radius from world coordinates to canvas pixels
-  // Use x-axis scale (assuming equal aspect ratio)
   const radiusPixels = (radius / (bounds.xMax - bounds.xMin)) * bounds.width;
   
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+  // Draw circle with frontend-controlled styling
+  ctx.strokeStyle = SYSTEM_COLOR;
+  ctx.lineWidth = SYSTEM_LINE_WIDTH;
   ctx.beginPath();
   ctx.arc(cx, cy, radiusPixels, 0, 2 * Math.PI);
-  
-  if (fill) {
-    ctx.fillStyle = color + '33'; // 20% opacity
-    ctx.fill();
-  }
-  
   ctx.stroke();
   
   // Draw center point
-  ctx.fillStyle = color;
+  ctx.fillStyle = SYSTEM_COLOR;
   ctx.beginPath();
   ctx.arc(cx, cy, 3, 0, 2 * Math.PI);
   ctx.fill();
-  
-  // Label
-  if (label) {
-    ctx.fillStyle = color;
-    ctx.font = '14px Arial';
-    ctx.fillText(label, cx + radiusPixels + 5, cy);
-  }
 }
 ```
 
 ---
 
-### Tool 4: `draw_rectangle`
+### Tool 4: `draw_square`
 
-**Purpose:** Draw a rectangle given corner coordinates
+**Purpose:** Draw a square given four corner coordinates
+
+**LLM provides:** Four corner coordinates (top-left, top-right, bottom-right, bottom-left)  
+**Frontend decides:** Color (blue for system), line width (2px), whether to fill, all rendering logic
 
 ```json
 {
   "type": "function",
   "function": {
-    "name": "draw_rectangle",
-    "description": "Draw a rectangle on the coordinate plane. Specify opposite corners.",
+    "name": "draw_square",
+    "description": "Draw a square on the coordinate plane. The plane spans from -10 to +10 on both axes. Provide the four corner coordinates in order: top-left, top-right, bottom-right, bottom-left. Do NOT specify colors, fill, labels, or rendering options.",
     "parameters": {
       "type": "object",
       "properties": {
-        "x1": {
+        "topLeftX": {
           "type": "number",
-          "description": "X-coordinate of first corner"
+          "description": "X-coordinate of top-left corner (between -10 and 10)"
         },
-        "y1": {
+        "topLeftY": {
           "type": "number",
-          "description": "Y-coordinate of first corner"
+          "description": "Y-coordinate of top-left corner (between -10 and 10)"
         },
-        "x2": {
+        "topRightX": {
           "type": "number",
-          "description": "X-coordinate of opposite corner"
+          "description": "X-coordinate of top-right corner (between -10 and 10)"
         },
-        "y2": {
+        "topRightY": {
           "type": "number",
-          "description": "Y-coordinate of opposite corner"
+          "description": "Y-coordinate of top-right corner (between -10 and 10)"
         },
-        "color": {
-          "type": "string",
-          "enum": ["blue", "red", "green", "purple", "orange"],
-          "default": "blue"
+        "bottomRightX": {
+          "type": "number",
+          "description": "X-coordinate of bottom-right corner (between -10 and 10)"
         },
-        "fill": {
-          "type": "boolean",
-          "default": false
+        "bottomRightY": {
+          "type": "number",
+          "description": "Y-coordinate of bottom-right corner (between -10 and 10)"
         },
-        "label": {
-          "type": "string",
-          "description": "Optional label"
+        "bottomLeftX": {
+          "type": "number",
+          "description": "X-coordinate of bottom-left corner (between -10 and 10)"
+        },
+        "bottomLeftY": {
+          "type": "number",
+          "description": "Y-coordinate of bottom-left corner (between -10 and 10)"
         }
       },
-      "required": ["x1", "y1", "x2", "y2"]
+      "required": ["topLeftX", "topLeftY", "topRightX", "topRightY", "bottomRightX", "bottomRightY", "bottomLeftX", "bottomLeftY"]
     }
   }
 }
@@ -494,223 +409,274 @@ function renderCircle(ctx, { centerX, centerY, radius, color, fill, label }, bou
 **Example Tool Call:**
 ```json
 {
-  "name": "draw_rectangle",
+  "name": "draw_square",
   "arguments": {
-    "x1": -2,
-    "y1": 1,
-    "x2": 3,
-    "y2": 5,
-    "color": "purple",
-    "fill": true,
-    "label": "Rectangle ABCD"
+    "topLeftX": -2,
+    "topLeftY": 3,
+    "topRightX": 2,
+    "topRightY": 3,
+    "bottomRightX": 2,
+    "bottomRightY": -1,
+    "bottomLeftX": -2,
+    "bottomLeftY": -1
   }
 }
 ```
 
 **Frontend Rendering Logic:**
 ```javascript
-function renderRectangle(ctx, { x1, y1, x2, y2, color, fill, label }, bounds) {
-  const [cx1, cy1] = worldToCanvas(x1, y1, bounds);
-  const [cx2, cy2] = worldToCanvas(x2, y2, bounds);
-  
-  const width = cx2 - cx1;
-  const height = cy2 - cy1;
-  
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  
-  if (fill) {
-    ctx.fillStyle = color + '33';
-    ctx.fillRect(cx1, cy1, width, height);
-  }
-  
-  ctx.strokeRect(cx1, cy1, width, height);
-  
-  // Label
-  if (label) {
-    ctx.fillStyle = color;
-    ctx.font = '14px Arial';
-    ctx.fillText(label, cx1 + 5, cy1 + 20);
-  }
-}
-```
+// Frontend constants
+const SYSTEM_COLOR = '#2563eb'; // Blue
+const SYSTEM_LINE_WIDTH = 2;
 
----
-
-### Tool 5: `draw_polygon`
-
-**Purpose:** Draw arbitrary polygons from list of vertices
-
-```json
-{
-  "type": "function",
-  "function": {
-    "name": "draw_polygon",
-    "description": "Draw a polygon by connecting a series of points in order. Useful for triangles, pentagons, or irregular shapes.",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "points": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "x": { "type": "number" },
-              "y": { "type": "number" }
-            },
-            "required": ["x", "y"]
-          },
-          "description": "Array of coordinate points forming the polygon vertices"
-        },
-        "closed": {
-          "type": "boolean",
-          "default": true,
-          "description": "Whether to connect last point back to first"
-        },
-        "color": {
-          "type": "string",
-          "enum": ["blue", "red", "green", "purple", "orange"],
-          "default": "blue"
-        },
-        "fill": {
-          "type": "boolean",
-          "default": false
-        },
-        "label": {
-          "type": "string",
-          "description": "Optional label"
-        }
-      },
-      "required": ["points"]
-    }
-  }
-}
-```
-
-**Example Tool Call:**
-```json
-{
-  "name": "draw_polygon",
-  "arguments": {
-    "points": [
-      { "x": 0, "y": 0 },
-      { "x": 4, "y": 0 },
-      { "x": 2, "y": 3 }
-    ],
-    "closed": true,
-    "color": "orange",
-    "fill": true,
-    "label": "Triangle ABC"
-  }
-}
-```
-
-**Frontend Rendering Logic:**
-```javascript
-function renderPolygon(ctx, { points, closed, color, fill, label }, bounds) {
-  if (points.length < 2) return;
+function renderSquare(ctx, { topLeftX, topLeftY, topRightX, topRightY, bottomRightX, bottomRightY, bottomLeftX, bottomLeftY }, bounds) {
+  const points = [
+    worldToCanvas(topLeftX, topLeftY, bounds),
+    worldToCanvas(topRightX, topRightY, bounds),
+    worldToCanvas(bottomRightX, bottomRightY, bounds),
+    worldToCanvas(bottomLeftX, bottomLeftY, bounds)
+  ];
   
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+  // Draw square with frontend-controlled styling
+  ctx.strokeStyle = SYSTEM_COLOR;
+  ctx.lineWidth = SYSTEM_LINE_WIDTH;
   ctx.beginPath();
-  
-  // Move to first point
-  const [cx0, cy0] = worldToCanvas(points[0].x, points[0].y, bounds);
-  ctx.moveTo(cx0, cy0);
-  
-  // Draw lines to subsequent points
-  for (let i = 1; i < points.length; i++) {
-    const [cx, cy] = worldToCanvas(points[i].x, points[i].y, bounds);
-    ctx.lineTo(cx, cy);
-  }
-  
-  // Close path if requested
-  if (closed) {
-    ctx.closePath();
-  }
-  
-  if (fill) {
-    ctx.fillStyle = color + '33';
-    ctx.fill();
-  }
-  
+  ctx.moveTo(points[0][0], points[0][1]);
+  ctx.lineTo(points[1][0], points[1][1]);
+  ctx.lineTo(points[2][0], points[2][1]);
+  ctx.lineTo(points[3][0], points[3][1]);
+  ctx.closePath();
   ctx.stroke();
   
-  // Draw vertex points
-  ctx.fillStyle = color;
-  points.forEach(point => {
-    const [cx, cy] = worldToCanvas(point.x, point.y, bounds);
+  // Mark corner points
+  ctx.fillStyle = SYSTEM_COLOR;
+  points.forEach(([x, y]) => {
     ctx.beginPath();
-    ctx.arc(cx, cy, 3, 0, 2 * Math.PI);
+    ctx.arc(x, y, 3, 0, 2 * Math.PI);
     ctx.fill();
   });
-  
-  // Label
-  if (label) {
-    const [cx, cy] = worldToCanvas(points[0].x, points[0].y, bounds);
-    ctx.fillStyle = color;
-    ctx.font = '14px Arial';
-    ctx.fillText(label, cx + 10, cy - 10);
-  }
 }
 ```
 
 ---
 
-### Tool 6: `draw_point`
+### Tool 5: `draw_triangle`
 
-**Purpose:** Mark a specific point with coordinates
+**Purpose:** Draw a triangle given three vertex coordinates
+
+**LLM provides:** Three vertex coordinates (vertex1, vertex2, vertex3)  
+**Frontend decides:** Color (blue for system), line width (2px), whether to fill, all rendering logic
 
 ```json
 {
   "type": "function",
   "function": {
-    "name": "draw_point",
-    "description": "Mark a specific point on the coordinate plane with a dot and optional label.",
+    "name": "draw_triangle",
+    "description": "Draw a triangle on the coordinate plane. The plane spans from -10 to +10 on both axes. Provide the three vertex coordinates. Do NOT specify colors, fill, labels, or rendering options.",
     "parameters": {
       "type": "object",
       "properties": {
-        "x": {
+        "vertex1X": {
           "type": "number",
-          "description": "X-coordinate of the point"
+          "description": "X-coordinate of first vertex (between -10 and 10)"
         },
-        "y": {
+        "vertex1Y": {
           "type": "number",
-          "description": "Y-coordinate of the point"
+          "description": "Y-coordinate of first vertex (between -10 and 10)"
         },
-        "label": {
-          "type": "string",
-          "description": "Label for the point (e.g., 'A', '(2,3)', 'Vertex')"
+        "vertex2X": {
+          "type": "number",
+          "description": "X-coordinate of second vertex (between -10 and 10)"
         },
-        "color": {
-          "type": "string",
-          "enum": ["blue", "red", "green", "purple", "orange", "black"],
-          "default": "black"
+        "vertex2Y": {
+          "type": "number",
+          "description": "Y-coordinate of second vertex (between -10 and 10)"
+        },
+        "vertex3X": {
+          "type": "number",
+          "description": "X-coordinate of third vertex (between -10 and 10)"
+        },
+        "vertex3Y": {
+          "type": "number",
+          "description": "Y-coordinate of third vertex (between -10 and 10)"
         }
       },
-      "required": ["x", "y"]
+      "required": ["vertex1X", "vertex1Y", "vertex2X", "vertex2Y", "vertex3X", "vertex3Y"]
     }
+  }
+}
+```
+
+**Example Tool Call:**
+```json
+{
+  "name": "draw_triangle",
+  "arguments": {
+    "vertex1X": 0,
+    "vertex1Y": 4,
+    "vertex2X": -3,
+    "vertex2Y": -2,
+    "vertex3X": 3,
+    "vertex3Y": -2
   }
 }
 ```
 
 **Frontend Rendering Logic:**
 ```javascript
-function renderPoint(ctx, { x, y, label, color }, bounds) {
-  const [cx, cy] = worldToCanvas(x, y, bounds);
+// Frontend constants
+const SYSTEM_COLOR = '#2563eb'; // Blue
+const SYSTEM_LINE_WIDTH = 2;
+
+function renderTriangle(ctx, { vertex1X, vertex1Y, vertex2X, vertex2Y, vertex3X, vertex3Y }, bounds) {
+  const points = [
+    worldToCanvas(vertex1X, vertex1Y, bounds),
+    worldToCanvas(vertex2X, vertex2Y, bounds),
+    worldToCanvas(vertex3X, vertex3Y, bounds)
+  ];
   
-  // Draw point
-  ctx.fillStyle = color;
+  // Draw triangle with frontend-controlled styling
+  ctx.strokeStyle = SYSTEM_COLOR;
+  ctx.lineWidth = SYSTEM_LINE_WIDTH;
   ctx.beginPath();
-  ctx.arc(cx, cy, 4, 0, 2 * Math.PI);
-  ctx.fill();
+  ctx.moveTo(points[0][0], points[0][1]);
+  ctx.lineTo(points[1][0], points[1][1]);
+  ctx.lineTo(points[2][0], points[2][1]);
+  ctx.closePath();
+  ctx.stroke();
   
-  // Draw label
-  if (label) {
-    ctx.fillStyle = color;
-    ctx.font = '12px Arial';
-    ctx.fillText(label, cx + 8, cy - 8);
-  }
+  // Mark vertex points
+  ctx.fillStyle = SYSTEM_COLOR;
+  points.forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, 2 * Math.PI);
+    ctx.fill();
+  });
+}
+```
+
+---
+
+## State Management (Zustand)
+
+### Canvas Store: `canvasStore.js`
+
+All canvas state centralized in a Zustand store for predictable state updates and easy debugging.
+
+```javascript
+import { create } from 'zustand';
+
+export const useCanvasStore = create((set, get) => ({
+  // Fixed coordinate bounds for MVP
+  bounds: {
+    xMin: -10,
+    xMax: 10,
+    yMin: -10,
+    yMax: 10,
+    width: 800,  // Canvas pixel dimensions (can be updated)
+    height: 600
+  },
+  
+  // System renders (from LLM tool calls)
+  systemRenders: [],
+  
+  // User drawing strokes (future feature)
+  userStrokes: [],
+  
+  // Actions
+  addSystemRender: (render) => set((state) => ({
+    systemRenders: [...state.systemRenders, {
+      id: crypto.randomUUID(),
+      ...render,
+      timestamp: Date.now()
+    }]
+  })),
+  
+  clearSystemRenders: () => set({ systemRenders: [] }),
+  
+  clearAllCanvas: () => set({
+    systemRenders: [],
+    userStrokes: []
+  }),
+  
+  updateCanvasSize: (width, height) => set((state) => ({
+    bounds: {
+      ...state.bounds,
+      width,
+      height
+    }
+  })),
+  
+  addUserStroke: (stroke) => set((state) => ({
+    userStrokes: [...state.userStrokes, stroke]
+  })),
+  
+  clearUserStrokes: () => set({ userStrokes: [] })
+}));
+```
+
+### Usage in Components
+
+```javascript
+// In a component
+import { useCanvasStore } from './stores/canvasStore';
+
+function CanvasController() {
+  const { systemRenders, addSystemRender, clearAllCanvas } = useCanvasStore();
+  
+  // When LLM sends tool call
+  const handleToolCall = (toolCall) => {
+    addSystemRender({
+      type: toolCall.name,
+      params: JSON.parse(toolCall.arguments)
+    });
+  };
+  
+  return (
+    <div>
+      <button onClick={clearAllCanvas}>Clear Canvas</button>
+      <GraphCanvas />
+    </div>
+  );
+}
+```
+
+### Store Structure
+
+```typescript
+interface CanvasStore {
+  bounds: {
+    xMin: number;      // -10 (fixed for MVP)
+    xMax: number;      // +10 (fixed for MVP)
+    yMin: number;      // -10 (fixed for MVP)
+    yMax: number;      // +10 (fixed for MVP)
+    width: number;     // Canvas pixel width (responsive)
+    height: number;    // Canvas pixel height (responsive)
+  };
+  
+  systemRenders: SystemRender[];
+  userStrokes: UserStroke[];
+  
+  addSystemRender: (render: Partial<SystemRender>) => void;
+  clearSystemRenders: () => void;
+  clearAllCanvas: () => void;
+  updateCanvasSize: (width: number, height: number) => void;
+  addUserStroke: (stroke: UserStroke) => void;
+  clearUserStrokes: () => void;
+}
+
+interface SystemRender {
+  id: string;
+  type: 'draw_linear_function' | 'draw_quadratic_function' | 'draw_circle' | 'draw_square' | 'draw_triangle';
+  params: Record<string, any>;
+  timestamp: number;
+}
+
+interface UserStroke {
+  id: string;
+  points: { x: number; y: number; timestamp: number }[];
+  color: string;
+  lineWidth: number;
 }
 ```
 
@@ -743,22 +709,22 @@ function renderPoint(ctx, { x, y, label, color }, bounds) {
 
 ### Component 1: `GraphCanvas.jsx`
 
-**Purpose:** Core canvas component with three-layer architecture
+**Purpose:** Core canvas component with three-layer architecture using Zustand
 
 ```jsx
-import React, { useRef, useEffect, useCallback } from 'react';
-import { useGraphBounds } from './hooks/useGraphBounds';
-import { useCanvasLayers } from './hooks/useCanvasLayers';
+import React, { useRef, useEffect } from 'react';
+import { useCanvasStore } from '../stores/canvasStore';
+import { drawGrid } from '../utils/gridRenderer';
+import { renderSystemShape } from '../utils/shapeRenderer';
 
-export function GraphCanvas({ 
-  systemRenders = [], // Array of tool calls to render
-  userStrokes = [],   // Array of user drawing strokes
-  onUserDraw,         // Callback for user drawing events
-  width = 800,
-  height = 600
-}) {
+export function GraphCanvas({ width = 800, height = 600 }) {
   const canvasRef = useRef(null);
-  const [bounds, setBounds] = useGraphBounds(-10, 10, -10, 10, width, height);
+  const { bounds, systemRenders, userStrokes, updateCanvasSize } = useCanvasStore();
+  
+  // Update canvas size in store when dimensions change
+  useEffect(() => {
+    updateCanvasSize(width, height);
+  }, [width, height, updateCanvasSize]);
   
   // Draw all layers whenever dependencies change
   useEffect(() => {
@@ -770,7 +736,7 @@ export function GraphCanvas({
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
     
-    // Layer 1: Grid (static background)
+    // Layer 1: Grid (static background with fixed -10 to +10 bounds)
     drawGrid(ctx, bounds);
     
     // Layer 2: System renders (AI-generated shapes)
@@ -778,103 +744,75 @@ export function GraphCanvas({
       renderSystemShape(ctx, render, bounds);
     });
     
-    // Layer 3: User strokes
+    // Layer 3: User strokes (future feature)
     userStrokes.forEach(stroke => {
       drawStroke(ctx, stroke);
     });
     
-  }, [systemRenders, userStrokes, bounds]);
-  
-  // Handle user drawing
-  const handlePointerDown = useCallback((e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    onUserDraw?.({ type: 'start', x, y });
-  }, [onUserDraw]);
-  
-  // ... other pointer handlers
+  }, [systemRenders, userStrokes, bounds, width, height]);
   
   return (
-    <div className="canvas-container">
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        onPointerDown={handlePointerDown}
-        style={{ border: '1px solid #ccc', cursor: 'crosshair' }}
-      />
-      
-      {/* Zoom/Pan controls */}
-      <div className="canvas-controls">
-        <button onClick={() => setBounds(bounds => zoomIn(bounds))}>+</button>
-        <button onClick={() => setBounds(bounds => zoomOut(bounds))}>-</button>
-        <button onClick={() => setBounds(resetBounds)}>Reset</button>
-      </div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      style={{ border: '1px solid #ccc' }}
+    />
   );
 }
 ```
 
 ---
 
-### Component 2: `CanvasController.jsx`
+### Component 2: Integrating with Chat (Tool Call Handler)
 
-**Purpose:** Manages rendering state and tool call parsing
+**Purpose:** Parse LLM tool calls and add to Zustand store
 
 ```jsx
-import React, { useState, useEffect } from 'react';
-import { GraphCanvas } from './GraphCanvas';
+import { useEffect } from 'react';
+import { useCanvasStore } from '../stores/canvasStore';
 
-export function CanvasController({ toolCalls = [] }) {
-  const [systemRenders, setSystemRenders] = useState([]);
-  const [userStrokes, setUserStrokes] = useState([]);
+export function useChatToolCalls(messages) {
+  const { addSystemRender } = useCanvasStore();
   
-  // Parse and queue tool calls for rendering
   useEffect(() => {
-    const newRenders = toolCalls.map(parseToolCall).filter(Boolean);
-    setSystemRenders(prev => [...prev, ...newRenders]);
-  }, [toolCalls]);
+    // Extract tool calls from latest message
+    const latestMessage = messages[messages.length - 1];
+    if (!latestMessage?.toolCalls) return;
+    
+    latestMessage.toolCalls.forEach(toolCall => {
+      // Only process drawing tool calls
+      if (toolCall.name.startsWith('draw_')) {
+        try {
+          const params = typeof toolCall.arguments === 'string' 
+            ? JSON.parse(toolCall.arguments) 
+            : toolCall.arguments;
+          
+          addSystemRender({
+            type: toolCall.name,
+            params
+          });
+        } catch (error) {
+          console.error('Failed to parse tool call:', error);
+        }
+      }
+    });
+  }, [messages, addSystemRender]);
+}
+
+// Usage in Chat component
+function Chat() {
+  const { messages } = useChat({ api: '/api/chat' });
   
-  const handleUserDraw = (event) => {
-    // Handle user drawing events
-    setUserStrokes(prev => [...prev, event]);
-  };
-  
-  const clearCanvas = () => {
-    setSystemRenders([]);
-    setUserStrokes([]);
-  };
+  // Automatically process tool calls
+  useChatToolCalls(messages);
   
   return (
     <div>
-      <GraphCanvas
-        systemRenders={systemRenders}
-        userStrokes={userStrokes}
-        onUserDraw={handleUserDraw}
-      />
-      
-      <button onClick={clearCanvas}>Clear Canvas</button>
+      <MessageList messages={messages} />
+      <GraphCanvas />
     </div>
   );
-}
-
-function parseToolCall(toolCall) {
-  const { name, arguments: args } = toolCall;
-  
-  try {
-    const params = typeof args === 'string' ? JSON.parse(args) : args;
-    
-    return {
-      type: name,
-      params: params,
-      timestamp: Date.now()
-    };
-  } catch (error) {
-    console.error('Failed to parse tool call:', error);
-    return null;
-  }
 }
 ```
 
@@ -1369,68 +1307,67 @@ export function drawGrid(ctx, bounds) {
 
 ---
 
-## Task Breakdown
+## Task Breakdown (MVP)
 
-### Epic 1: Canvas Infrastructure
-- [ ] Task 1.1: Set up GraphCanvas component with refs
-- [ ] Task 1.2: Implement coordinate transformation utilities
-- [ ] Task 1.3: Create grid rendering function
-- [ ] Task 1.4: Add canvas sizing and responsiveness
-- [ ] Task 1.5: Write unit tests for coordinate transforms
+### Epic 1: State Management Setup
+- [ ] Task 1.1: Install dependencies (`zustand`, `mathjs`)
+- [ ] Task 1.2: Create Zustand canvas store (`canvasStore.js`)
+- [ ] Task 1.3: Define fixed bounds (-10 to +10) in store
+- [ ] Task 1.4: Add actions for system renders (add, clear)
+- [ ] Task 1.5: Test store with simple state updates
 
-### Epic 2: Tool Call System
-- [ ] Task 2.1: Define all 6 tool schemas in OpenAI prompt
-- [ ] Task 2.2: Create CanvasController component
-- [ ] Task 2.3: Implement tool call parser
-- [ ] Task 2.4: Build render dispatcher (switch statement)
-- [ ] Task 2.5: Test tool calls with hardcoded data
+### Epic 2: Coordinate System & Grid
+- [ ] Task 2.1: Implement `worldToCanvas` transformation
+- [ ] Task 2.2: Implement `canvasToWorld` transformation  
+- [ ] Task 2.3: Write unit tests for coordinate transforms
+- [ ] Task 2.4: Create grid rendering function with fixed bounds
+- [ ] Task 2.5: Add axis labels and tick marks
 
-### Epic 3: Shape Renderers
-- [ ] Task 3.1: Implement `renderLinearFunction`
-- [ ] Task 3.2: Implement `renderQuadraticFunction`
-- [ ] Task 3.3: Implement `renderCircle`
-- [ ] Task 3.4: Implement `renderRectangle`
-- [ ] Task 3.5: Implement `renderPolygon`
-- [ ] Task 3.6: Implement `renderPoint`
-- [ ] Task 3.7: Test each renderer individually
+### Epic 3: Core Canvas Component
+- [ ] Task 3.1: Create `GraphCanvas` component using Zustand
+- [ ] Task 3.2: Connect to canvas store for bounds and renders
+- [ ] Task 3.3: Implement canvas ref and context setup
+- [ ] Task 3.4: Add effect to redraw on state changes
+- [ ] Task 3.5: Test canvas renders grid correctly
 
-### Epic 4: Math Utilities
-- [ ] Task 4.1: Set up math.js integration
-- [ ] Task 4.2: Implement `evaluateExpression` with error handling
-- [ ] Task 4.3: Implement `generateFunctionPoints`
-- [ ] Task 4.4: Implement `findRoots` with bisection method
-- [ ] Task 4.5: Implement `findVertex` for quadratics
-- [ ] Task 4.6: Add unit tests for all math utilities
+### Epic 4: Shape Renderers
+- [ ] Task 4.1: Implement `renderLinearFunction` (equation only)
+- [ ] Task 4.2: Implement `renderQuadraticFunction` (equation only)
+- [ ] Task 4.3: Implement `renderCircle` (center + radius)
+- [ ] Task 4.4: Implement `renderSquare` (4 corners)
+- [ ] Task 4.5: Implement `renderTriangle` (3 vertices)
+- [ ] Task 4.6: Create unified `renderSystemShape` dispatcher
+- [ ] Task 4.7: Test each renderer with hardcoded data
 
-### Epic 5: User Drawing
-- [ ] Task 5.1: Add pointer event handlers to canvas
-- [ ] Task 5.2: Create stroke data structure
-- [ ] Task 5.3: Implement stroke rendering
-- [ ] Task 5.4: Add drawing tools UI (pen, eraser, colors)
-- [ ] Task 5.5: Implement clear canvas functionality
-- [ ] Task 5.6: Test drawing persistence alongside system renders
+### Epic 5: Tool Call Integration
+- [ ] Task 5.1: Define 5 tool schemas (simplified, no styling params)
+- [ ] Task 5.2: Add tools to OpenAI system prompt
+- [ ] Task 5.3: Include coordinate bounds info in prompt
+- [ ] Task 5.4: Create `useChatToolCalls` hook
+- [ ] Task 5.5: Parse tool calls and add to Zustand store
+- [ ] Task 5.6: Test with mock tool call data
 
-### Epic 6: Advanced Features
-- [ ] Task 6.1: Implement zoom controls (mouse wheel + buttons)
-- [ ] Task 6.2: Implement pan controls (click-drag)
-- [ ] Task 6.3: Add vertex/root marking for parabolas
-- [ ] Task 6.4: Optimize rendering performance
-- [ ] Task 6.5: Add error handling and user feedback
+### Epic 6: Chat Integration
+- [ ] Task 6.1: Integrate GraphCanvas into Chat component
+- [ ] Task 6.2: Connect tool calls from chat messages to canvas
+- [ ] Task 6.3: Add clear canvas button
+- [ ] Task 6.4: Test end-to-end with real LLM responses
+- [ ] Task 6.5: Handle edge cases (invalid equations, out of bounds)
 
-### Epic 7: Integration & Testing
-- [ ] Task 7.1: Integrate with existing chat UI
-- [ ] Task 7.2: Test with real OpenAI streaming responses
-- [ ] Task 7.3: Test all 6 tool types end-to-end
+### Epic 7: Polish & Testing
+- [ ] Task 7.1: Add error handling for math.js evaluation
+- [ ] Task 7.2: Test all 5 tool types end-to-end
+- [ ] Task 7.3: Verify consistent blue styling
 - [ ] Task 7.4: Cross-browser testing
-- [ ] Task 7.5: Mobile responsiveness testing
-- [ ] Task 7.6: Write integration tests
+- [ ] Task 7.5: Write inline documentation
 
-### Epic 8: Documentation & Polish
-- [ ] Task 8.1: Write inline code documentation
-- [ ] Task 8.2: Create README with setup instructions
-- [ ] Task 8.3: Document tool usage for prompt engineering
-- [ ] Task 8.4: Add accessibility features
-- [ ] Task 8.5: Final QA pass
+**Post-MVP Features (Future):**
+- User drawing layer
+- Zoom/pan controls
+- Additional shapes (polygons, ellipses)
+- Color customization
+- Vertex/root highlighting
+- Animation support
 
 ---
 
@@ -1810,36 +1747,42 @@ function ChatWithCanvas() {
 ```
 You are a patient, encouraging math tutor using the Socratic method.
 
+COORDINATE PLANE DETAILS:
+- The coordinate plane is FIXED at -10 to +10 on both X and Y axes
+- This is a standard 4-quadrant Cartesian plane
+- All coordinates you provide MUST be within these bounds (-10 ≤ x ≤ 10, -10 ≤ y ≤ 10)
+
 AVAILABLE TOOLS FOR VISUALIZATION:
 You have access to the following drawing tools to visualize mathematical concepts:
 
-1. draw_linear_function - For straight lines (y = mx + b)
-2. draw_quadratic_function - For parabolas (y = ax² + bx + c)
-3. draw_circle - For circles (center + radius)
-4. draw_rectangle - For rectangles
-5. draw_polygon - For triangles, pentagons, etc.
-6. draw_point - For marking specific coordinates
+1. draw_linear_function - For straight lines (provide equation ONLY, e.g., "2*x + 3")
+2. draw_quadratic_function - For parabolas (provide equation ONLY, e.g., "x^2 - 4*x + 3")
+3. draw_circle - For circles (provide center coordinates and radius)
+4. draw_square - For squares (provide four corner coordinates)
+5. draw_triangle - For triangles (provide three vertex coordinates)
+
+CRITICAL TOOL GUIDELINES:
+- Provide ONLY the minimal required data (equations or coordinates)
+- DO NOT specify colors, labels, fills, or any styling - the system handles this
+- Keep equations in math.js syntax: use * for multiplication, ^ for exponents
+- For shapes, provide coordinate points within the -10 to +10 bounds
+- The system will automatically render everything with consistent blue styling
 
 WHEN TO USE TOOLS:
 - When a student asks to visualize a function: "Can you graph y = 2x + 3?"
 - When explaining concepts visually: "Let's see what this parabola looks like"
-- When showing geometric relationships: "Here's a right triangle with sides 3, 4, 5"
-
-TOOL USAGE GUIDELINES:
-- Always use the MOST SPECIFIC tool for the task
-- For y = 2x + 3, use draw_linear_function, NOT draw_polygon
-- For circles, use draw_circle, NOT draw_polygon
-- Include appropriate labels and colors
-- Show vertex for parabolas when relevant
-- Mark important points (intercepts, vertices, etc.)
+- When showing geometric shapes: "Here's a right triangle"
 
 EXAMPLE INTERACTIONS:
 
 Student: "Can you graph y = x² - 4?"
-You: "Absolutely! Let's visualize this parabola. [call draw_quadratic_function with equation='x^2 - 4', showVertex=true, showRoots=true]. Notice how it opens upward and crosses the x-axis at two points. Where do you think the vertex is located?"
+You: "Absolutely! Let's visualize this parabola. [call draw_quadratic_function with equation='x^2 - 4']. Notice how it opens upward and crosses the x-axis at two points. Where do you think the vertex is located?"
 
 Student: "Draw a circle with center (2, 3) and radius 4"
-You: "Sure! [call draw_circle with centerX=2, centerY=3, radius=4]. There's your circle. What can you tell me about the points on this circle?"
+You: "Sure! [call draw_circle with centerX=2, centerY=3, radius=4]. There's your circle. What can you tell me about the relationship between the center and any point on the circle?"
+
+Student: "Show me a right triangle"
+You: "Great! Let's draw a right triangle. [call draw_triangle with vertex1X=0, vertex1Y=0, vertex2X=3, vertex2Y=0, vertex3X=0, vertex3Y=4]. This is a 3-4-5 right triangle. Can you identify which angle is the right angle?"
 ```
 
 ---
@@ -1968,7 +1911,11 @@ test('renders linear function correctly', () => {
 ## Summary
 
 This TDD provides:
-- ✅ **6 explicit, deterministic tool definitions**
+- ✅ **5 minimal, deterministic tool definitions** (linear, quadratic, circle, square, triangle)
+- ✅ **LLM-simplified tool calls** (equations/coordinates only, no styling decisions)
+- ✅ **Frontend-controlled rendering** (all colors, line widths, styling determined by frontend)
+- ✅ **Fixed coordinate bounds** (-10 to +10, no zoom/pan for MVP)
+- ✅ **Zustand state management** (centralized canvas state)
 - ✅ **Complete rendering engine with math.js**
 - ✅ **Three-layer canvas architecture**
 - ✅ **Coordinate transformation system**
@@ -1976,13 +1923,22 @@ This TDD provides:
 - ✅ **Working code examples**
 - ✅ **Detailed implementation tasks**
 
-**Next Steps:**
-1. Copy relevant code into your repo
-2. Follow the Phase 1-7 implementation guide
-3. Test each Epic independently
-4. Integrate with existing chat UI
-5. Deploy and iterate
+**Key Simplifications for MVP:**
+- Fixed -10 to +10 coordinate plane (no zoom/pan complexity)
+- LLM only provides equations or coordinate points
+- All styling (colors, line widths) hardcoded on frontend
+- Reduced shape set: circle, square, triangle only
+- Zustand for state management (easier to track changes)
 
-**Estimated Timeline:** 7-10 days for full implementation
+**Next Steps:**
+1. Install dependencies: `npm install zustand mathjs`
+2. Create Zustand canvas store
+3. Implement coordinate transformation utilities
+4. Create rendering functions for each tool type
+5. Integrate with existing chat UI
+6. Add system prompt with coordinate bounds info
+7. Test and iterate
+
+**Estimated Timeline:** 3-5 days for MVP implementation
 
 **Questions or Need Clarification?** This document should serve as your complete implementation roadmap. Refer back to specific sections as you build each component.
