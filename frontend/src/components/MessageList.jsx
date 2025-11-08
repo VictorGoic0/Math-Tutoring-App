@@ -56,23 +56,13 @@ function TypingIndicator() {
 
 function MessageList({ messages, isLoading = false }) {
   const containerRef = useRef(null);
-  const bottomAnchorRef = useRef(null);
+  const bottomRef = useRef(null);
 
-  // Auto-scroll to bottom when messages change, with retries for dynamic content (LaTeX)
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    const scrollToBottom = () => {
-      bottomAnchorRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    // Initial scroll
-    scrollToBottom();
-    
-    // Retry after delays to handle LaTeX rendering
-    const timeouts = [50, 150, 300].map(delay => 
-      setTimeout(scrollToBottom, delay)
-    );
-
-    return () => timeouts.forEach(clearTimeout);
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const emptyStateStyles = {
@@ -330,8 +320,7 @@ function MessageList({ messages, isLoading = false }) {
           </div>
         );
       })}
-      {/* Anchor element for smooth scrolling to bottom */}
-      <div ref={bottomAnchorRef} style={{ height: '1px' }} />
+      <div ref={bottomRef} style={{ height: 0 }} />
       </div>
     </>
   );
